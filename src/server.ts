@@ -40,4 +40,28 @@ app.post<{
     return nuevapelicula;
 });
 
+app.put<{
+    Params: { id: string };
+    Body: {
+        nombre: string;
+        duracion: number;
+        genero: string;
+        descripcion: string;
+    };
+}>('/peliculas/:id', async (request) => {
+
+    const id = Number(request.params.id);
+
+    const index = peliculas.findIndex((pelicula) => pelicula.id === id);
+
+    if (index === -1) {
+        return { mensaje: 'pelicula no encontrada' };
+    }
+
+    const { nombre, duracion, genero, descripcion } = request.body;
+    peliculas[index] = { id, nombre, duracion, genero, descripcion };
+    return peliculas[index];
+
+});
+
 app.listen({ port: 3000 });
