@@ -24,5 +24,20 @@ app.get<{ Params: { id: string } }>('/peliculas/:id', async (request) => {
 
 });
 
-app.listen({ port: 3000 });
+app.post<{
+    Body: {
+        nombre: string;
+        duracion: number;
+        genero: string;
+        descripcion: string;
+    }
+}>('/peliculas', async (request) => {
 
+    const { nombre, duracion, genero, descripcion } = request.body;
+    const id=peliculas.length + 1;
+    const nuevapelicula= {id,nombre,duracion,genero,descripcion};
+    peliculas.push(nuevapelicula);
+    return nuevapelicula;
+});
+
+app.listen({ port: 3000 });
