@@ -15,4 +15,14 @@ app.get('/peliculas', async () => {
   return { peliculas };
 });
 
+
+
+app.get<{ Params: { id: string } }>('/peliculas/:id', async (request) => {
+    const id = Number(request.params.id);
+    const pelicula =peliculas.find((pelicula)=>pelicula.id ===id);
+    return {pelicula};
+
+});
+
 app.listen({ port: 3000 });
+
