@@ -64,4 +64,20 @@ app.put<{
 
 });
 
+app.delete<{
+    Params: { id: string };
+}>('/peliculas/:id', async (request) => {
+
+    const id = Number(request.params.id);
+
+    const index = peliculas.findIndex((pelicula) => pelicula.id === id);
+
+    if (index === -1) {
+        return { mensaje: 'pelicula no encontrada' };
+    }
+
+    peliculas.splice(index, 1);
+
+    return { mensaje: 'pelicula eliminada' };
+});
 app.listen({ port: 3000 });
