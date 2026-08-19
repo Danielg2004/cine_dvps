@@ -53,4 +53,49 @@ export async function reservasRoutes(app: FastifyInstance) {
 
     return nuevaReserva;
 });
+
+app.put<{
+    Params: { id: string };
+    Body: {
+        pelicula_id: number;
+        sala_id: number;
+        cantidad_de_entradas: number;
+        precio_total: number;
+        nombre_cliente: string;
+        fecha_reserva: string;
+        hora_reserva: string;
+    };
+}>('/reservas/:id', async (request) => {
+
+    const id = Number(request.params.id);
+
+    const index = reservas.findIndex((reserva) => reserva.id === id);
+
+    if (index === -1) {
+        return { mensaje: 'reserva no encontrada' };
+    }
+
+    const {
+        pelicula_id,
+        sala_id,
+        cantidad_de_entradas,
+        precio_total,
+        nombre_cliente,
+        fecha_reserva,
+        hora_reserva
+    } = request.body;
+
+    reservas[index] = {
+        id,
+        pelicula_id,
+        sala_id,
+        cantidad_de_entradas,
+        precio_total,
+        nombre_cliente,
+        fecha_reserva,
+        hora_reserva
+    };
+
+    return reservas[index];
+});
 }
