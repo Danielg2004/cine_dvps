@@ -1,24 +1,37 @@
 import type { FastifyInstance } from 'fastify';
-import { reservas } from '../data/reserva.js';
+import { db } from '../database.js';
 
 export async function reservasRoutes(app: FastifyInstance) {
 
-
+    // GET - Obtener todas las reservas
     app.get('/reservas', async () => {
+
+        const [reservas] = await db.query(
+            'SELECT * FROM reservas'
+        );
+
         return reservas;
     });
 
+
     // GET - Obtener una reserva por ID
-    app.get<{ Params: { id: string } }>('/reservas/:id', async (request) => {
+    app.get<{ Params: { id: string } }>(
+        '/reservas/:id',
+        async (request) => {
 
-        const id = Number(request.params.id);
+            const id = Number(request.params.id);
 
-        const reserva = reservas.find((reserva) => reserva.id === id);
+            const [reservas] = await db.query(
+                'SELECT * FROM reservas WHERE id = ?',
+                [id]
+            );
 
-        return { reserva };
-    });
+            return reservas;
+        }
+    );
 
 
+    // POST - Crear una reserva
     app.post<{
         Body: {
             pelicula_id: number;
@@ -41,10 +54,31 @@ export async function reservasRoutes(app: FastifyInstance) {
             hora_reserva
         } = request.body;
 
-        const id = reservas.length + 1;
+        const [resultado]: any = await db.query(
+            `INSERT INTO reservas
+            (
+                pelicula_id,
+                sala_id,
+                cantidad_de_entradas,
+                precio_total,
+                nombre_cliente,
+                fecha_reserva,
+                hora_reserva
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                pelicula_id,
+                sala_id,
+                cantidad_de_entradas,
+                precio_total,
+                nombre_cliente,
+                fecha_reserva,
+                hora_reserva
+            ]
+        );
 
-        const nuevaReserva = {
-            id,
+        return {
+            id: resultado.insertId,
             pelicula_id,
             sala_id,
             cantidad_de_entradas,
@@ -53,13 +87,10 @@ export async function reservasRoutes(app: FastifyInstance) {
             fecha_reserva,
             hora_reserva
         };
-
-        reservas.push(nuevaReserva);
-
-        return nuevaReserva;
     });
 
 
+    // PUT - Actualizar una reserva
     app.put<{
         Params: { id: string };
         Body: {
@@ -75,12 +106,6 @@ export async function reservasRoutes(app: FastifyInstance) {
 
         const id = Number(request.params.id);
 
-        const index = reservas.findIndex((reserva) => reserva.id === id);
-
-        if (index === -1) {
-            return { mensaje: 'reserva no encontrada' };
-        }
-
         const {
             pelicula_id,
             sala_id,
@@ -91,7 +116,35 @@ export async function reservasRoutes(app: FastifyInstance) {
             hora_reserva
         } = request.body;
 
-        reservas[index] = {
+        const [resultado]: any = await db.query(
+            `UPDATE reservas
+            SET pelicula_id = ?,
+                sala_id = ?,
+                cantidad_de_entradas = ?,
+                precio_total = ?,
+                nombre_cliente = ?,
+                fecha_reserva = ?,
+                hora_reserva = ?
+            WHERE id = ?`,
+            [
+                pelicula_id,
+                sala_id,
+                cantidad_de_entradas,
+                precio_total,
+                nombre_cliente,
+                fecha_reserva,
+                hora_reserva,
+                id
+            ]
+        );
+
+        if (resultado.affectedRows === 0) {
+            return {
+                mensaje: 'reserva no encontrada'
+            };
+        }
+
+        return {
             id,
             pelicula_id,
             sala_id,
@@ -101,25 +154,30 @@ export async function reservasRoutes(app: FastifyInstance) {
             fecha_reserva,
             hora_reserva
         };
-
-        return reservas[index];
     });
 
+
+    // DELETE - Eliminar una reserva
     app.delete<{
         Params: { id: string };
     }>('/reservas/:id', async (request) => {
 
         const id = Number(request.params.id);
 
-        const index = reservas.findIndex((reserva) => reserva.id === id);
+        const [resultado]: any = await db.query(
+            'DELETE FROM reservas WHERE id = ?',
+            [id]
+        );
 
-        if (index === -1) {
-            return { mensaje: 'reserva no encontrada' };
+        if (resultado.affectedRows === 0) {
+            return {
+                mensaje: 'reserva no encontrada'
+            };
         }
 
-        reservas.splice(index, 1);
-
-        return { mensaje: 'reserva eliminada' };
+        return {
+            mensaje: 'reserva eliminada'
+        };
     });
 
 }
