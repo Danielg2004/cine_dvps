@@ -55,6 +55,23 @@ export async function salasRoutes(app: FastifyInstance) {
         return salas[index];
         
 
-    });
     
+    });
+
+    app.delete<{
+    Params: { id: string };
+}>('/salas/:id', async (request) => {
+
+    const id = Number(request.params.id);
+
+    const index = salas.findIndex((sala) => sala.id === id);
+
+    if (index === -1) {
+        return { mensaje: 'sala no encontrada' };
+    }
+
+    salas.splice(index, 1);
+
+    return { mensaje: 'sala eliminada' };
+});
 }
