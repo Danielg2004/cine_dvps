@@ -6,6 +6,6 @@ export const reservas=[{
     cantidad_de_entradas:2,
     precio_total:200,
     nombre_cliente:"samuel giraldo",
-    fecha_de_reserva:"2023-06-01",
-    hora_de_reserva:"10:00"
+    fecha_reserva:"2023-06-01",
+    hora_reserva:"10:00"
 }]
