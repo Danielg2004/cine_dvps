@@ -13,4 +13,44 @@ export async function reservasRoutes(app: FastifyInstance) {
     return {reserva};
 
 });
+
+ app.post<{
+    Body: {
+        pelicula_id: number;
+        sala_id: number;
+        cantidad_de_entradas: number;
+        precio_total: number;
+        nombre_cliente: string;
+        fecha_reserva: string;
+        hora_reserva: string;
+    };
+}>('/reservas', async (request) => {
+
+    const {
+        pelicula_id,
+        sala_id,
+        cantidad_de_entradas,
+        precio_total,
+        nombre_cliente,
+        fecha_reserva,
+        hora_reserva
+    } = request.body;
+
+    const id = reservas.length + 1;
+
+    const nuevaReserva = {
+        id,
+        pelicula_id,
+        sala_id,
+        cantidad_de_entradas,
+        precio_total,
+        nombre_cliente,
+        fecha_reserva,
+        hora_reserva
+    };
+
+    reservas.push(nuevaReserva);
+
+    return nuevaReserva;
+});
 }
