@@ -1,34 +1,76 @@
 import type { FastifyInstance } from 'fastify';
-import { peliculas } from '../data/peliculas.js';
+import { db } from '../database.js';
 
 export async function peliculasRoutes(app: FastifyInstance) {
 
-  app.get('/peliculas', async () => {
-    return peliculas;
-  });
+    // GET - Obtener todas las películas
+    app.get('/peliculas', async () => {
 
-  app.get<{ Params: { id: string } }>('/peliculas/:id', async (request) => {
-    const id = Number(request.params.id);
-    const pelicula =peliculas.find((pelicula)=>pelicula.id ===id);
-    return {pelicula};
+        const [peliculas] = await db.query(
+            'SELECT * FROM peliculas'
+        );
 
-});
+        return peliculas;
+    });
+
+
+    // GET - Obtener una película por ID
+    app.get<{ Params: { id: string } }>(
+        '/peliculas/:id',
+        async (request) => {
+
+            const id = Number(request.params.id);
+
+            const [peliculas] = await db.query(
+                'SELECT * FROM peliculas WHERE id = ?',
+                [id]
+            );
+
+            return peliculas;
+        }
+    );
+
+
+    // POST - Crear una película
     app.post<{
         Body: {
             nombre: string;
             duracion: number;
             genero: string;
             descripcion: string;
-        }
+        };
     }>('/peliculas', async (request) => {
 
-        const { nombre, duracion, genero, descripcion } = request.body;
-        const id=peliculas.length + 1;
-        const nuevapelicula= {id,nombre,duracion,genero,descripcion};
-        peliculas.push(nuevapelicula);
-        return nuevapelicula;
+        const {
+            nombre,
+            duracion,
+            genero,
+            descripcion
+        } = request.body;
+
+        const [resultado]: any = await db.query(
+            `INSERT INTO peliculas
+            (nombre, duracion, genero, descripcion)
+            VALUES (?, ?, ?, ?)`,
+            [
+                nombre,
+                duracion,
+                genero,
+                descripcion
+            ]
+        );
+
+        return {
+            id: resultado.insertId,
+            nombre,
+            duracion,
+            genero,
+            descripcion
+        };
     });
 
+
+    // PUT - Actualizar una película
     app.put<{
         Params: { id: string };
         Body: {
@@ -41,36 +83,66 @@ export async function peliculasRoutes(app: FastifyInstance) {
 
         const id = Number(request.params.id);
 
-        const index = peliculas.findIndex((pelicula) => pelicula.id === id);
+        const {
+            nombre,
+            duracion,
+            genero,
+            descripcion
+        } = request.body;
 
-         if (index === -1) {
-            return { mensaje: 'pelicula no encontrada' };
+        const [resultado]: any = await db.query(
+            `UPDATE peliculas
+            SET nombre = ?,
+                duracion = ?,
+                genero = ?,
+                descripcion = ?
+            WHERE id = ?`,
+            [
+                nombre,
+                duracion,
+                genero,
+                descripcion,
+                id
+            ]
+        );
+
+        if (resultado.affectedRows === 0) {
+            return {
+                mensaje: 'pelicula no encontrada'
+            };
         }
 
-        const { nombre, duracion, genero, descripcion } = request.body;
-        peliculas[index] = { id, nombre, duracion, genero, descripcion };
-        return peliculas[index];
+        return {
+            id,
+            nombre,
+            duracion,
+            genero,
+            descripcion
+        };
     });
 
 
+    // DELETE - Eliminar una película
     app.delete<{
         Params: { id: string };
     }>('/peliculas/:id', async (request) => {
 
         const id = Number(request.params.id);
 
-        const index = peliculas.findIndex((pelicula) => pelicula.id === id);
+        const [resultado]: any = await db.query(
+            'DELETE FROM peliculas WHERE id = ?',
+            [id]
+        );
 
-        if (index === -1) {
-            return { mensaje: 'pelicula no encontrada' };
+        if (resultado.affectedRows === 0) {
+            return {
+                mensaje: 'pelicula no encontrada'
+            };
         }
 
-        peliculas.splice(index, 1);
-
-        return { mensaje: 'pelicula eliminada' };
+        return {
+            mensaje: 'pelicula eliminada'
+        };
     });
-    app.listen({ port: 3000 });
+
 }
-
-
-
