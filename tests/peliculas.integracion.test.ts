@@ -5,6 +5,7 @@ const app = buildApp();
 
 describe('Integración de películas', () => {
 
+
     it('debe responder correctamente al GET /peliculas', async () => {
 
         const response = await app.inject({
@@ -18,6 +19,7 @@ describe('Integración de películas', () => {
 
         expect(Array.isArray(body)).toBe(true);
     });
+
 
 
     it('debe crear una pelicula con POST /peliculas', async () => {
@@ -40,6 +42,37 @@ describe('Integración de películas', () => {
         expect(body).toHaveProperty('id');
         expect(body.nombre).toBe('Pelicula de prueba');
         expect(body.duracion).toBe(120);
+    });
+
+
+
+    it('debe obtener una pelicula por ID', async () => {
+
+        // Primero creamos una película
+        const crearResponse = await app.inject({
+            method: 'POST',
+            url: '/peliculas',
+            payload: {
+                nombre: 'Pelicula GET ID',
+                duracion: 110,
+                genero: 'Drama',
+                descripcion: 'Pelicula para probar GET por ID'
+            }
+        });
+
+        const peliculaCreada = crearResponse.json();
+
+        const response = await app.inject({
+            method: 'GET',
+            url: `/peliculas/${peliculaCreada.id}`
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const body = response.json();
+
+        expect(body[0].id).toBe(peliculaCreada.id);
+        expect(body[0].nombre).toBe('Pelicula GET ID');
     });
 
 });
