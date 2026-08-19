@@ -21,7 +21,7 @@ describe('Integración de películas', () => {
     });
 
 
- 
+
     it('debe crear una pelicula con POST /peliculas', async () => {
 
         const response = await app.inject({
@@ -45,7 +45,7 @@ describe('Integración de películas', () => {
     });
 
 
-
+ 
     it('debe obtener una pelicula por ID', async () => {
 
         const crearResponse = await app.inject({
@@ -73,6 +73,7 @@ describe('Integración de películas', () => {
         expect(body[0].id).toBe(peliculaCreada.id);
         expect(body[0].nombre).toBe('Pelicula GET ID');
     });
+
 
 
     it('debe actualizar una pelicula con PUT /peliculas/:id', async () => {
@@ -109,6 +110,37 @@ describe('Integración de películas', () => {
         expect(body.nombre).toBe('Pelicula actualizada');
         expect(body.duracion).toBe(130);
         expect(body.genero).toBe('Ciencia ficcion');
+    });
+
+
+   
+    it('debe eliminar una pelicula con DELETE /peliculas/:id', async () => {
+
+  
+        const crearResponse = await app.inject({
+            method: 'POST',
+            url: '/peliculas',
+            payload: {
+                nombre: 'Pelicula para eliminar',
+                duracion: 90,
+                genero: 'Terror',
+                descripcion: 'Pelicula creada para probar DELETE'
+            }
+        });
+
+        const peliculaCreada = crearResponse.json();
+
+
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/peliculas/${peliculaCreada.id}`
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const body = response.json();
+
+        expect(body.mensaje).toBe('pelicula eliminada');
     });
 
 });
