@@ -5,6 +5,7 @@ const app = buildApp();
 
 describe('Integración de salas', () => {
 
+
     it('debe responder correctamente al GET /salas', async () => {
 
         const response = await app.inject({
@@ -20,7 +21,7 @@ describe('Integración de salas', () => {
     });
 
 
- 
+   
     it('debe crear una sala con POST /salas', async () => {
 
         const peliculaResponse = await app.inject({
@@ -58,7 +59,7 @@ describe('Integración de salas', () => {
     });
 
 
-  
+    
     it('debe obtener una sala por ID', async () => {
 
         const peliculaResponse = await app.inject({
@@ -103,9 +104,8 @@ describe('Integración de salas', () => {
     });
 
 
-  
-    it('debe actualizar una sala con PUT /salas/:id', async () => {
 
+    it('debe actualizar una sala con PUT /salas/:id', async () => {
 
         const peliculaResponse = await app.inject({
             method: 'POST',
@@ -120,7 +120,6 @@ describe('Integración de salas', () => {
 
         const pelicula = peliculaResponse.json();
 
-     
         const salaResponse = await app.inject({
             method: 'POST',
             url: '/salas',
@@ -133,7 +132,6 @@ describe('Integración de salas', () => {
         });
 
         const salaCreada = salaResponse.json();
-
 
         const response = await app.inject({
             method: 'PUT',
@@ -155,6 +153,48 @@ describe('Integración de salas', () => {
         expect(body.capacidad).toBe(120);
         expect(body.hora_de_inicio).toBe('21:00:00');
         expect(body.pelicula_id).toBe(pelicula.id);
+    });
+
+
+   
+    it('debe eliminar una sala con DELETE /salas/:id', async () => {
+
+        const peliculaResponse = await app.inject({
+            method: 'POST',
+            url: '/peliculas',
+            payload: {
+                nombre: 'Pelicula para eliminar sala',
+                duracion: 105,
+                genero: 'Suspenso',
+                descripcion: 'Pelicula utilizada para probar DELETE de sala'
+            }
+        });
+
+        const pelicula = peliculaResponse.json();
+
+        const salaResponse = await app.inject({
+            method: 'POST',
+            url: '/salas',
+            payload: {
+                numero: 40,
+                capacidad: 70,
+                hora_de_inicio: '22:00:00',
+                pelicula_id: pelicula.id
+            }
+        });
+
+        const salaCreada = salaResponse.json();
+
+        const response = await app.inject({
+            method: 'DELETE',
+            url: `/salas/${salaCreada.id}`
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const body = response.json();
+
+        expect(body.mensaje).toBe('sala eliminada');
     });
 
 });
