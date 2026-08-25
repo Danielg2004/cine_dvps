@@ -20,7 +20,7 @@ describe('Integración de salas', () => {
     });
 
 
-
+ 
     it('debe crear una sala con POST /salas', async () => {
 
         const peliculaResponse = await app.inject({
@@ -58,10 +58,9 @@ describe('Integración de salas', () => {
     });
 
 
-   
+  
     it('debe obtener una sala por ID', async () => {
 
-   
         const peliculaResponse = await app.inject({
             method: 'POST',
             url: '/peliculas',
@@ -75,7 +74,6 @@ describe('Integración de salas', () => {
 
         const pelicula = peliculaResponse.json();
 
-   
         const salaResponse = await app.inject({
             method: 'POST',
             url: '/salas',
@@ -89,7 +87,6 @@ describe('Integración de salas', () => {
 
         const salaCreada = salaResponse.json();
 
-  
         const response = await app.inject({
             method: 'GET',
             url: `/salas/${salaCreada.id}`
@@ -105,7 +102,63 @@ describe('Integración de salas', () => {
         expect(body[0].pelicula_id).toBe(pelicula.id);
     });
 
+
+  
+    it('debe actualizar una sala con PUT /salas/:id', async () => {
+
+
+        const peliculaResponse = await app.inject({
+            method: 'POST',
+            url: '/peliculas',
+            payload: {
+                nombre: 'Pelicula para actualizar sala',
+                duracion: 125,
+                genero: 'Comedia',
+                descripcion: 'Pelicula utilizada para probar PUT de sala'
+            }
+        });
+
+        const pelicula = peliculaResponse.json();
+
+     
+        const salaResponse = await app.inject({
+            method: 'POST',
+            url: '/salas',
+            payload: {
+                numero: 30,
+                capacidad: 60,
+                hora_de_inicio: '16:00:00',
+                pelicula_id: pelicula.id
+            }
+        });
+
+        const salaCreada = salaResponse.json();
+
+
+        const response = await app.inject({
+            method: 'PUT',
+            url: `/salas/${salaCreada.id}`,
+            payload: {
+                numero: 31,
+                capacidad: 120,
+                hora_de_inicio: '21:00:00',
+                pelicula_id: pelicula.id
+            }
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const body = response.json();
+
+        expect(body.id).toBe(salaCreada.id);
+        expect(body.numero).toBe(31);
+        expect(body.capacidad).toBe(120);
+        expect(body.hora_de_inicio).toBe('21:00:00');
+        expect(body.pelicula_id).toBe(pelicula.id);
+    });
+
 });
+
 
 afterAll(async () => {
     await app.close();
