@@ -10,4 +10,7 @@ try {
     console.error('Error al conectar con MySQL:', error);
 }
 
-app.listen({ port: 3000 });
+app.listen({
+    port: 3000,
+    host: '0.0.0.0'
+});
