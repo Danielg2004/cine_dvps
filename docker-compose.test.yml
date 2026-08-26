@@ -1,0 +1,46 @@
+services:
+  mysql-test:
+    image: mysql:8.4
+    container_name: cine-mysql-test
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+
+    ports:
+      - "3308:3306"
+
+    volumes:
+      - cine_mysql_test_data:/var/lib/mysql
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -P 3306 -p${DB_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+
+  api-test:
+    build: .
+    container_name: cine-api-test
+    restart: unless-stopped
+
+    ports:
+      - "3001:3000"
+
+    environment:
+      DB_HOST: mysql-test
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: 3306
+      NODE_ENV: test
+
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+
+volumes:
+  cine_mysql_test_data:
