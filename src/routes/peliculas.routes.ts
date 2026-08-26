@@ -3,7 +3,6 @@ import { db } from '../database.js';
 
 export async function peliculasRoutes(app: FastifyInstance) {
 
-    // GET - Obtener todas las películas
     app.get('/peliculas', async () => {
 
         const [peliculas] = await db.query(
@@ -14,7 +13,7 @@ export async function peliculasRoutes(app: FastifyInstance) {
     });
 
 
-    // GET - Obtener una película por ID
+  
     app.get<{ Params: { id: string } }>(
         '/peliculas/:id',
         async (request) => {
@@ -31,7 +30,7 @@ export async function peliculasRoutes(app: FastifyInstance) {
     );
 
 
-    // POST - Crear una película
+   
     app.post<{
         Body: {
             nombre: string;
@@ -70,7 +69,6 @@ export async function peliculasRoutes(app: FastifyInstance) {
     });
 
 
-    // PUT - Actualizar una película
     app.put<{
         Params: { id: string };
         Body: {
@@ -122,7 +120,7 @@ export async function peliculasRoutes(app: FastifyInstance) {
     });
 
 
-    // DELETE - Eliminar una película
+  
     app.delete<{
         Params: { id: string };
     }>('/peliculas/:id', async (request) => {
