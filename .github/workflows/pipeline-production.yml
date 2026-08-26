@@ -53,3 +53,11 @@ jobs:
 
       - name: Validar cobertura minima de produccion
         run: npx vitest run --coverage --coverage.thresholds.statements=85 --coverage.thresholds.lines=85 --coverage.thresholds.functions=85
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Desplegar ambiente de produccion en Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.CLAVE_DESPLIEGUE_PRODUCCION }}
+        run: railway up --service cine_dvps --ci
