@@ -1,0 +1,55 @@
+name: Pipeline de Produccion
+
+'on':
+  push:
+    branches:
+      - main
+
+jobs:
+  produccion:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root123
+          MYSQL_DATABASE: cine_dvps_prod
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot123 --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=15
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USER: root
+      DB_PASSWORD: root123
+      DB_NAME: cine_dvps_prod
+      DB_PORT: 3306
+      NODE_ENV: production
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Crear tablas de produccion
+        run: |
+          mysql -h 127.0.0.1 -u root -proot123 cine_dvps_prod < docker/init.sql
+
+      - name: Ejecutar pruebas automatizadas
+        run: npm test
+
+      - name: Validar cobertura minima de produccion
+        run: npx vitest run --coverage --coverage.thresholds.statements=85 --coverage.thresholds.lines=85 --coverage.thresholds.functions=85
