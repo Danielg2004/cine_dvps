@@ -12,6 +12,28 @@ jobs:
   pruebas:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root123
+          MYSQL_DATABASE: cine_dvps_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot123 --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=15
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USER: root
+      DB_PASSWORD: root123
+      DB_NAME: cine_dvps_test
+      DB_PORT: 3306
+      NODE_ENV: test
+
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
@@ -25,8 +47,12 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Crear tablas de prueba
+        run: |
+          mysql -h 127.0.0.1 -u root -proot123 cine_dvps_test < docker/init.sql
+
       - name: Ejecutar pruebas automatizadas
         run: npm test
 
       - name: Validar cobertura minima de pruebas
-        run: npx vitest run --coverage --coverage.thresholds.statements=60 --coverage.thresholds.lines=60 --coverage.thresholds.functions=60
+        run: npx vitest run --coverage --coverage.thresholds.statements=60 --coverage.thresholds.lines=60 --coverage.thresholds.functions=60lds.lines=60 --coverage.thresholds.functions=60
