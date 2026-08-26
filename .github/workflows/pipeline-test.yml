@@ -55,4 +55,14 @@ jobs:
         run: npm test
 
       - name: Validar cobertura minima de pruebas
-        run: npx vitest run --coverage --coverage.thresholds.statements=60 --coverage.thresholds.lines=60 --coverage.thresholds.functions=60
+        run: npx vitest run --coverage --coverage.thresholds.statements=80 --coverage.thresholds.lines=80 --coverage.thresholds.functions=80
+
+      - name: Instalar Railway CLI
+        if: github.event_name == 'push'
+        run: npm install -g @railway/cli
+
+      - name: Desplegar ambiente de pruebas en Railway
+        if: github.event_name == 'push'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.CLAVE_DESPLIEGUE }}
+        run: railway up --service cine_dvps --ci
