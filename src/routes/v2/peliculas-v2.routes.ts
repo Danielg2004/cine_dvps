@@ -13,4 +13,26 @@ export async function peliculasV2Routes(app: FastifyInstance) {
         return peliculas;
     });
 
+
+
+    app.get<{ Params: { id: string } }>(
+        '/peliculas/:id',
+        async (request, reply) => {
+
+            const id = Number(request.params.id);
+
+            const peliculaRepository = AppDataSourceV2.getRepository(Pelicula);
+
+            const pelicula = await peliculaRepository.findOneBy({ id });
+
+            if (!pelicula) {
+                return reply.code(404).send({
+                    mensaje: 'pelicula no encontrada'
+                });
+            }
+
+            return pelicula;
+        }
+    );
+
 }
