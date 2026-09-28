@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { Pelicula } from '../entities/Pelicula.js';
+import { Sala } from '../entities/Sala.js';
 
 export const AppDataSourceV2 = new DataSource({
     type: 'mysql',
@@ -12,7 +13,8 @@ export const AppDataSourceV2 = new DataSource({
     database: process.env.DB_NAME ?? 'cine_dvps',
 
     entities: [
-        Pelicula
+        Pelicula,
+        Sala
     ],
 
     synchronize: false,
