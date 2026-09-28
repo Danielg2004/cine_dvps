@@ -4,6 +4,7 @@ import { Pelicula } from '../../entities/Pelicula.js';
 
 export async function peliculasV2Routes(app: FastifyInstance) {
 
+
     app.get('/peliculas', async () => {
 
         const peliculaRepository = AppDataSourceV2.getRepository(Pelicula);
@@ -34,5 +35,37 @@ export async function peliculasV2Routes(app: FastifyInstance) {
             return pelicula;
         }
     );
+
+
+  
+    app.post<{
+        Body: {
+            nombre: string;
+            duracion: number;
+            genero: string;
+            descripcion: string;
+        };
+    }>('/peliculas', async (request, reply) => {
+
+        const {
+            nombre,
+            duracion,
+            genero,
+            descripcion
+        } = request.body;
+
+        const peliculaRepository = AppDataSourceV2.getRepository(Pelicula);
+
+        const nuevaPelicula = peliculaRepository.create({
+            nombre,
+            duracion,
+            genero,
+            descripcion
+        });
+
+        const peliculaGuardada = await peliculaRepository.save(nuevaPelicula);
+
+        return reply.code(201).send(peliculaGuardada);
+    });
 
 }
