@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { Pelicula } from '../entities/Pelicula.js';
 import { Sala } from '../entities/Sala.js';
+import { Reserva } from '../entities/Reserva.js';
 
 export const AppDataSourceV2 = new DataSource({
     type: 'mysql',
@@ -14,7 +15,8 @@ export const AppDataSourceV2 = new DataSource({
 
     entities: [
         Pelicula,
-        Sala
+        Sala,
+        Reserva
     ],
 
     synchronize: false,
