@@ -4,7 +4,7 @@ import { Pelicula } from '../../entities/Pelicula.js';
 
 export async function peliculasV2Routes(app: FastifyInstance) {
 
-
+  
     app.get('/peliculas', async () => {
 
         const peliculaRepository = AppDataSourceV2.getRepository(Pelicula);
@@ -37,7 +37,7 @@ export async function peliculasV2Routes(app: FastifyInstance) {
     );
 
 
-  
+
     app.post<{
         Body: {
             nombre: string;
@@ -66,6 +66,72 @@ export async function peliculasV2Routes(app: FastifyInstance) {
         const peliculaGuardada = await peliculaRepository.save(nuevaPelicula);
 
         return reply.code(201).send(peliculaGuardada);
+    });
+
+
+
+    app.put<{
+        Params: { id: string };
+        Body: {
+            nombre: string;
+            duracion: number;
+            genero: string;
+            descripcion: string;
+        };
+    }>('/peliculas/:id', async (request, reply) => {
+
+        const id = Number(request.params.id);
+
+        const peliculaRepository = AppDataSourceV2.getRepository(Pelicula);
+
+        const pelicula = await peliculaRepository.findOneBy({ id });
+
+        if (!pelicula) {
+            return reply.code(404).send({
+                mensaje: 'pelicula no encontrada'
+            });
+        }
+
+        const {
+            nombre,
+            duracion,
+            genero,
+            descripcion
+        } = request.body;
+
+        pelicula.nombre = nombre;
+        pelicula.duracion = duracion;
+        pelicula.genero = genero;
+        pelicula.descripcion = descripcion;
+
+        const peliculaActualizada = await peliculaRepository.save(pelicula);
+
+        return peliculaActualizada;
+    });
+
+
+
+    app.delete<{
+        Params: { id: string };
+    }>('/peliculas/:id', async (request, reply) => {
+
+        const id = Number(request.params.id);
+
+        const peliculaRepository = AppDataSourceV2.getRepository(Pelicula);
+
+        const pelicula = await peliculaRepository.findOneBy({ id });
+
+        if (!pelicula) {
+            return reply.code(404).send({
+                mensaje: 'pelicula no encontrada'
+            });
+        }
+
+        await peliculaRepository.remove(pelicula);
+
+        return {
+            mensaje: 'pelicula eliminada'
+        };
     });
 
 }
