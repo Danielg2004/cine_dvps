@@ -36,4 +36,45 @@ export async function reservasV2Routes(app: FastifyInstance) {
         }
     );
 
+
+
+    app.post<{
+        Body: {
+            pelicula_id: number;
+            sala_id: number;
+            cantidad_de_entradas: number;
+            precio_total: number;
+            nombre_cliente: string;
+            fecha_reserva: string;
+            hora_reserva: string;
+        };
+    }>('/reservas', async (request, reply) => {
+
+        const {
+            pelicula_id,
+            sala_id,
+            cantidad_de_entradas,
+            precio_total,
+            nombre_cliente,
+            fecha_reserva,
+            hora_reserva
+        } = request.body;
+
+        const reservaRepository = AppDataSourceV2.getRepository(Reserva);
+
+        const nuevaReserva = reservaRepository.create({
+            pelicula_id,
+            sala_id,
+            cantidad_de_entradas,
+            precio_total,
+            nombre_cliente,
+            fecha_reserva,
+            hora_reserva
+        });
+
+        const reservaGuardada = await reservaRepository.save(nuevaReserva);
+
+        return reply.code(201).send(reservaGuardada);
+    });
+
 }
