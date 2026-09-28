@@ -1,18 +1,25 @@
 import { buildApp } from './app.js';
 import { db, inicializarBaseDeDatos } from './database.js';
+import { AppDataSourceV2 } from './config/database-v2.js';
 
 const app = buildApp();
 
 try {
-    // Comprobar conexión con MySQL
+  
     await db.query('SELECT 1');
     console.log('Conexion a MySQL exitosa');
 
-    // Crear las tablas si todavía no existen
+ 
     await inicializarBaseDeDatos();
     console.log('Tablas de la base de datos inicializadas');
 
-    // Iniciar Fastify
+
+    if (!AppDataSourceV2.isInitialized) {
+        await AppDataSourceV2.initialize();
+        console.log('Conexion TypeORM V2 exitosa');
+    }
+
+
     const port = Number(process.env.PORT ?? 3000);
 
     await app.listen({
