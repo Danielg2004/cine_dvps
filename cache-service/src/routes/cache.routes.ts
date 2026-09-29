@@ -6,6 +6,7 @@ export async function cacheRoutes(
     redis: RedisClientType
 ) {
 
+    // Guardar un dato en cache con TTL
     app.post<{
         Body: {
             key: string;
@@ -32,6 +33,40 @@ export async function cacheRoutes(
             mensaje: 'Dato guardado en cache',
             key,
             ttl
+        });
+    });
+
+
+    // Consultar un dato almacenado en cache
+    app.get<{
+        Params: {
+            key: string;
+        };
+    }>('/cache/:key', async (request, reply) => {
+
+        const { key } = request.params;
+
+        const value = await redis.get(key);
+
+        // MISS: la clave no existe o ya expiro
+        if (value === null) {
+
+            reply.header('x-cache', 'MISS');
+
+            return reply.code(404).send({
+                cache: 'MISS',
+                key,
+                mensaje: 'Dato no encontrado en cache'
+            });
+        }
+
+        // HIT: encontramos el dato en Redis
+        reply.header('x-cache', 'HIT');
+
+        return reply.code(200).send({
+            cache: 'HIT',
+            key,
+            value: JSON.parse(value)
         });
     });
 }
