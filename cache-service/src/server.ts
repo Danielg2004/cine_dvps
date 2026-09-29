@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import { createClient } from 'redis';
+import { cacheRoutes } from './routes/cache.routes.js';
 
 const app = Fastify({
     logger: true
@@ -18,6 +19,10 @@ try {
     await redis.connect();
     console.log('Cache Service conectado a Redis');
 
+    // Registrar las rutas del microservicio de cache
+    await cacheRoutes(app, redis);
+
+    // Verificar que el microservicio y Redis esten funcionando
     app.get('/health', async () => {
         return {
             servicio: 'cache-service',
