@@ -69,4 +69,31 @@ export async function cacheRoutes(
             value: JSON.parse(value)
         });
     });
+
+
+    // Invalidar o eliminar un dato de la cache
+    app.delete<{
+        Params: {
+            key: string;
+        };
+    }>('/cache/:key', async (request, reply) => {
+
+        const { key } = request.params;
+
+        const eliminados = await redis.del(key);
+
+        // La clave no existia
+        if (eliminados === 0) {
+            return reply.code(404).send({
+                key,
+                mensaje: 'Dato no encontrado en cache'
+            });
+        }
+
+        // La clave fue eliminada correctamente
+        return reply.code(200).send({
+            key,
+            mensaje: 'Dato eliminado de cache'
+        });
+    });
 }
