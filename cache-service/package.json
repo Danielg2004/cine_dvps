@@ -1,15 +1,21 @@
 {
   "name": "cache-service",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Microservicio de cache distribuida para Cine DVPS",
+  "main": "dist/server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "tsx src/server.ts",
+    "build": "tsc",
+    "check": "tsc --noEmit"
   },
-  "keywords": [],
+  "keywords": [
+    "cache",
+    "redis",
+    "fastify"
+  ],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "fastify": "^5.12.5",
     "redis": "^6.2.1"
