@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import { createClient } from 'redis';
+import { randomUUID } from 'node:crypto';
 import { cacheRoutes } from './routes/cache.routes.js';
 
 const app = Fastify({
@@ -14,6 +15,21 @@ redis.on('error', (error) => {
     console.error('Error de Redis:', error);
 });
 
+// Manejo global de x-trace-id
+app.addHook('onRequest', async (request, reply) => {
+
+    const traceHeader = request.headers['x-trace-id'];
+
+    const traceId =
+        typeof traceHeader === 'string' && traceHeader.trim() !== ''
+            ? traceHeader
+            : randomUUID();
+
+    request.headers['x-trace-id'] = traceId;
+
+    reply.header('x-trace-id', traceId);
+});
+
 try {
 
     await redis.connect();
@@ -23,11 +39,12 @@ try {
     await cacheRoutes(app, redis);
 
     // Verificar que el microservicio y Redis esten funcionando
-    app.get('/health', async () => {
+    app.get('/health', async (request) => {
         return {
             servicio: 'cache-service',
             estado: 'OK',
-            redis: redis.isReady ? 'conectado' : 'desconectado'
+            redis: redis.isReady ? 'conectado' : 'desconectado',
+            traceId: request.headers['x-trace-id']
         };
     });
 
