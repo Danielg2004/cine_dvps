@@ -38,7 +38,7 @@ export async function peliculasV2Routes(app: FastifyInstance) {
                     ? traceHeader
                     : randomUUID();
 
-
+            reply.header('x-trace-id', traceId);
 
             const cacheKey = `pelicula:${id}`;
 

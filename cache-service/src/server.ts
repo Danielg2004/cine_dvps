@@ -1,7 +1,9 @@
+import './observability/instrumentation.js';
 import Fastify from 'fastify';
 import { createClient } from 'redis';
 import { randomUUID } from 'node:crypto';
 import { cacheRoutes } from './routes/cache.routes.js';
+import { registerCacheObservability } from './observability/http.js';
 
 const app = Fastify({
     logger: true
@@ -29,6 +31,8 @@ app.addHook('onRequest', async (request, reply) => {
 
     reply.header('x-trace-id', traceId);
 });
+
+registerCacheObservability(app);
 
 try {
 

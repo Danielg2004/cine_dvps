@@ -1,3 +1,4 @@
+import './observability/instrumentation.js';
 import { buildApp } from './app.js';
 import { db, inicializarBaseDeDatos } from './database.js';
 import { AppDataSourceV2 } from './config/database-v2.js';

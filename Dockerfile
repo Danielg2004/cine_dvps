@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["npx", "tsx", "src/server.ts"]
+CMD ["npx", "tsx", "--import", "@opentelemetry/instrumentation/hook.mjs", "--import", "./src/observability/instrumentation.ts", "src/server.ts"]

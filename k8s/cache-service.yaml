@@ -20,6 +20,10 @@ spec:
           env:
             - name: REDIS_URL
               value: "redis://redis-cache:6379"
+            # Credenciales OTLP del Grafana compartido no van en Git.
+            # Inyectar en el clúster: OTEL_EXPORTER_OTLP_ENDPOINT y OTEL_EXPORTER_OTLP_HEADERS.
+            - name: OTEL_SERVICE_NAME
+              value: cache-service
 
 ---
 apiVersion: v1
