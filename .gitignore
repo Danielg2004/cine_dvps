@@ -4,3 +4,16 @@ coverage/
 .env
 .env.test
 .env.production
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+*.tfplan
+tfplan
+tfplan.*
+crash.log
+crash.*.log
