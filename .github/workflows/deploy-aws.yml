@@ -132,5 +132,3 @@ jobs:
             --instance-id i-0f92f7f92a870f940 \
             --query '{Estado:Status,Resultado:StandardOutputContent,Errores:StandardErrorContent}' \
             --output json
-
-            --output json
