@@ -23,3 +23,13 @@ output "ecr_cache_url" {
   description = "Repositorio Docker de Cache"
   value       = aws_ecr_repository.cache_service.repository_url
 }
+
+output "ec2_instance_id" {
+  description = "Identificador del servidor Cine"
+  value       = aws_instance.cine_ec2.id
+}
+
+output "rds_secret_arn" {
+  description = "Identificador del secreto de MySQL"
+  value       = aws_db_instance.cine_mysql.master_user_secret[0].secret_arn
+}
