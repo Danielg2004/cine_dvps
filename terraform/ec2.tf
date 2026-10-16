@@ -1,4 +1,3 @@
-
 data "aws_ssm_parameter" "amazon_linux" {
   name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
 }
@@ -59,21 +58,23 @@ resource "aws_instance" "cine_ec2" {
     delete_on_termination = true
   }
 
-  user_data = <<-EOF
-    #!/bin/bash
-    set -euo pipefail
+  user_data = templatefile("${path.module}/user_data.sh.tpl", {
+    aws_region     = var.aws_region
+    compose_b64    = base64encode(file("${path.module}/../docker-compose.aws.yml"))
+    prepare_b64    = base64encode(file("${path.module}/../prepare-ec2.sh"))
+    rds_secret_arn = aws_db_instance.cine_mysql.master_user_secret[0].secret_arn
+    db_host        = aws_db_instance.cine_mysql.address
+    redis_endpoint = aws_elasticache_replication_group.cine_redis.primary_endpoint_address
+    ecr_cine_url   = aws_ecr_repository.cine_api.repository_url
+    ecr_cache_url  = aws_ecr_repository.cache_service.repository_url
+  })
 
-    dnf install -y docker
-    systemctl enable --now docker
-    usermod -aG docker ec2-user
-
-    mkdir -p /usr/local/lib/docker/cli-plugins
-
-    curl -fSL -o /usr/local/lib/docker/cli-plugins/docker-compose "https://github.com/docker/compose/releases/download/v5.6.0/docker-compose-linux-x86_64"
-
-    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-    docker compose version
-  EOF
+  # iam_instance_profile no espera a que las politicas del rol esten asociadas.
+  depends_on = [
+    aws_iam_role_policy_attachment.ssm,
+    aws_iam_role_policy_attachment.ecr,
+    aws_iam_role_policy.cine_rds_secret_read,
+  ]
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-ec2"
@@ -81,7 +82,3 @@ resource "aws_instance" "cine_ec2" {
     Environment = var.environment
   }
 }
-
-
-
-

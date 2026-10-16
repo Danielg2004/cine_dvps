@@ -17,3 +17,6 @@ tfplan
 tfplan.*
 crash.log
 crash.*.log
+
+# Respaldo local de permisos IAM
+github-actions-policy-backup.json
