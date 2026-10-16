@@ -1,0 +1,39 @@
+
+services:
+  cache-service:
+    image: "${ECR_CACHE_URL:?required}:${IMAGE_TAG:?required}"
+    restart: unless-stopped
+
+    environment:
+      PORT: "4000"
+      REDIS_URL: "rediss://${REDIS_ENDPOINT:?required}:6379"
+
+    networks:
+      - cine-interna
+
+  cine-api:
+    image: "${ECR_CINE_URL:?required}:${IMAGE_TAG:?required}"
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      PORT: "3000"
+      NODE_ENV: production
+      DB_HOST: "${DB_HOST:?required}"
+      DB_PORT: "3306"
+      DB_USER: "${DB_USER:?required}"
+      DB_PASSWORD: "${DB_PASSWORD:?required}"
+      DB_NAME: "${DB_NAME:-cine_dvps}"
+      CACHE_URL: "http://cache-service:4000"
+
+    depends_on:
+      - cache-service
+
+    networks:
+      - cine-interna
+
+networks:
+  cine-interna:
+    driver: bridge
