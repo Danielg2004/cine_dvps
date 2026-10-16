@@ -61,10 +61,18 @@ resource "aws_instance" "cine_ec2" {
 
   user_data = <<-EOF
     #!/bin/bash
-    set -e
-    dnf install -y docker
+    set -euo pipefail
+
+    dnf install -y docker curl
     systemctl enable --now docker
     usermod -aG docker ec2-user
+
+    mkdir -p /usr/local/lib/docker/cli-plugins
+
+    curl --fail --silent --show-error --location "https://github.com/docker/compose/releases/download/v5.6.0/docker-compose-linux-x86_64" --output /usr/local/lib/docker/cli-plugins/docker-compose
+
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+    docker compose version
   EOF
 
   tags = {
