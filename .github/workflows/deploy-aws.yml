@@ -1,0 +1,54 @@
+name: Deploy Cine AWS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Iniciar sesion en Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Preparar etiquetas
+        id: image
+        run: echo "tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Construir y publicar Cine API
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
+        run: |
+          docker build \
+            -t "$REGISTRY/cine-dvps-dev-cine-api:$IMAGE_TAG" \
+            .
+          docker push "$REGISTRY/cine-dvps-dev-cine-api:$IMAGE_TAG"
+
+      - name: Construir y publicar Cache Service
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
+        run: |
+          docker build \
+            -t "$REGISTRY/cine-dvps-dev-cache-service:$IMAGE_TAG" \
+            ./cache-service
+          docker push "$REGISTRY/cine-dvps-dev-cache-service:$IMAGE_TAG"
