@@ -1,4 +1,5 @@
 ﻿import type { FastifyInstance } from 'fastify';
+import { disponibilidadV3Routes } from './disponibilidad-v3.routes.js';
 
 export async function v3Routes(app: FastifyInstance) {
 
@@ -10,4 +11,5 @@ export async function v3Routes(app: FastifyInstance) {
         };
     });
 
+    await app.register(disponibilidadV3Routes);
 }
