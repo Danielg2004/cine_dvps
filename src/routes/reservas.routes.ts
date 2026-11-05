@@ -1,11 +1,11 @@
-import type { FastifyInstance } from 'fastify';
+﻿import type { FastifyInstance } from 'fastify';
 import { db } from '../database.js';
+import { recordCineReservaCreada } from '../observability/metrics.js';
 
 export async function reservasRoutes(app: FastifyInstance) {
 
     // GET - Obtener todas las reservas
     app.get('/reservas', async () => {
-
         const [reservas] = await db.query(
             'SELECT * FROM reservas'
         );
@@ -13,12 +13,10 @@ export async function reservasRoutes(app: FastifyInstance) {
         return reservas;
     });
 
-
     // GET - Obtener una reserva por ID
     app.get<{ Params: { id: string } }>(
         '/reservas/:id',
         async (request) => {
-
             const id = Number(request.params.id);
 
             const [reservas] = await db.query(
@@ -29,7 +27,6 @@ export async function reservasRoutes(app: FastifyInstance) {
             return reservas;
         }
     );
-
 
     // POST - Crear una reserva
     app.post<{
@@ -77,6 +74,9 @@ export async function reservasRoutes(app: FastifyInstance) {
             ]
         );
 
+        // Registrar una reserva creada correctamente
+        recordCineReservaCreada();
+
         return {
             id: resultado.insertId,
             pelicula_id,
@@ -88,7 +88,6 @@ export async function reservasRoutes(app: FastifyInstance) {
             hora_reserva
         };
     });
-
 
     // PUT - Actualizar una reserva
     app.put<{
@@ -156,7 +155,6 @@ export async function reservasRoutes(app: FastifyInstance) {
         };
     });
 
-
     // DELETE - Eliminar una reserva
     app.delete<{
         Params: { id: string };
@@ -179,5 +177,4 @@ export async function reservasRoutes(app: FastifyInstance) {
             mensaje: 'reserva eliminada'
         };
     });
-
 }
