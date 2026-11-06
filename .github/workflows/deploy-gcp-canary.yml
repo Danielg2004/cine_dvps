@@ -135,7 +135,7 @@ jobs:
         id: promocion
         shell: bash
         env:
-          CANARY_ROLLBACK_DRILL: "true"
+          CANARY_ROLLBACK_DRILL: "false"
           CLOUD_RUN_ID_TOKEN: ${{ steps.auth_cloud_run.outputs.id_token }}
         run: |
           python3 .github/scripts/promote-canary.py
@@ -162,6 +162,7 @@ jobs:
             --service="$SERVICE" \
             --project="$PROJECT_ID" \
             --region="$REGION"
+
 
 
 
