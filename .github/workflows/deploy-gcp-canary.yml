@@ -131,6 +131,23 @@ jobs:
           CLOUD_RUN_ID_TOKEN: ${{ steps.auth_cloud_run.outputs.id_token }}
         run: |
           python3 .github/scripts/quality-gate.py
+      - name: Promocion automatica con Quality Gate
+        id: promocion
+        shell: bash
+        env:
+          CLOUD_RUN_ID_TOKEN: ${{ steps.auth_cloud_run.outputs.id_token }}
+        run: |
+          python3 .github/scripts/promote-canary.py
+
+      - name: Rollback de emergencia si falla la promocion
+        if: ${{ failure() && steps.promocion.outcome == 'failure' }}
+        shell: bash
+        run: |
+          gcloud run services update-traffic "$SERVICE" \
+            --project="$PROJECT_ID" \
+            --region="$REGION" \
+            --to-tags="stable=100,canary=0" \
+            --quiet
       - name: Verificar distribucion
         run: |
           gcloud run services describe "$SERVICE" \
@@ -144,5 +161,6 @@ jobs:
             --service="$SERVICE" \
             --project="$PROJECT_ID" \
             --region="$REGION"
+
 
 
