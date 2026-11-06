@@ -126,6 +126,14 @@ try:
         set_traffic(stable, canary)
         gate(stable, canary)
 
+        if (
+            os.environ.get("CANARY_ROLLBACK_DRILL") == "true"
+            and canary == 10
+        ):
+            raise RuntimeError(
+                "FALLO SIMULADO: verificando rollback automatico"
+            )
+
     completed = True
     print("\nPROMOCION COMPLETADA: 100% CANARY", flush=True)
 
@@ -134,3 +142,4 @@ finally:
         print("\nFALLO DETECTADO: EJECUTANDO ROLLBACK", flush=True)
         set_traffic(100, 0)
         print("ROLLBACK COMPLETADO: 100% STABLE", flush=True)
+
