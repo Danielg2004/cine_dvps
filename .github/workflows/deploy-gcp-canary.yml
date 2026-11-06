@@ -125,6 +125,12 @@ jobs:
           done
 
           echo "Canary V4 validado correctamente"
+      - name: Quality Gate de errores y latencia
+        shell: bash
+        env:
+          CLOUD_RUN_ID_TOKEN: ${{ steps.auth_cloud_run.outputs.id_token }}
+        run: |
+          python3 .github/scripts/quality-gate.py
       - name: Verificar distribucion
         run: |
           gcloud run services describe "$SERVICE" \
@@ -138,4 +144,5 @@ jobs:
             --service="$SERVICE" \
             --project="$PROJECT_ID" \
             --region="$REGION"
+
 
