@@ -73,6 +73,58 @@ jobs:
             --tag=canary \
             --quiet
 
+      - name: Obtener token para Cloud Run privado
+        id: auth_cloud_run
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: cine-devops-canary
+          workload_identity_provider: projects/523098010476/locations/global/workloadIdentityPools/cine-github-pool/providers/cine-github-provider
+          service_account: cine-github-deploy-sa@cine-devops-canary.iam.gserviceaccount.com
+          token_format: id_token
+          id_token_audience: https://cine-api-evr4elf76q-uc.a.run.app
+          id_token_include_email: true
+
+      - name: Validar endpoints Canary
+        shell: bash
+        env:
+          CLOUD_RUN_ID_TOKEN: ${{ steps.auth_cloud_run.outputs.id_token }}
+          CANARY_URL: https://canary---cine-api-evr4elf76q-uc.a.run.app
+        run: |
+          set -euo pipefail
+
+          for ruta in /api/v2/health /peliculas; do
+            echo "Verificando $ruta"
+
+            status=$(curl --silent --show-error \
+              --max-time 40 \
+              --retry 2 \
+              -D headers.txt \
+              -o respuesta.json \
+              -w '%{http_code}' \
+              -H "Authorization: Bearer $CLOUD_RUN_ID_TOKEN" \
+              "$CANARY_URL$ruta")
+
+            echo "HTTP: $status"
+
+            if [ "$status" != "200" ]; then
+              echo "::error::Canary fallo en $ruta con HTTP $status"
+              exit 1
+            fi
+
+            if ! tr -d '\r' < headers.txt | grep -Eiq '^x-app-track:[[:space:]]*canary$'; then
+              echo "::error::Track Canary incorrecto en $ruta"
+              exit 1
+            fi
+
+            if ! tr -d '\r' < headers.txt | grep -Eiq '^x-app-version:[[:space:]]*4\.0\.0$'; then
+              echo "::error::Version incorrecta en $ruta"
+              exit 1
+            fi
+
+            echo "Prueba aprobada: $ruta"
+          done
+
+          echo "Canary V4 validado correctamente"
       - name: Verificar distribucion
         run: |
           gcloud run services describe "$SERVICE" \
@@ -86,3 +138,4 @@ jobs:
             --service="$SERVICE" \
             --project="$PROJECT_ID" \
             --region="$REGION"
+
