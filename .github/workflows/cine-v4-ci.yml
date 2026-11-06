@@ -1,0 +1,83 @@
+﻿name: Cine V4 - CI
+
+on:
+  push:
+    branches:
+      - v4-canary
+  pull_request:
+    branches:
+      - v4-canary
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    name: Pruebas, TypeScript y Docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3308"
+      DB_USER: root
+      DB_PASSWORD: CineTestCI2026
+      DB_NAME: cine_dvps_test
+      DB_AUTO_INIT: "false"
+      NODE_ENV: test
+      OTEL_LOGS_EXPORTER: none
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Instalar dependencias API
+        run: npm ci
+
+      - name: Instalar dependencias Cache
+        run: npm ci --prefix cache-service
+
+      - name: Iniciar MySQL de pruebas
+        run: |
+          docker compose -f docker-compose.test.yml up -d mysql-test
+          docker compose -f docker-compose.test.yml ps
+
+      - name: Esperar MySQL
+        run: |
+          for i in $(seq 1 40); do
+            if docker exec cine-mysql-test mysqladmin ping -h 127.0.0.1 -u root -p"$DB_PASSWORD" --silent; then
+              echo "MySQL disponible"
+              exit 0
+            fi
+            sleep 3
+          done
+          docker logs cine-mysql-test
+          exit 1
+
+      - name: Validar TypeScript
+        run: npx tsc --project tsconfig.build.json --noEmit
+
+      - name: Ejecutar pruebas automatizadas
+        run: npm test
+
+      - name: Construir imagen Docker
+        run: |
+          docker build --platform linux/amd64 \
+            -t cine-api:ci-${GITHUB_SHA} .
+
+      - name: Mostrar logs si falla
+        if: failure()
+        run: |
+          docker compose -f docker-compose.test.yml ps
+          docker logs --tail 80 cine-mysql-test || true
+
+      - name: Limpiar entorno
+        if: always()
+        run: docker compose -f docker-compose.test.yml down -v
