@@ -1,7 +1,13 @@
-﻿name: Cine V4 - Deploy GCP Canary
+name: Cine V4 - Deploy GCP Canary
 
 on:
   workflow_dispatch:
+    inputs:
+      fault_drill:
+        description: "Probar fallo HTTP 500 y rollback automatico"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -71,6 +77,7 @@ jobs:
             --service-account="cine-run-sa@cine-devops-canary.iam.gserviceaccount.com" \
             --no-traffic \
             --tag=canary \
+            --update-secrets=CANARY_FAULT_TOKEN=canary-fault-token:latest \
             --quiet
 
       - name: Obtener token para Cloud Run privado
@@ -136,8 +143,18 @@ jobs:
         shell: bash
         env:
           CANARY_ROLLBACK_DRILL: "false"
+          CANARY_FAULT_DRILL: ${{ inputs.fault_drill && 'true' || 'false' }}
           CLOUD_RUN_ID_TOKEN: ${{ steps.auth_cloud_run.outputs.id_token }}
         run: |
+          set -euo pipefail
+
+          if [ "$CANARY_FAULT_DRILL" = "true" ]; then
+            CANARY_FAULT_TOKEN="$(gcloud secrets versions access latest --secret=canary-fault-token --project="$PROJECT_ID")"
+            echo "::add-mask::$CANARY_FAULT_TOKEN"
+            export CANARY_FAULT_TOKEN
+            echo "Prueba controlada de fallo HTTP 500 habilitada"
+          fi
+
           python3 .github/scripts/promote-canary.py
 
       - name: Rollback de emergencia si falla la promocion
@@ -162,8 +179,3 @@ jobs:
             --service="$SERVICE" \
             --project="$PROJECT_ID" \
             --region="$REGION"
-
-
-
-
-

@@ -1,4 +1,4 @@
-﻿import math
+import math
 import os
 import signal
 import subprocess
@@ -103,6 +103,65 @@ def gate(stable, canary):
 
     print("QUALITY GATE APROBADO", flush=True)
 
+
+def gate_canary():
+    """Comprueba Canary V4 directamente, sin mezclar respuestas Stable."""
+    url = "https://canary---cine-api-evr4elf76q-uc.a.run.app/api/v2/health"
+    errores = 0
+    latencias = []
+
+    fallo_controlado = os.environ.get("CANARY_FAULT_DRILL") == "true"
+    fault_token = os.environ.get("CANARY_FAULT_TOKEN", "")
+
+    if fallo_controlado and len(fault_token) < 16:
+        raise RuntimeError("Falta CANARY_FAULT_TOKEN para la prueba controlada")
+
+    for i in range(SAMPLES):
+        inicio = time.perf_counter()
+
+        try:
+            url_prueba = (
+                "https://canary---cine-api-evr4elf76q-uc.a.run.app"
+                "/api/v3/__test/fault?tipo=error"
+                if fallo_controlado else url
+            )
+
+            headers = {"Authorization": f"Bearer {TOKEN}"}
+            if fallo_controlado:
+                headers["x-canary-test-token"] = fault_token
+
+            solicitud = urllib.request.Request(
+                url_prueba,
+                headers=headers
+            )
+
+            with urllib.request.urlopen(solicitud, timeout=20) as respuesta:
+                if (
+                    respuesta.status != 200
+                    or respuesta.headers.get("x-app-track", "").lower() != "canary"
+                    or respuesta.headers.get("x-app-version") != "4.0.0"
+                ):
+                    errores += 1
+
+        except (urllib.error.URLError, TimeoutError, OSError):
+            errores += 1
+
+        latencias.append((time.perf_counter() - inicio) * 1000)
+
+    latencias.sort()
+    p95 = latencias[math.ceil(0.95 * SAMPLES) - 1]
+    tasa = errores * 100 / SAMPLES
+
+    print(
+        f"CANARY V4: errores={tasa:.2f}%, p95={p95:.2f} ms",
+        flush=True
+    )
+
+    if tasa > MAX_ERRORS or p95 > MAX_P95_MS:
+        raise RuntimeError("QUALITY GATE CANARY RECHAZADO")
+
+    print("QUALITY GATE CANARY APROBADO", flush=True)
+
 def interrupted(signum, frame):
     raise RuntimeError("Promocion interrumpida")
 
@@ -124,7 +183,15 @@ try:
     for stable, canary in STAGES:
         promoting = True
         set_traffic(stable, canary)
+
+        print(
+            f"BAKE TIME: observando Canary {canary}% durante 60 segundos",
+            flush=True
+        )
+        time.sleep(60)
+
         gate(stable, canary)
+        gate_canary()
 
         if (
             os.environ.get("CANARY_ROLLBACK_DRILL") == "true"
@@ -142,4 +209,3 @@ finally:
         print("\nFALLO DETECTADO: EJECUTANDO ROLLBACK", flush=True)
         set_traffic(100, 0)
         print("ROLLBACK COMPLETADO: 100% STABLE", flush=True)
-
