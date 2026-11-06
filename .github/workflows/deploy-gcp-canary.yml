@@ -1,0 +1,88 @@
+﻿name: Cine V4 - Deploy GCP Canary
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: cine-gcp-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Publicar y desplegar Canary
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      PROJECT_ID: cine-devops-canary
+      REGION: us-central1
+      SERVICE: cine-api
+      IMAGE_REPO: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Autenticar con Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: cine-devops-canary
+          workload_identity_provider: projects/523098010476/locations/global/workloadIdentityPools/cine-github-pool/providers/cine-github-provider
+          service_account: cine-github-deploy-sa@cine-devops-canary.iam.gserviceaccount.com
+
+      - name: Configurar Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Verificar identidad
+        run: |
+          gcloud auth list
+          gcloud config set project "$PROJECT_ID"
+
+      - name: Configurar Docker para Artifact Registry
+        run: |
+          gcloud auth configure-docker \
+            us-central1-docker.pkg.dev --quiet
+
+      - name: Construir imagen Canary
+        run: |
+          IMAGE="$IMAGE_REPO:canary-${GITHUB_SHA}"
+
+          docker build \
+            --platform linux/amd64 \
+            --tag "$IMAGE" \
+            .
+
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Publicar imagen
+        run: |
+          docker push "$IMAGE"
+
+      - name: Desplegar Canary sin trafico
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project="$PROJECT_ID" \
+            --region="$REGION" \
+            --image="$IMAGE" \
+            --service-account="cine-run-sa@cine-devops-canary.iam.gserviceaccount.com" \
+            --no-traffic \
+            --tag=canary \
+            --quiet
+
+      - name: Verificar distribucion
+        run: |
+          gcloud run services describe "$SERVICE" \
+            --project="$PROJECT_ID" \
+            --region="$REGION" \
+            --format="yaml(status.traffic)"
+
+      - name: Mostrar revisiones
+        run: |
+          gcloud run revisions list \
+            --service="$SERVICE" \
+            --project="$PROJECT_ID" \
+            --region="$REGION"

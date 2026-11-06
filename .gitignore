@@ -20,3 +20,5 @@ crash.*.log
 
 # Respaldo local de permisos IAM
 github-actions-policy-backup.json
+
+gha-creds-*.json
