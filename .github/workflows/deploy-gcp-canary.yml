@@ -1,4 +1,4 @@
-name: Cine V4 - Deploy GCP Canary
+﻿name: Cine V4 - Deploy GCP Canary
 
 on:
   workflow_dispatch:
@@ -55,7 +55,7 @@ jobs:
 
       - name: Construir imagen Canary
         run: |
-          IMAGE="$IMAGE_REPO:canary-${GITHUB_SHA}"
+          IMAGE="$IMAGE_REPO:canary-${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
 
           docker build \
             --platform linux/amd64 \
@@ -179,3 +179,4 @@ jobs:
             --service="$SERVICE" \
             --project="$PROJECT_ID" \
             --region="$REGION"
+
