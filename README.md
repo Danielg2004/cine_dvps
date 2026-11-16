@@ -200,3 +200,46 @@ La prueba controlada de rollback finalizó con Stable V1 recibiendo el 100 % del
 El despliegue progresivo, las comprobaciones SLI/SLO, la observabilidad y el rollback automático fueron implementados y demostrados.
 
 La configuración de fault_drill debe permanecer desactivada durante las ejecuciones normales.
+
+---
+
+## 13. Seguimiento #4 — Ingeniería del Caos (API Cine)
+
+Documentación completa: [`docs/seguimiento-4/README.md`](docs/seguimiento-4/README.md)
+
+### Responsabilidad de Daniel
+
+- API Cine en **GCP + Kubernetes**
+- Experimento de **agotamiento de concurrencia**
+- Patrones: **bulkhead** y **control de admisión**
+- Guía compartida: [`docs/seguimiento-4/VALIDACION_KUBERNETES.md`](docs/seguimiento-4/VALIDACION_KUBERNETES.md)
+
+### Flujo multicloud
+
+`Cliente → Sports (AWS) → Hotel (OCI) → Sports → Cine (GCP) → Sports → Cliente`
+
+Contrato Cine: `GET /api/v2/peliculas/:id` — ver `docs/seguimiento-4/CONTRATOS_MULTICLOUD.md`.
+
+### Kubernetes GCP
+
+Manifiestos nuevos (no usar `k8s/` Azure histórico): `deploy/gcp/k8s/`
+
+```bash
+powershell -File scripts/validate-k8s.ps1
+```
+
+**El clúster real no se crea en este repositorio sin autorización (costos).**
+
+### Caos y resiliencia
+
+| Componente | Ubicación |
+|------------|-----------|
+| Experimento Chaos Toolkit | `chaos/experiments/cine-resource-exhaustion.json` |
+| Interruptor saturación | `POST /api/v3/__test/saturation/start\|stop` |
+| Bulkhead / admission | `src/resilience/*` (`EXPERIMENT_ROUND=r0\|r1`) |
+| Runner + rollback | `scripts/chaos/run-saturation-experiment.mjs` |
+| Comparador R0/R1 | `scripts/chaos/compare-rounds.mjs` |
+
+### Versión
+
+SemVer del Seguimiento #4: **5.0.0** (ver `CHANGELOG.md`).

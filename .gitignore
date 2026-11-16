@@ -25,6 +25,7 @@ gha-creds-*.json
 
 # Secrets locales Kubernetes Seguimiento #4
 deploy/gcp/k8s/secret.yaml
-chaos/results/
+chaos/results/*
+!chaos/results/.gitkeep
 docs/seguimiento-4/evidencias/*.json
 !docs/seguimiento-4/evidencias/.gitkeep
