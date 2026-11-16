@@ -1,10 +1,11 @@
-import { context, trace } from '@opentelemetry/api';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { recordCineHttpRequest } from './metrics.js';
-
-function headerString(value: string | string[] | undefined): string | undefined {
-    return typeof value === 'string' ? value : undefined;
-}
+import {
+    activeOtelIds,
+    incomingTraceparent,
+    incomingTracestate,
+    resolveBusinessTraceId,
+} from './correlation.js';
 
 function routeTemplate(request: FastifyRequest): string {
     const url = request.routeOptions.url;
@@ -15,13 +16,25 @@ function routeTemplate(request: FastifyRequest): string {
 }
 
 export function registerCineObservability(app: FastifyInstance): void {
+    app.addHook('onRequest', async (request, reply) => {
+        const businessTraceId = resolveBusinessTraceId(request);
+        request.headers['x-trace-id'] = businessTraceId;
+        reply.header('x-trace-id', businessTraceId);
+
+        const traceparent = incomingTraceparent(request);
+        if (traceparent) {
+            reply.header('traceparent', traceparent);
+        }
+
+        const tracestate = incomingTracestate(request);
+        if (tracestate) {
+            reply.header('tracestate', tracestate);
+        }
+    });
+
     app.addHook('onSend', async (request, reply, payload) => {
-        const existing = reply.getHeader('x-trace-id');
-        if (existing === undefined) {
-            const incoming = headerString(request.headers['x-trace-id']);
-            if (incoming !== undefined) {
-                reply.header('x-trace-id', incoming);
-            }
+        if (reply.getHeader('x-trace-id') === undefined) {
+            reply.header('x-trace-id', resolveBusinessTraceId(request));
         }
         return payload;
     });
@@ -37,20 +50,20 @@ export function registerCineObservability(app: FastifyInstance): void {
                 durationSeconds: reply.elapsedTime / 1000,
             });
 
-            const span = trace.getSpan(context.active());
-            const spanContext = span?.spanContext();
-            const valid = Boolean(spanContext && trace.isSpanContextValid(spanContext));
+            const { otelTraceId, otelSpanId } = activeOtelIds();
             const responseTrace = reply.getHeader('x-trace-id');
             const xTraceId = typeof responseTrace === 'string'
                 ? responseTrace
-                : headerString(request.headers['x-trace-id']);
+                : resolveBusinessTraceId(request);
 
             console.log(JSON.stringify({
                 service: 'cine-api',
-                msg: 'request',
-                xTraceId: xTraceId ?? null,
-                otelTraceId: valid && spanContext ? spanContext.traceId : null,
-                otelSpanId: valid && spanContext ? spanContext.spanId : null,
+                msg: statusCode >= 500 ? 'request_error' : 'request',
+                xTraceId,
+                otelTraceId,
+                otelSpanId,
+                traceparent: incomingTraceparent(request) ?? null,
+                tracestate: incomingTracestate(request) ?? null,
                 'http.request.method': request.method,
                 'http.route': route,
                 'http.response.status_code': statusCode,
