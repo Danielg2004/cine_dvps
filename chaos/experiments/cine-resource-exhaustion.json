@@ -1,0 +1,136 @@
+{
+  "version": "1.0.0",
+  "title": "Cine concurrency exhaustion — Seguimiento #4",
+  "description": "Agota de forma controlada la capacidad de concurrencia del endpoint experimental GET /api/v2/peliculas/:id mediante el interruptor propio de saturación. No usa bucles de CPU ni reservas ilimitadas de memoria.",
+  "tags": ["cine", "gcp", "kubernetes", "concurrency", "seguimiento-4"],
+  "secrets": {
+    "cine_chaos_token": {
+      "type": "env",
+      "key": "CHAOS_FAULT_TOKEN"
+    }
+  },
+  "configuration": {
+    "cine_base_url": {
+      "type": "env",
+      "key": "CINE_BASE_URL",
+      "default": "http://127.0.0.1:3000"
+    },
+    "pelicula_id": {
+      "type": "env",
+      "key": "CINE_PELICULA_ID",
+      "default": "1"
+    },
+    "hold_ms": {
+      "type": "env",
+      "key": "CHAOS_HOLD_MS",
+      "default": "200"
+    },
+    "max_inflight": {
+      "type": "env",
+      "key": "CHAOS_MAX_INFLIGHT",
+      "default": "4"
+    },
+    "duration_sec": {
+      "type": "env",
+      "key": "CHAOS_DURATION_SEC",
+      "default": "30"
+    }
+  },
+  "steady-state-hypothesis": {
+    "title": "El endpoint experimental responde OK bajo carga de referencia",
+    "probes": [
+      {
+        "type": "probe",
+        "name": "healthz-alive",
+        "tolerance": 200,
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/healthz",
+          "timeout": 3
+        }
+      },
+      {
+        "type": "probe",
+        "name": "experimental-get-ok",
+        "tolerance": 200,
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/api/v2/peliculas/${pelicula_id}",
+          "timeout": 5,
+          "headers": {
+            "x-trace-id": "chaos-steady-state"
+          }
+        }
+      }
+    ]
+  },
+  "method": [
+    {
+      "type": "action",
+      "name": "start-saturation-fault",
+      "provider": {
+        "type": "http",
+        "url": "${cine_base_url}/api/v3/__test/saturation/start",
+        "method": "POST",
+        "headers": {
+          "content-type": "application/json",
+          "x-chaos-token": "${cine_chaos_token}"
+        },
+        "arguments": {
+          "holdMs": "${hold_ms}",
+          "maxInflight": "${max_inflight}",
+          "durationSec": "${duration_sec}"
+        },
+        "expected_status": [202]
+      },
+      "pauses": {
+        "after": 2
+      }
+    },
+    {
+      "type": "probe",
+      "name": "saturation-is-active",
+      "tolerance": true,
+      "provider": {
+        "type": "python",
+        "module": "chaoslib.http",
+        "func": "call_url",
+        "arguments": {
+          "url": "${cine_base_url}/api/v3/__test/saturation",
+          "headers": {
+            "x-chaos-token": "${cine_chaos_token}"
+          }
+        }
+      }
+    }
+  ],
+  "rollbacks": [
+    {
+      "type": "action",
+      "name": "stop-saturation-fault",
+      "provider": {
+        "type": "http",
+        "url": "${cine_base_url}/api/v3/__test/saturation/stop",
+        "method": "POST",
+        "headers": {
+          "x-chaos-token": "${cine_chaos_token}"
+        },
+        "expected_status": [200, 404]
+      }
+    }
+  ],
+  "extensions": [
+    {
+      "name": "cine.experiment.metadata",
+      "experiment_id": "cine-resource-exhaustion-concurrency-v1",
+      "metric": "successful_requests_per_second",
+      "threshold_note": "PENDIENTE: rellenar con baseline medido (no inventar)",
+      "blast_radius": "Solo namespace/pods cine-api y datos sintéticos; no afecta Sports/Hotel",
+      "abort_conditions": [
+        "duration_sec > 120 bloqueado por API",
+        "token ausente",
+        "healthz falla tras rollback"
+      ]
+    }
+  ]
+}
