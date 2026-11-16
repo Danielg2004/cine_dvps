@@ -4,6 +4,11 @@ import { buildApp } from '../src/app.js';
 describe('Identificacion de versiones Canary', () => {
 
     it('identifica la version stable', async () => {
+        const versionAnterior = process.env.APP_VERSION;
+        const trackAnterior = process.env.APP_TRACK;
+        delete process.env.APP_VERSION;
+        delete process.env.APP_TRACK;
+
         const app = buildApp();
 
         try {
@@ -17,6 +22,16 @@ describe('Identificacion de versiones Canary', () => {
             expect(respuesta.headers['x-app-track']).toBe('stable');
         } finally {
             await app.close();
+            if (versionAnterior === undefined) {
+                delete process.env.APP_VERSION;
+            } else {
+                process.env.APP_VERSION = versionAnterior;
+            }
+            if (trackAnterior === undefined) {
+                delete process.env.APP_TRACK;
+            } else {
+                process.env.APP_TRACK = trackAnterior;
+            }
         }
     });
 
