@@ -17,11 +17,15 @@ function load(path) {
     throw new Error(`Archivo sin successful_rps medido: ${path}`);
   }
   const during = raw.during || {};
+  const p95 =
+    during?.latencies_ms?.success_p95 ??
+    during?.latencies_ms?.p95 ??
+    null;
   return {
     path,
     rps,
-    p95: during?.latencies_ms?.p95 ?? null,
-    rejected: during?.rejected_429_503 ?? 0,
+    p95,
+    rejected: during?.rejected_429_503 ?? during?.rejected_503 ?? 0,
     successRate: during?.success_rate ?? null,
     raw,
   };

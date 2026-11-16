@@ -10,6 +10,7 @@ interface SaturationBody {
     holdMs?: number;
     maxInflight?: number;
     durationSec?: number;
+    maxQueueWaitMs?: number;
 }
 
 /**

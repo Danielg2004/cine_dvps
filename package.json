@@ -12,6 +12,7 @@
     "chaos:run": "node scripts/chaos/run-saturation-experiment.mjs",
     "chaos:compare": "node scripts/chaos/compare-rounds.mjs",
     "chaos:lab": "tsx scripts/chaos/local-inprocess-lab.ts",
+    "chaos:lab:http": "powershell -File scripts/chaos/run-http-series-v2.ps1",
     "prepare:gcp": "powershell -File scripts/prepare-gcp-deploy.ps1",
     "start": "tsx --import @opentelemetry/instrumentation/hook.mjs --import ./src/observability/instrumentation.ts src/server.ts"
   },
