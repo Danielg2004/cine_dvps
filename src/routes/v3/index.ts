@@ -3,6 +3,7 @@ import { ocupacionV3Routes } from './ocupacion-v3.routes.js';
 import type { FastifyInstance } from 'fastify';
 import { disponibilidadV3Routes } from './disponibilidad-v3.routes.js';
 import { peliculasV3Routes } from './peliculas-v3.routes.js';
+import { saturationV3Routes } from './saturation-v3.routes.js';
 
 export async function v3Routes(app: FastifyInstance) {
 
@@ -18,4 +19,5 @@ export async function v3Routes(app: FastifyInstance) {
     await app.register(peliculasV3Routes);
     await app.register(ocupacionV3Routes);
     await app.register(faultV3Routes);
+    await app.register(saturationV3Routes);
 }

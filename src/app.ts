@@ -4,7 +4,9 @@ import { salasRoutes } from './routes/salas.routes.js';
 import { reservasRoutes } from './routes/reservas.routes.js';
 import { v2Routes } from './routes/v2/index.js';
 import { v3Routes } from './routes/v3/index.js';
+import { healthRoutes } from './routes/health.routes.js';
 import { registerCineObservability } from './observability/http.js';
+import { registerResilienceGuard } from './resilience/guard.js';
 
 export function buildApp() {
 
@@ -19,7 +21,9 @@ export function buildApp() {
     });
 
     registerCineObservability(app);
+    registerResilienceGuard(app);
 
+    app.register(healthRoutes);
     app.register(peliculasRoutes);
     app.register(salasRoutes);
     app.register(reservasRoutes);
