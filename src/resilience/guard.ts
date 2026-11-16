@@ -25,6 +25,11 @@ declare module 'fastify' {
     }
 }
 
+/**
+ * Orden R1: admission → bulkhead → saturación.
+ * Así el control de admisión limita la cola antes de retener recursos.
+ * R0: solo saturación (sin protecciones nuevas).
+ */
 export function registerResilienceGuard(app: FastifyInstance): void {
     app.addHook('onRequest', async (request, reply) => {
         if (!isProtectedExperimentalPath(request.method, request.url)) {
@@ -33,9 +38,8 @@ export function registerResilienceGuard(app: FastifyInstance): void {
 
         reply.header('x-experiment-round', getExperimentRound());
 
-        await applySaturationIfActive();
-
         if (!isResilienceEnabled()) {
+            await applySaturationIfActive();
             request.cineGuard = {
                 counted: true,
                 admissionHeld: false,
@@ -60,7 +64,7 @@ export function registerResilienceGuard(app: FastifyInstance): void {
         }
 
         try {
-            const releaseBulkhead = await experimentalBulkhead.enter();
+            const releaseBulkhead = await experimentalBulkhead.enter(500);
             request.cineGuard = {
                 counted: true,
                 admissionHeld: true,
@@ -81,6 +85,8 @@ export function registerResilienceGuard(app: FastifyInstance): void {
                 round: getExperimentRound(),
             });
         }
+
+        await applySaturationIfActive();
     });
 
     app.addHook('onResponse', async (request, reply) => {

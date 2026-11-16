@@ -33,6 +33,7 @@ const state: SaturationState = {
 };
 
 let chaosInflight = 0;
+const waiters: Array<() => void> = [];
 
 function clampConfig(input: Partial<SaturationConfig>): SaturationConfig {
     return {
@@ -49,6 +50,7 @@ export type SaturationStatus = {
     config: SaturationConfig;
     appliedCount: number;
     chaosInflight: number;
+    queueDepth: number;
     limits: {
         maxHoldMs: number;
         maxDurationSec: number;
@@ -64,6 +66,7 @@ function snapshotStatus(): SaturationStatus {
         config: { ...state.config },
         appliedCount: state.appliedCount,
         chaosInflight,
+        queueDepth: waiters.length,
         limits: {
             maxHoldMs: MAX_HOLD_MS,
             maxDurationSec: MAX_DURATION_SEC,
@@ -125,12 +128,40 @@ export function stopSaturation(reason = 'manual'): SaturationStatus {
     state.active = false;
     state.startedAt = null;
     state.endsAt = null;
+
+    while (waiters.length > 0) {
+        const next = waiters.shift();
+        next?.();
+    }
+
     return snapshotStatus();
 }
 
+async function acquireSlot(): Promise<void> {
+    if (chaosInflight < state.config.maxInflight) {
+        chaosInflight += 1;
+        return;
+    }
+
+    await new Promise<void>((resolve) => {
+        waiters.push(() => {
+            chaosInflight += 1;
+            resolve();
+        });
+    });
+}
+
+function releaseSlot(): void {
+    chaosInflight = Math.max(0, chaosInflight - 1);
+    const next = waiters.shift();
+    if (next) {
+        next();
+    }
+}
+
 /**
- * Inyecta contención de concurrencia acotada (sin bucles de CPU ni memory leak).
- * Cada solicitud experimental puede retenerse hasta holdMs mientras haya cupo.
+ * Contención de concurrencia acotada: espera cupo y retiene holdMs.
+ * Sin busy-loop ni memory leak.
  */
 export async function applySaturationIfActive(): Promise<void> {
     const status = getSaturationStatus();
@@ -138,18 +169,12 @@ export async function applySaturationIfActive(): Promise<void> {
         return;
     }
 
-    if (chaosInflight >= status.config.maxInflight) {
-        // Sin cupo de saturación: no bloquea eternamente; aporta presión vía rechazo implícito en admisión/R0 cola.
-        await new Promise((resolve) => setTimeout(resolve, Math.min(50, status.config.holdMs)));
-        return;
-    }
-
-    chaosInflight += 1;
+    await acquireSlot();
     state.appliedCount += 1;
     try {
         await new Promise((resolve) => setTimeout(resolve, status.config.holdMs));
     } finally {
-        chaosInflight = Math.max(0, chaosInflight - 1);
+        releaseSlot();
     }
 }
 
