@@ -17,10 +17,12 @@ justification: |
 hypothesis: |
   Si se inyecta saturación de concurrencia en GET /api/v2/peliculas/:id
   sin patrones de resiliencia (R0), el throughput de solicitudes exitosas
-  (HTTP 2xx) disminuirá respecto al baseline.
+  (HTTP 2xx) disminuirá respecto al baseline y subirá la latencia p95.
   Con bulkhead + admission (R1), bajo el mismo fallo e intensidad,
-  el throughput exitoso se recuperará parcialmente o la tasa de errores
-  no controlados (5xx distintos de 503 de admisión) será menor que en R0.
+  la sobrecarga se convertirá en rechazos controlados 503 y la p95
+  del tráfico admitido/respuestas rápidas bajará respecto a R0.
+  Nota: el RPS exitoso del load ofrecido puede NO subir en R1 porque
+  los 503 no cuentan como éxitos (métrica primaria honesta).
 
 target_metric: successful_requests_per_second
 threshold:
