@@ -15,25 +15,29 @@
 
 ## Arquitectura recomendada (sin crear aún)
 
-**GKE Autopilot** (mínimo operativo académico):
+Comparación para lab académico temporal:
 
-- Cumple 2 réplicas, probes, requests/limits (Autopilot impone requests).
-- Menor carga operativa que Standard o K8s autogestionado.
-- Reutiliza Cloud SQL + Artifact Registry existentes.
-- Requiere **habilitar** `container.googleapis.com` (+ networking) → **genera costos**.
+| Opción | Pros | Contras | Cumple K8s Daniel |
+|--------|------|---------|-------------------|
+| **GKE Autopilot** | Operación mínima, escala a 0/bajo, probes/resources nativos | API hoy OFF; costo pod-time | Sí |
+| GKE Standard | Control fino de nodos | Más caro/complejo para 2 pods | Sí |
+| K8s en GCE | Máximo control | Compute API OFF; operación alta | Sí |
+| Solo Cloud Run | Ya existe `cine-api` | **No es Kubernetes** | No |
 
-**Alternativa temporal:** seguir en Cloud Run (ya desplegado) **no cumple** la responsabilidad Kubernetes de Daniel.
+**Recomendación:** GKE Autopilot de vida corta + Cloud SQL/`cine-mysql-v4` + Artifact Registry existentes.
+
+Compatibilidad del experimento: saturación/admission son in-process (HTTP); no requieren privilegios de nodo. Funcionan en Autopilot. Chaos Toolkit actúa vía HTTP al Service/Ingress.
 
 ### Estimación de costos (orientativa, no factura)
 
-| Recurso | Estimación |
-|---------|------------|
-| GKE Autopilot (2 pods ~0.25–0.5 vCPU / 0.5–1Gi) | ~USD 15–40 / mes (muy variable) |
-| Cloud SQL `db-f1-micro` | ya existe (costo actual del proyecto) |
-| Artifact Registry | storage ya presente |
-| Egreso multicloud Sports→Cine | variable |
+| Recurso | Estimación | Verificado en Billing |
+|---------|------------|------------------------|
+| GKE Autopilot (2 pods 100m–500m CPU / 256–512Mi, lab días) | ~USD 5–25 en periodo corto de demo | **No** |
+| Cloud SQL `db-f1-micro` | ya existe | Estado RUNNABLE sí |
+| Artifact Registry | storage ya presente (~1.2 GB) | Tamaño sí |
+| Egreso Sports→Cine | variable | No |
 
-Cifras **no verificadas en Billing API** en esta sesión.
+**No se afirma un costo exacto sin Billing API.** Priorizar destruir el clúster al terminar la demo.
 
 ---
 

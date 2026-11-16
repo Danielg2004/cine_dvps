@@ -59,3 +59,14 @@ Un 503 rápido **no** es mejora automática. Tampoco lo es un p95 global bajo si
 ## Conclusión del diagnóstico
 
 R1 peor en RPS se explica por **rechazo prematuro por límites desalineados** + **metodología de throughput inadecuada**, no por “el admission siempre empeora el RPS”. La siguiente serie debe medir capacidad sostenida con ventana fija y patrones alineados a la capacidad del recurso agotado.
+
+## Resolución (serie v2 HTTP)
+
+Tras alinear admission=bulkhead=saturación(8), acotar cola de saturación y medir con **ventana fija HTTP**:
+
+| Ronda | successful_rps | success_rate | 503 | success p95 |
+|-------|----------------|--------------|-----|-------------|
+| R0 | 33.33 | 0.41 | 292 | 340 ms |
+| R1 | 32.00 | 0.0065 | 29304 | 269 ms |
+
+R1 **sostiene** ~el mismo RPS exitoso (−4 %) y convierte el exceso en 503. La hipótesis de “subir RPS” no se confirma; la de resiliencia/shed controlado sí de forma parcial. Detalle: `evidencias/LAB_HTTP_V2_SUMMARY.md`.
