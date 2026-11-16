@@ -27,67 +27,53 @@ export async function peliculasV2Routes(app: FastifyInstance) {
 
             const id = Number(request.params.id);
 
-
-            // Obtener trazabilidad
             const traceHeader =
                 request.headers['x-trace-id'];
 
-
             const traceId =
-                typeof traceHeader === 'string'
+                typeof traceHeader === 'string' && traceHeader.length > 0
                     ? traceHeader
                     : randomUUID();
 
             reply.header('x-trace-id', traceId);
 
+            if (!Number.isInteger(id) || id <= 0) {
+                return reply.code(400).send({
+                    mensaje: 'identificador de pelicula invalido',
+                    traceId,
+                });
+            }
+
             const cacheKey = `pelicula:${id}`;
 
-
-
-            // 1. Consultar primero en cache
+            // Cache es opcional: fallos degradan a base de datos (contrato Sports).
             const cached =
                 await obtenerCache(
                     cacheKey,
                     traceId
                 );
 
-
-
-            if (cached) {
-
+            if (cached && cached.value !== undefined) {
                 return reply.send({
                     origen: 'cache',
                     traceId,
-                    pelicula: cached.value
+                    pelicula: cached.value,
                 });
-
             }
 
-
-
-            // 2. Si no existe en cache, consultar BD
             const peliculaRepository =
                 AppDataSourceV2.getRepository(Pelicula);
-
-
 
             const pelicula =
                 await peliculaRepository.findOneBy({ id });
 
-
-
             if (!pelicula) {
-
                 return reply.code(404).send({
                     mensaje: 'pelicula no encontrada',
-                    traceId
+                    traceId,
                 });
-
             }
 
-
-
-            // 3. Guardar resultado en cache
             await guardarCache(
                 cacheKey,
                 pelicula,
@@ -95,15 +81,11 @@ export async function peliculasV2Routes(app: FastifyInstance) {
                 traceId
             );
 
-
-
-            // 4. Responder
             return reply.send({
                 origen: 'database',
                 traceId,
-                pelicula
+                pelicula,
             });
-
         }
     );
 
