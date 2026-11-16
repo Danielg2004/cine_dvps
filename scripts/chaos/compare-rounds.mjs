@@ -21,12 +21,18 @@ function load(path) {
     during?.latencies_ms?.success_p95 ??
     during?.latencies_ms?.p95 ??
     null;
+  const offered = raw.offered || {};
   return {
     path,
     rps,
     p95,
     rejected: during?.rejected_429_503 ?? during?.rejected_503 ?? 0,
     successRate: during?.success_rate ?? null,
+    offeredHttp: offered.http_reqs ?? during?.samples ?? null,
+    offeredRps: during?.offered_rps ?? null,
+    dropped: offered.dropped_iterations ?? 0,
+    series: raw.series ?? null,
+    generator: raw.generator ?? null,
     raw,
   };
 }
@@ -57,9 +63,14 @@ try {
     hypothesis = 'SOPORTADA_PARCIALMENTE: R1 aplicó admission/bulkhead con 503';
   }
 
+  const offeredComparable =
+    r0.offeredHttp !== null &&
+    r1.offeredHttp !== null &&
+    Math.abs(r0.offeredHttp - r1.offeredHttp) / Math.max(r0.offeredHttp, 1) <= 0.15;
+
   const report = {
     metric_primary: 'successful_requests_per_second',
-    metric_secondary: ['latency_p95_ms', 'rejected_429_503', 'success_rate'],
+    metric_secondary: ['latency_p95_ms', 'rejected_429_503', 'success_rate', 'offered_http_reqs'],
     r0: r0.rps,
     r1: r1.rps,
     absolute_diff: absolute,
@@ -70,9 +81,21 @@ try {
     r1_rejected_429_503: r1.rejected,
     r0_success_rate: r0.successRate,
     r1_success_rate: r1.successRate,
-    signals: { rpsImproved, p95Improved, controlledRejects },
-    hypothesis,
-    caution: '503/429 no son éxitos. Admission puede bajar RPS del load ofrecido.',
+    r0_offered_http_reqs: r0.offeredHttp,
+    r1_offered_http_reqs: r1.offeredHttp,
+    r0_offered_rps: r0.offeredRps,
+    r1_offered_rps: r1.offeredRps,
+    r0_dropped_iterations: r0.dropped,
+    r1_dropped_iterations: r1.dropped,
+    offered_load_comparable: offeredComparable,
+    series: r0.series || r1.series,
+    generator: r0.generator || r1.generator,
+    signals: { rpsImproved, p95Improved, controlledRejects, offeredComparable },
+    hypothesis: offeredComparable
+      ? hypothesis
+      : `NO_COMPARABLE_OFFERED_LOAD: ${hypothesis}`,
+    caution:
+      '503/429 no son éxitos. dropped_iterations son del scheduler k6, no de la API. Admission no aumenta el límite físico del recurso saturado.',
     sources: { r0: r0Path, r1: r1Path },
     generated_at: new Date().toISOString(),
   };
