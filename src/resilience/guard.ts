@@ -1,8 +1,12 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { applySaturationIfActive } from '../chaos/saturation.js';
+import {
+    applySaturationIfActive,
+    SaturationQueueTimeoutError,
+} from '../chaos/saturation.js';
 import { experimentalAdmission } from './admission.js';
 import { experimentalBulkhead } from './bulkhead.js';
 import {
+    bulkheadEnterTimeoutMs,
     getExperimentRound,
     isProtectedExperimentalPath,
     isResilienceEnabled,
@@ -25,10 +29,20 @@ declare module 'fastify' {
     }
 }
 
+function sendReject(
+    reply: { code: (status: number) => { send: (body: unknown) => unknown } },
+    reason: string
+) {
+    return reply.code(503).send({
+        mensaje: 'solicitud rechazada por control de resiliencia',
+        reason,
+        round: getExperimentRound(),
+    });
+}
+
 /**
  * Orden R1: admission → bulkhead → saturación.
- * Así el control de admisión limita la cola antes de retener recursos.
- * R0: solo saturación (sin protecciones nuevas).
+ * R0: solo saturación (con tope de cola del mismo mecanismo de fallo).
  */
 export function registerResilienceGuard(app: FastifyInstance): void {
     app.addHook('onRequest', async (request, reply) => {
@@ -39,7 +53,21 @@ export function registerResilienceGuard(app: FastifyInstance): void {
         reply.header('x-experiment-round', getExperimentRound());
 
         if (!isResilienceEnabled()) {
-            await applySaturationIfActive();
+            try {
+                await applySaturationIfActive();
+            } catch (error) {
+                if (error instanceof SaturationQueueTimeoutError) {
+                    request.cineGuard = {
+                        counted: false,
+                        admissionHeld: false,
+                        releaseBulkhead: null,
+                    };
+                    recordRejectedExperimentRequest('saturation_queue_timeout');
+                    return sendReject(reply, 'saturation_queue_timeout');
+                }
+                throw error;
+            }
+
             request.cineGuard = {
                 counted: true,
                 admissionHeld: false,
@@ -56,15 +84,11 @@ export function registerResilienceGuard(app: FastifyInstance): void {
                 admissionHeld: false,
                 releaseBulkhead: null,
             };
-            return reply.code(503).send({
-                mensaje: 'solicitud rechazada por control de admision',
-                reason: admission.reason,
-                round: getExperimentRound(),
-            });
+            return sendReject(reply, admission.reason);
         }
 
         try {
-            const releaseBulkhead = await experimentalBulkhead.enter(500);
+            const releaseBulkhead = await experimentalBulkhead.enter(bulkheadEnterTimeoutMs());
             request.cineGuard = {
                 counted: true,
                 admissionHeld: true,
@@ -79,14 +103,20 @@ export function registerResilienceGuard(app: FastifyInstance): void {
                 releaseBulkhead: null,
             };
             recordRejectedExperimentRequest('bulkhead_timeout');
-            return reply.code(503).send({
-                mensaje: 'solicitud rechazada por bulkhead saturado',
-                reason: 'bulkhead_timeout',
-                round: getExperimentRound(),
-            });
+            return sendReject(reply, 'bulkhead_timeout');
         }
 
-        await applySaturationIfActive();
+        try {
+            await applySaturationIfActive();
+        } catch (error) {
+            if (error instanceof SaturationQueueTimeoutError) {
+                finalizeGuard(request);
+                recordRejectedExperimentRequest('saturation_queue_timeout');
+                return sendReject(reply, 'saturation_queue_timeout');
+            }
+            finalizeGuard(request);
+            throw error;
+        }
     });
 
     app.addHook('onResponse', async (request, reply) => {

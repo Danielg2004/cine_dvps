@@ -4,6 +4,8 @@ export type SaturationConfig = {
     holdMs: number;
     maxInflight: number;
     durationSec: number;
+    /** Espera máxima por un cupo de saturación; evita cola ilimitada (mismo en R0/R1). */
+    maxQueueWaitMs: number;
 };
 
 type SaturationState = {
@@ -15,9 +17,15 @@ type SaturationState = {
     timer: ReturnType<typeof setTimeout> | null;
 };
 
+type SlotWaiter = {
+    resolve: (result: 'acquired' | 'timeout') => void;
+    timer: ReturnType<typeof setTimeout> | null;
+};
+
 const MAX_HOLD_MS = 2000;
 const MAX_DURATION_SEC = 120;
 const MAX_INFLIGHT = 32;
+const MAX_QUEUE_WAIT_MS = 5000;
 
 const state: SaturationState = {
     active: false,
@@ -27,19 +35,24 @@ const state: SaturationState = {
         holdMs: 200,
         maxInflight: 4,
         durationSec: 30,
+        maxQueueWaitMs: 500,
     },
     appliedCount: 0,
     timer: null,
 };
 
 let chaosInflight = 0;
-const waiters: Array<() => void> = [];
+const slotWaiters: SlotWaiter[] = [];
 
 function clampConfig(input: Partial<SaturationConfig>): SaturationConfig {
     return {
         holdMs: Math.max(0, Math.min(Number(input.holdMs ?? 200), MAX_HOLD_MS)),
         maxInflight: Math.max(1, Math.min(Number(input.maxInflight ?? 4), MAX_INFLIGHT)),
         durationSec: Math.max(1, Math.min(Number(input.durationSec ?? 30), MAX_DURATION_SEC)),
+        maxQueueWaitMs: Math.max(
+            0,
+            Math.min(Number(input.maxQueueWaitMs ?? 500), MAX_QUEUE_WAIT_MS)
+        ),
     };
 }
 
@@ -66,7 +79,7 @@ function snapshotStatus(): SaturationStatus {
         config: { ...state.config },
         appliedCount: state.appliedCount,
         chaosInflight,
-        queueDepth: waiters.length,
+        queueDepth: slotWaiters.length,
         limits: {
             maxHoldMs: MAX_HOLD_MS,
             maxDurationSec: MAX_DURATION_SEC,
@@ -129,39 +142,70 @@ export function stopSaturation(reason = 'manual'): SaturationStatus {
     state.startedAt = null;
     state.endsAt = null;
 
-    while (waiters.length > 0) {
-        const next = waiters.shift();
-        next?.();
+    while (slotWaiters.length > 0) {
+        const next = slotWaiters.shift();
+        if (!next) {
+            break;
+        }
+        if (next.timer) {
+            clearTimeout(next.timer);
+            next.timer = null;
+        }
+        next.resolve('timeout');
     }
 
     return snapshotStatus();
 }
 
-async function acquireSlot(): Promise<void> {
+async function acquireSlot(maxQueueWaitMs: number): Promise<'acquired' | 'timeout'> {
     if (chaosInflight < state.config.maxInflight) {
         chaosInflight += 1;
-        return;
+        return 'acquired';
     }
 
-    await new Promise<void>((resolve) => {
-        waiters.push(() => {
-            chaosInflight += 1;
-            resolve();
-        });
+    if (maxQueueWaitMs <= 0) {
+        return 'timeout';
+    }
+
+    return await new Promise<'acquired' | 'timeout'>((resolve) => {
+        const waiter: SlotWaiter = {
+            resolve,
+            timer: null,
+        };
+        slotWaiters.push(waiter);
+        waiter.timer = setTimeout(() => {
+            const index = slotWaiters.indexOf(waiter);
+            if (index >= 0) {
+                slotWaiters.splice(index, 1);
+                resolve('timeout');
+            }
+        }, maxQueueWaitMs);
     });
 }
 
 function releaseSlot(): void {
     chaosInflight = Math.max(0, chaosInflight - 1);
-    const next = waiters.shift();
+    const next = slotWaiters.shift();
     if (next) {
-        next();
+        if (next.timer) {
+            clearTimeout(next.timer);
+            next.timer = null;
+        }
+        chaosInflight += 1;
+        next.resolve('acquired');
+    }
+}
+
+export class SaturationQueueTimeoutError extends Error {
+    constructor() {
+        super('saturation_queue_timeout');
+        this.name = 'SaturationQueueTimeoutError';
     }
 }
 
 /**
- * Contención de concurrencia acotada: espera cupo y retiene holdMs.
- * Sin busy-loop ni memory leak.
+ * Contención de concurrencia acotada: espera cupo (con tope) y retiene holdMs.
+ * Sin busy-loop ni memory leak. El tope de cola aplica igual en R0 y R1.
  */
 export async function applySaturationIfActive(): Promise<void> {
     const status = getSaturationStatus();
@@ -169,7 +213,11 @@ export async function applySaturationIfActive(): Promise<void> {
         return;
     }
 
-    await acquireSlot();
+    const acquired = await acquireSlot(status.config.maxQueueWaitMs);
+    if (acquired === 'timeout') {
+        throw new SaturationQueueTimeoutError();
+    }
+
     state.appliedCount += 1;
     try {
         await new Promise((resolve) => setTimeout(resolve, status.config.holdMs));

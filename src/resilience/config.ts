@@ -44,12 +44,25 @@ export function isResilienceEnabled(): boolean {
     return envFlag('RESILIENCE_ENABLED', false);
 }
 
+/**
+ * Capacidad de la sección crítica.
+ * Por defecto 8; debe alinearse con CHAOS_MAX_INFLIGHT del experimento.
+ */
 export function bulkheadMaxConcurrent(): number {
     return Math.max(1, Math.min(envInt('BULKHEAD_MAX_CONCURRENT', 8), 64));
 }
 
+/**
+ * Cupos de admisión. Nunca supera el bulkhead: evita admitir trabajo
+ * que luego muere por bulkhead_timeout (defecto R1 original).
+ */
 export function admissionMaxInflight(): number {
-    return Math.max(1, Math.min(envInt('ADMISSION_MAX_INFLIGHT', 16), 128));
+    const configured = Math.max(1, Math.min(envInt('ADMISSION_MAX_INFLIGHT', 8), 128));
+    return Math.min(configured, bulkheadMaxConcurrent());
+}
+
+export function bulkheadEnterTimeoutMs(): number {
+    return Math.max(50, Math.min(envInt('BULKHEAD_ENTER_TIMEOUT_MS', 2000), 10_000));
 }
 
 /** Rutas protegidas por bulkhead/admission (superficie experimental). */
