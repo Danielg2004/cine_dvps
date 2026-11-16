@@ -2,15 +2,18 @@
 
 ## Decisión de plataforma
 
-Se eligió **GKE (Kubernetes administrado en GCP)** frente a:
+Se eligió **GKE Autopilot** (cuando se autorice) frente a:
 
 | Opción | Motivo de descarte / uso |
 |--------|---------------------------|
-| Cloud Run | No es Kubernetes; no cumple la responsabilidad asignada a Daniel |
-| K8s autogestionado en GCE | Más costo operativo y superficie de error |
+| Cloud Run | Ya existe `cine-api` en el proyecto, pero **no es Kubernetes** |
+| GKE Standard | Más nodos/costo operativo para un lab académico |
+| K8s autogestionado en GCE | Compute API hoy deshabilitada; más superficie de error |
 | Manifiestos `k8s/` Azure ACR | Históricos; **no** usar para este seguimiento |
 
-**Estado:** manifiestos listos. **Despliegue real del clúster: PENDIENTE de autorización** (recursos facturables).
+**Inventario real (lectura):** Cloud SQL `cine-mysql-v4` RUNNABLE; Artifact Registry `cine-canary`; **GKE API no habilitada**.
+
+**Estado:** manifiestos listos. **Despliegue real del clúster: PENDIENTE de autorización** (recursos facturables). Ver `docs/seguimiento-4/DESPLIEGUE_GCP.md`.
 
 ## Conexión MySQL
 
