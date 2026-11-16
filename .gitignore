@@ -22,3 +22,9 @@ crash.*.log
 github-actions-policy-backup.json
 
 gha-creds-*.json
+
+# Secrets locales Kubernetes Seguimiento #4
+deploy/gcp/k8s/secret.yaml
+chaos/results/
+docs/seguimiento-4/evidencias/*.json
+!docs/seguimiento-4/evidencias/.gitkeep

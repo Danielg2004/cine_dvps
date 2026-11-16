@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cine-api
+  namespace: cine-caos
+  annotations:
+    # GKE Ingress / Gateway: ajustar según clúster autorizado
+    kubernetes.gke.io/managed-certificates: "cine-api-cert"
+    kubernetes.gke.io/ssl-redirect: "true"
+spec:
+  rules:
+    - host: cine-api.PENDIENTE.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cine-api
+                port:
+                  number: 80

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cine-api
+  namespace: cine-caos
+  labels:
+    app: cine-api
+spec:
+  type: ClusterIP
+  selector:
+    app: cine-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

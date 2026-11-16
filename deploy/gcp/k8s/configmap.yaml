@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-api-config
+  namespace: cine-caos
+  labels:
+    app: cine-api
+data:
+  APP_VERSION: "5.0.0"
+  APP_TRACK: "caos"
+  PORT: "3000"
+  DB_NAME: "cine_dvps"
+  DB_PORT: "3306"
+  DB_HOST: "127.0.0.1"
+  # Alternativa Cloud SQL socket (descomentar en clúster real):
+  # DB_SOCKET_PATH: "/cloudsql/PROJECT:REGION:INSTANCE"
+  DB_AUTO_INIT: "false"
+  OTEL_SERVICE_NAME: "cine-api"
+  OTEL_LOGS_EXPORTER: "none"
+  # Exportación OTLP hacia el stack compartido (Samuel): parametrizable
+  # OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+  RESILIENCE_ENABLED: "false"
+  EXPERIMENT_ROUND: "baseline"
+  BULKHEAD_MAX_CONCURRENT: "8"
+  ADMISSION_MAX_INFLIGHT: "16"
+  # CACHE_URL vacío = cache deshabilitado (degradación a MySQL)
+  CACHE_URL: ""

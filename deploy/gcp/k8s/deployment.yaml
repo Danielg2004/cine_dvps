@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cine-api
+  namespace: cine-caos
+  labels:
+    app: cine-api
+    seguimiento: "4"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cine-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: cine-api
+        seguimiento: "4"
+      annotations:
+        # Sidecar Cloud SQL Auth Proxy recomendado en GKE; host vía DB_HOST o socket
+        cine.dvps/db-mode: "cloudsql-or-private-ip"
+    spec:
+      serviceAccountName: cine-api
+      containers:
+        - name: cine-api
+          # Sustituir por la imagen real en Artifact Registry tras build autorizado
+          image: us-central1-docker.pkg.dev/PROJECT_ID/cine-canary/cine-api:5.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: cine-api-config
+            - secretRef:
+                name: cine-api-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1000
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cine-api
+  namespace: cine-caos
+  annotations:
+    # Habilitar Workload Identity en GKE cuando el proyecto esté listo:
+    # iam.gke.io/gcp-service-account: cine-gke-sa@PROJECT_ID.iam.gserviceaccount.com
+    cine.dvps/workload-identity: "pending"
