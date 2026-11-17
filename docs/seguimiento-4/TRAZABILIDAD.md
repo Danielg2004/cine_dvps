@@ -35,12 +35,20 @@ Variables estándar:
 Apply: `scripts/gcp-apply-otel-oci.ps1` (requiere `otel-lab-ca.crt` + token por canal privado).
 Confirmación final: Tempo/Prometheus de Samuel (`service.name=cine-api`).
 
+## Defacto observado (Sports → Cine)
+
+Sports a veces envía `traceparent` **duplicado** (valores unidos con `, `).  
+Cine mitiga con propagador soft (`src/observability/w3c-propagator.ts`) tomando el primer valor W3C válido.  
+Detalle para Jarrison: `PARA_JARRISON_TRACEPARENT.md`.
+
 ## Estado de verificación E2E tres nubes
 
-**No verificado** todavía un trace único Sports → Hotel → Cine en producción.
+Flujo funcional OK. Unificación Tempo pendiente de:
+1. Confirmación Samuel tras rollout del fix soft-traceparent.
+2. Sports enviando un solo `traceparent` (Jarrison).
 
 Verificado localmente:
 
 - Eco de headers en Cine
-- Inyección W3C simulada desde Sports
+- SERVER span continúa Trace ID / parent (`tests/otel-w3c-incoming.test.ts`)
 - Tests en `tests/trazabilidad-sports-cine.test.ts`
