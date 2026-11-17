@@ -71,6 +71,7 @@ URL pública lab: `http://35.239.107.54`.
 - Perfil k6 Cine listo (`load/k6/`); coordinación gate: Jarrison
 - Chaos gate CI: Jarrison
 - Hipótesis throughput R1>R0: **no confirmada** (local + GKE v1 + GKE v2)
+- Cierre experimento: `CIERRE_EXPERIMENTO_CAOS.md`
 
 ## Uso de IA
 

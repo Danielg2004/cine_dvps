@@ -15,11 +15,12 @@ Con bulkhead y admission (R1), bajo el mismo fallo, el throughput exitoso mejora
 
 Solicitudes exitosas por segundo (`successful_rps`) en la superficie experimental.
 
-| Indicador | Valor (serie k6 v3, Docker) |
-|-----------|------------------------------|
-| Baseline RPS | 80.00 (llegada fija 80/s) |
-| Umbral degradación R0 | ~32.27 RPS (−60 % vs baseline) |
-| Mejora R1 vs R0 | **No**: 30.63 vs 32.27 (−5.1 %) |
+| Indicador | Local k6 v3 | GKE v2 (oficial cloud) |
+|-----------|-------------|-------------------------|
+| Baseline RPS | 80.00 | 78.33 |
+| R0 RPS | 32.27 | 29.97 |
+| R1 RPS | 30.63 (−5.1 % vs R0) | 27.87 (−7.0 % vs R0) |
+| Mejora throughput R1 | **No** | **No** |
 
 ## 4. Método de inyección
 
