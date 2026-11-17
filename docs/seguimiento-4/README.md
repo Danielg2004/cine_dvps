@@ -54,8 +54,9 @@ Ver `TRAZABILIDAD.md`. E2E tres nubes **no verificado** aún.
 ## Rondas
 
 Ver `PROCEDIMIENTO_RONDAS.md`.  
-Serie local oficial comparable: **k6 v3** (`npm run chaos:lab:k6`) — ver `evidencias/LAB_K6_V3_SUMMARY.md`.  
-Ejecuciones cloud: **PENDIENTES**.
+Serie local oficial comparable: **k6 v3** (`npm run chaos:lab:k6`) — `evidencias/LAB_K6_V3_SUMMARY.md`.  
+Serie cloud GKE: **k6 GKE** (`npm run chaos:gke:k6`) — `evidencias/LAB_K6_GKE_SUMMARY.md`.  
+URL pública lab: `http://35.239.107.54`.
 
 ## Recuperación
 

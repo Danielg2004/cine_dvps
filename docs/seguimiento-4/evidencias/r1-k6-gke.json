@@ -1,0 +1,50 @@
+{
+    "ok":  true,
+    "experiment_id":  "cine-resource-exhaustion-concurrency-v1",
+    "round":  "r1",
+    "generator":  "k6",
+    "profile":  {
+                    "rate":  80,
+                    "timeUnit":  "1s",
+                    "duration":  "30s",
+                    "duration_sec":  30,
+                    "preAllocatedVUs":  40,
+                    "maxVUs":  120,
+                    "endpoint":  "GET /api/v2/peliculas/1",
+                    "baseUrl":  "http://35.239.107.54"
+                },
+    "offered":  {
+                    "target_iterations":  2400,
+                    "http_reqs":  2324,
+                    "dropped_iterations":  78,
+                    "note":  "dropped_iterations son del scheduler k6, NO respuestas HTTP de la API"
+                },
+    "during":  {
+                   "samples":  2324,
+                   "success":  642,
+                   "failed":  1682,
+                   "rejected_503":  1681,
+                   "rejected_429":  0,
+                   "rejected_429_503":  1681,
+                   "failed_other_4xx_5xx":  0,
+                   "success_rate":  0.2762,
+                   "successful_rps":  21.4,
+                   "offered_rps":  77.4667,
+                   "latencies_ms":  {
+                                        "success_p95":  1578.46
+                                    },
+                   "measurement":  "k6_constant_arrival_rate",
+                   "window_sec":  30,
+                   "with_fault":  true
+               },
+    "successful_rps":  21.4,
+    "k6_raw_metrics":  {
+                           "http_req_duration_p95":  1465.6570449999988,
+                           "iterations":  2323
+                       },
+    "finished_at":  "2026-11-17T01:31:29.670Z",
+    "series":  "gke-k6-constant-arrival-rate",
+    "environment":  "gke-autopilot-cine-caos",
+    "public_url":  "http://35.239.107.54",
+    "replicas_during_experiment":  1
+}

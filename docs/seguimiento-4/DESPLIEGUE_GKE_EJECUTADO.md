@@ -17,7 +17,8 @@ http://35.239.107.54
 | `GET /readyz` | 200 `database":"up"` |
 | `GET /api/v2/peliculas/1` + `x-trace-id` | 200, origen `database` |
 
-**No** se ejecutaron experimentos de caos (no autorizados).
+Experimentos k6 GKE (Continuación #6): ejecutados — ver `evidencias/LAB_K6_GKE_SUMMARY.md`.  
+Hipótesis throughput en cloud: **NO confirmada** (R1 21.4 vs R0 28.6 RPS).
 
 ## Recursos creados (nuevos)
 
