@@ -24,11 +24,16 @@ Preservar el contexto de correlación cuando Sports (AWS) llama a Cine (GCP).
 
 Variables estándar:
 
-- `OTEL_EXPORTER_OTLP_ENDPOINT`
-- `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` / `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`
-- `OTEL_EXPORTER_OTLP_PROTOCOL` (`http/protobuf` por defecto)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` → collector Samuel OCI `https://157.137.233.183:31443`
+- `OTEL_EXPORTER_OTLP_PROTOCOL` (`http/protobuf`)
+- `OTEL_EXPORTER_OTLP_CERTIFICATE` → `/etc/otel/certs/otel-lab-ca.crt` (montado desde ConfigMap)
+- `OTEL_EXPORTER_OTLP_HEADERS` → `Authorization=Basic%20…` (Secret `cine-otel-secrets`; nunca en Git)
+- `OTEL_TRACES_EXPORTER` / `OTEL_METRICS_EXPORTER` = `otlp`
 - `OTEL_SERVICE_NAME` (default `cine-api`)
 - `OTEL_SDK_DISABLED=true` para desactivar
+
+Apply: `scripts/gcp-apply-otel-oci.ps1` (requiere `otel-lab-ca.crt` + token por canal privado).
+Confirmación final: Tempo/Prometheus de Samuel (`service.name=cine-api`).
 
 ## Estado de verificación E2E tres nubes
 
