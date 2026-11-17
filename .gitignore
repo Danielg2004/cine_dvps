@@ -30,3 +30,4 @@ chaos/results/*
 docs/seguimiento-4/evidencias/*.json
 !docs/seguimiento-4/evidencias/.gitkeep
 !docs/seguimiento-4/evidencias/*-k6-v3.json
+!docs/seguimiento-4/evidencias/*-k6-gke.json
