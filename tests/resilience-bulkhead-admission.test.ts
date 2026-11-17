@@ -86,6 +86,46 @@ describe('Bulkhead y control de admisión', () => {
         }
     });
 
+    it('R1: bulkhead permite espera breve antes de timeout (cola corta)', async () => {
+        process.env.EXPERIMENT_ROUND = 'r1';
+        process.env.ADMISSION_MAX_INFLIGHT = '1';
+        process.env.BULKHEAD_MAX_CONCURRENT = '1';
+        process.env.BULKHEAD_ENTER_TIMEOUT_MS = '80';
+        mockPeliculaOk();
+
+        const release = await experimentalBulkhead.enter(50);
+        const app = buildApp();
+        try {
+            const pending = app.inject({ method: 'GET', url: '/api/v2/peliculas/1' });
+            await new Promise((r) => setTimeout(r, 30));
+            release();
+            const respuesta = await pending;
+            // Tras liberar el cupo dentro del timeout, debe completar 200
+            expect(respuesta.statusCode).toBe(200);
+        } finally {
+            await app.close();
+        }
+    });
+
+    it('R1: bulkhead_timeout si el cupo no se libera a tiempo', async () => {
+        process.env.EXPERIMENT_ROUND = 'r1';
+        process.env.ADMISSION_MAX_INFLIGHT = '1';
+        process.env.BULKHEAD_MAX_CONCURRENT = '1';
+        process.env.BULKHEAD_ENTER_TIMEOUT_MS = '40';
+        mockPeliculaOk();
+
+        const release = await experimentalBulkhead.enter(50);
+        const app = buildApp();
+        try {
+            const respuesta = await app.inject({ method: 'GET', url: '/api/v2/peliculas/1' });
+            expect(respuesta.statusCode).toBe(503);
+            expect(respuesta.json().reason).toBe('bulkhead_timeout');
+        } finally {
+            release();
+            await app.close();
+        }
+    });
+
     it('R1: con capacidad disponible no rechaza', async () => {
         process.env.EXPERIMENT_ROUND = 'r1';
         process.env.ADMISSION_MAX_INFLIGHT = '8';

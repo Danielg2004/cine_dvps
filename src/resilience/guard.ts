@@ -30,9 +30,13 @@ declare module 'fastify' {
 }
 
 function sendReject(
-    reply: { code: (status: number) => { send: (body: unknown) => unknown } },
+    reply: {
+        header: (name: string, value: string) => unknown;
+        code: (status: number) => { send: (body: unknown) => unknown };
+    },
     reason: string
 ) {
+    reply.header('x-reject-reason', reason);
     return reply.code(503).send({
         mensaje: 'solicitud rechazada por control de resiliencia',
         reason,
@@ -41,7 +45,10 @@ function sendReject(
 }
 
 /**
- * Orden R1: admission → bulkhead → saturación.
+ * Orden R1 (corregido): bulkhead (cola corta) → admission → saturación.
+ * Motivo: admitir ANTES del bulkhead con el mismo límite agotaba los cupos durante
+ * holdMs y anulaba cualquier espera breve equivalente a maxQueueWaitMs de R0.
+ * Admission sigue rechazando en carrera / sobrecarga tras obtener cupo de bulkhead.
  * R0: solo saturación (con tope de cola del mismo mecanismo de fallo).
  */
 export function registerResilienceGuard(app: FastifyInstance): void {
@@ -77,26 +84,10 @@ export function registerResilienceGuard(app: FastifyInstance): void {
             return;
         }
 
-        const admission = experimentalAdmission.tryAdmit();
-        if (!admission.ok) {
-            request.cineGuard = {
-                counted: false,
-                admissionHeld: false,
-                releaseBulkhead: null,
-            };
-            return sendReject(reply, admission.reason);
-        }
-
+        let releaseBulkhead: (() => void) | null = null;
         try {
-            const releaseBulkhead = await experimentalBulkhead.enter(bulkheadEnterTimeoutMs());
-            request.cineGuard = {
-                counted: true,
-                admissionHeld: true,
-                releaseBulkhead,
-            };
-            adjustInflight(1);
+            releaseBulkhead = await experimentalBulkhead.enter(bulkheadEnterTimeoutMs());
         } catch {
-            experimentalAdmission.release();
             request.cineGuard = {
                 counted: false,
                 admissionHeld: false,
@@ -105,6 +96,24 @@ export function registerResilienceGuard(app: FastifyInstance): void {
             recordRejectedExperimentRequest('bulkhead_timeout');
             return sendReject(reply, 'bulkhead_timeout');
         }
+
+        const admission = experimentalAdmission.tryAdmit();
+        if (!admission.ok) {
+            releaseBulkhead();
+            request.cineGuard = {
+                counted: false,
+                admissionHeld: false,
+                releaseBulkhead: null,
+            };
+            return sendReject(reply, admission.reason);
+        }
+
+        request.cineGuard = {
+            counted: true,
+            admissionHeld: true,
+            releaseBulkhead,
+        };
+        adjustInflight(1);
 
         try {
             await applySaturationIfActive();

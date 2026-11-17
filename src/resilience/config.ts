@@ -61,8 +61,13 @@ export function admissionMaxInflight(): number {
     return Math.min(configured, bulkheadMaxConcurrent());
 }
 
+/**
+ * Espera máxima por cupo de bulkhead. Default 200 ms: alineado con
+ * maxQueueWaitMs típico de saturación, para absorción breve comparable a R0
+ * (antes 2000 ms quedaba muerto porque admission rechazaba antes de encolar).
+ */
 export function bulkheadEnterTimeoutMs(): number {
-    return Math.max(50, Math.min(envInt('BULKHEAD_ENTER_TIMEOUT_MS', 2000), 10_000));
+    return Math.max(50, Math.min(envInt('BULKHEAD_ENTER_TIMEOUT_MS', 200), 10_000));
 }
 
 /** Rutas protegidas por bulkhead/admission (superficie experimental). */
