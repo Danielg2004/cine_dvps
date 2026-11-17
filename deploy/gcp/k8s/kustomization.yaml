@@ -6,10 +6,10 @@ resources:
   - configmap.yaml
   - deployment.yaml
   - service.yaml
-  - ingress.yaml
+  # ingress.yaml es opcional (dominio pendiente); exposición vía LoadBalancer
 images:
-  - name: us-central1-docker.pkg.dev/PROJECT_ID/cine-canary/cine-api
-    newTag: "5.0.0"
+  - name: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api
+    newTag: "5.0.1-caos"
 labels:
   - pairs:
       seguimiento: "4"

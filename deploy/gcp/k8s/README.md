@@ -2,48 +2,48 @@
 
 ## Decisión de plataforma
 
-Se eligió **GKE Autopilot** (cuando se autorice) frente a:
+**Elegida: GKE Autopilot** (región `us-central1`, proyecto `cine-devops-canary`).
 
-| Opción | Motivo de descarte / uso |
-|--------|---------------------------|
-| Cloud Run | Ya existe `cine-api` en el proyecto, pero **no es Kubernetes** |
-| GKE Standard | Más nodos/costo operativo para un lab académico |
-| K8s autogestionado en GCE | Compute API hoy deshabilitada; más superficie de error |
-| Manifiestos `k8s/` Azure ACR | Históricos; **no** usar para este seguimiento |
+| Opción | Decisión |
+|--------|----------|
+| **GKE Autopilot** | Elegida: 2 réplicas, probes, resources nativos, mínimo ops, fácil de borrar |
+| GKE Standard | Descartada para lab: nodos fijos más caros |
+| K8s en GCE | Descartada: Compute API OFF + operación alta |
+| Cloud Run | **No sustituye** Kubernetes (ya existe `cine-api` histórico; no usarlo como entrega K8s) |
 
-**Inventario real (lectura):** Cloud SQL `cine-mysql-v4` RUNNABLE; Artifact Registry `cine-canary`; **GKE API no habilitada**.
+**Estado clúster:** no creado. APIs `container`/`compute` **deshabilitadas**. Ver propuesta de autorización en `docs/seguimiento-4/PROPUESTA_AUTORIZACION_GCP.md`.
 
-**Estado:** manifiestos listos. **Despliegue real del clúster: PENDIENTE de autorización** (recursos facturables). Ver `docs/seguimiento-4/DESPLIEGUE_GCP.md`.
+## Manifiestos incluidos
+
+| Recurso | Detalle |
+|---------|---------|
+| Namespace | `cine-caos` |
+| Deployment | 2 réplicas, probes `/healthz` `/readyz`, requests/limits |
+| Sidecar | Cloud SQL Auth Proxy → `cine-mysql-v4` |
+| Service | **LoadBalancer** (HTTP público temporal para Sports) |
+| ConfigMap | DB loopback, resiliencia, OTEL |
+| Secret | crear en clúster (no en git) |
+| Ingress | opcional, fuera de kustomize (dominio pendiente) |
 
 ## Conexión MySQL
 
-Opciones seguras (en orden):
+1. **Cloud SQL Auth Proxy sidecar** (elegido) → `DB_HOST=127.0.0.1`
+2. Workload Identity: KSA `cine-api` ↔ GSA `cine-gke-sa` con `roles/cloudsql.client`
+3. No se modifica IP pública / authorized networks de `cine-mysql-v4` sin autorización aparte
 
-1. **Cloud SQL Auth Proxy** como sidecar → `DB_HOST=127.0.0.1`.
-2. **IP privada** de Cloud SQL en VPC del clúster.
-3. Socket Unix `DB_SOCKET_PATH` si el runtime lo monta.
-
-Secrets: crear desde `secret.yaml.example` con `kubectl create secret` — no commitear valores.
-
-## Aplicar (cuando exista clúster autorizado)
+## Aplicar (solo tras autorización)
 
 ```bash
-kubectl config current-context   # verificar clúster correcto
 kubectl apply -k deploy/gcp/k8s
 kubectl -n cine-caos rollout status deployment/cine-api
+kubectl -n cine-caos get pods,svc
 ```
 
-## Reversión
+## Reversión / limpieza
 
 ```bash
 kubectl -n cine-caos rollout undo deployment/cine-api
-kubectl -n cine-caos rollout status deployment/cine-api
-```
-
-## Validación local de sintaxis
-
-```bash
-./scripts/validate-k8s.sh
-# o
-powershell -File scripts/validate-k8s.ps1
+# Limpieza total del lab (destructivo, autorización aparte):
+# kubectl delete -k deploy/gcp/k8s
+# gcloud container clusters delete cine-caos-autopilot --region=us-central1 --quiet
 ```

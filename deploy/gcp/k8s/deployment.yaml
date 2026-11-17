@@ -22,14 +22,13 @@ spec:
         app: cine-api
         seguimiento: "4"
       annotations:
-        # Sidecar Cloud SQL Auth Proxy recomendado en GKE; host vía DB_HOST o socket
-        cine.dvps/db-mode: "cloudsql-or-private-ip"
+        cine.dvps/db-mode: "cloudsql-auth-proxy"
     spec:
       serviceAccountName: cine-api
+      # Autopilot: no privilegiado; proxy + app en el mismo Pod
       containers:
         - name: cine-api
-          # Sustituir por la imagen real en Artifact Registry tras build autorizado
-          image: us-central1-docker.pkg.dev/PROJECT_ID/cine-canary/cine-api:5.0.0
+          image: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api:5.0.1-caos
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -50,7 +49,7 @@ spec:
             httpGet:
               path: /healthz
               port: http
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
             periodSeconds: 15
             timeoutSeconds: 3
             failureThreshold: 3
@@ -58,7 +57,7 @@ spec:
             httpGet:
               path: /readyz
               port: http
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
@@ -67,6 +66,27 @@ spec:
             readOnlyRootFilesystem: false
             runAsNonRoot: true
             runAsUser: 1000
+            runAsGroup: 1000
+        - name: cloud-sql-proxy
+          # Sidecar oficial: túnel IAM → Cloud SQL (no requiere authorized networks)
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.3
+          args:
+            - "--structured-logs"
+            - "--address=127.0.0.1"
+            - "--port=3306"
+            - "cine-devops-canary:us-central1:cine-mysql-v4"
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            runAsUser: 65532
+            runAsGroup: 65532
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -74,6 +94,5 @@ metadata:
   name: cine-api
   namespace: cine-caos
   annotations:
-    # Habilitar Workload Identity en GKE cuando el proyecto esté listo:
-    # iam.gke.io/gcp-service-account: cine-gke-sa@PROJECT_ID.iam.gserviceaccount.com
-    cine.dvps/workload-identity: "pending"
+    # Tras crear GSA cine-gke-sa y binding WI (requiere autorización):
+    iam.gke.io/gcp-service-account: cine-gke-sa@cine-devops-canary.iam.gserviceaccount.com

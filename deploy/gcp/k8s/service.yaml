@@ -5,8 +5,12 @@ metadata:
   namespace: cine-caos
   labels:
     app: cine-api
+  annotations:
+    # Demo académica temporal: IP externa para Sports (AWS) → Cine (GCP)
+    # Tras la demo: eliminar el Service o cambiar a ClusterIP para cortar el LB
+    cloud.google.com/neg: '{"ingress":false}'
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: cine-api
   ports:

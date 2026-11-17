@@ -1,10 +1,11 @@
+# OPCIONAL — no incluido en kustomization por defecto.
+# Requiere dominio DNS real + ManagedCertificate. Para el lab se usa Service LoadBalancer.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: cine-api
   namespace: cine-caos
   annotations:
-    # GKE Ingress / Gateway: ajustar según clúster autorizado
     kubernetes.gke.io/managed-certificates: "cine-api-cert"
     kubernetes.gke.io/ssl-redirect: "true"
 spec:
