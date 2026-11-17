@@ -1,5 +1,5 @@
 import { accessSync, constants as fsConstants } from 'node:fs';
-import { metrics } from '@opentelemetry/api';
+import { metrics, propagation } from '@opentelemetry/api';
 import { OTLPMetricExporter as OTLPMetricExporterGrpc } from '@opentelemetry/exporter-metrics-otlp-grpc';
 import { OTLPMetricExporter as OTLPMetricExporterHttp } from '@opentelemetry/exporter-metrics-otlp-http';
 import { OTLPMetricExporter as OTLPMetricExporterProto } from '@opentelemetry/exporter-metrics-otlp-proto';
@@ -16,6 +16,7 @@ import { BatchSpanProcessor, SimpleSpanProcessor } from '@opentelemetry/sdk-trac
 import type { SpanExporter } from '@opentelemetry/sdk-trace-base';
 import type { PushMetricExporter } from '@opentelemetry/sdk-metrics';
 import { DiscardSpanExporter, StdoutSpanExporter } from './span-export.js';
+import { createCinePropagator } from './w3c-propagator.js';
 
 const GLOBAL_KEY = '__cineApiOpenTelemetryStarted';
 
@@ -148,6 +149,10 @@ function startTelemetry(): void {
         spanProcessors.push(new SimpleSpanProcessor(new StdoutSpanExporter(serviceName)));
     }
 
+    const textMapPropagator = createCinePropagator();
+    // Asegurar propagador antes de instrumentar HTTP (extracción en SERVER span).
+    propagation.setGlobalPropagator(textMapPropagator);
+
     const instrumentations = [
         new HttpInstrumentation(),
         new FastifyInstrumentation(),
@@ -159,6 +164,7 @@ function startTelemetry(): void {
         instrumentations,
         spanProcessors,
         metricReaders: [],
+        textMapPropagator,
     });
     sdk.start();
 
@@ -187,8 +193,8 @@ function startTelemetry(): void {
         headersConfigured,
         certificateConfigured: cert.certificateConfigured,
         certificateReadable: cert.certificateReadable,
-        // W3C Trace Context / Baggage: default del NodeSDK + HttpInstrumentation
-        propagator: 'w3c',
+        // W3C + soft-parse de traceparent duplicados (Sports double-inject)
+        propagator: 'w3c-soft-traceparent',
     }));
 }
 
