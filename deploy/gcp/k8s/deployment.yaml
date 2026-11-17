@@ -28,7 +28,7 @@ spec:
       # Autopilot: no privilegiado; proxy + app en el mismo Pod
       containers:
         - name: cine-api
-          image: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api:5.0.1-caos
+          image: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api:5.0.1-caos-110f734
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

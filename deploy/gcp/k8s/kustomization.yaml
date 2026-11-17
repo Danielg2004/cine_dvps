@@ -9,7 +9,7 @@ resources:
   # ingress.yaml es opcional (dominio pendiente); exposición vía LoadBalancer
 images:
   - name: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api
-    newTag: "5.0.1-caos"
+    newTag: "5.0.1-caos-110f734"
 labels:
   - pairs:
       seguimiento: "4"

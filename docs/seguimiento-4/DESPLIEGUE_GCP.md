@@ -47,12 +47,14 @@ Ver comandos en `PROPUESTA_AUTORIZACION_GCP.md` (N1–N8).
 | Paso | Estado |
 |------|--------|
 | Inventario RO | Hecho |
-| Manifiestos Autopilot | Hechos (local) |
-| Habilitar APIs | **PENDIENTE autorización** |
-| Crear Autopilot | **PENDIENTE autorización** |
-| Push imagen | **PENDIENTE autorización** |
-| Apply K8s | **PENDIENTE autorización** |
-| URL pública LB | **No existe aún** |
-| Experimentos k6 cloud | **No ejecutados** |
+| Manifiestos Autopilot | Hechos |
+| Habilitar APIs | **Hecho** (autorizado N1–N8) |
+| Crear Autopilot | **Hecho** `cine-caos-autopilot` |
+| Push imagen | **Hecho** `5.0.1-caos-110f734` |
+| Apply K8s | **Hecho** 2/2 Ready |
+| URL pública LB | **http://35.239.107.54** |
+| Experimentos k6 cloud | **No ejecutados** (no autorizados) |
+
+Evidencia: `DESPLIEGUE_GKE_EJECUTADO.md`
 
 Script RO: `scripts/prepare-gcp-deploy.ps1`
