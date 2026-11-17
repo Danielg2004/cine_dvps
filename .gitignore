@@ -31,3 +31,8 @@ docs/seguimiento-4/evidencias/*.json
 !docs/seguimiento-4/evidencias/.gitkeep
 !docs/seguimiento-4/evidencias/*-k6-v3.json
 !docs/seguimiento-4/evidencias/*-k6-gke.json
+!docs/seguimiento-4/evidencias/*-k6-gke-v2.json
+!docs/seguimiento-4/evidencias/gke-v2-reject-probe.json
+!docs/seguimiento-4/evidencias/DEPLOY_GKE_V2.json
+!docs/seguimiento-4/evidencias/gke-v2-final-state.txt
+!docs/seguimiento-4/evidencias/LAB_K6_GKE_V2_SUMMARY.md

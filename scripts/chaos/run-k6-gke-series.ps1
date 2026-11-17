@@ -27,9 +27,15 @@ $env:CHAOS_MAX_INFLIGHT = "8"
 $env:CHAOS_DURATION_SEC = "90"
 $env:CHAOS_MAX_QUEUE_WAIT_MS = "200"
 
+# Sufijo de serie: v2 por defecto para no sobrescribir GKE v1
+$seriesSuffix = if ($env:CINE_GKE_SERIES) { $env:CINE_GKE_SERIES } else { "v2" }
+$seriesName = "gke-k6-constant-arrival-rate-$seriesSuffix"
+$fileSuffix = "k6-gke-$seriesSuffix"
+
 New-Item -ItemType Directory -Force -Path "chaos\results" | Out-Null
 New-Item -ItemType Directory -Force -Path "docs\seguimiento-4\evidencias" | Out-Null
 
+$utf8 = New-Object System.Text.UTF8Encoding $false
 $chaosToken = ((gcloud secrets versions access latest --secret=canary-fault-token --project=cine-devops-canary) -replace '[\r\n]', '').Trim()
 if (-not $chaosToken -or $chaosToken.Length -lt 16) { throw "CHAOS token invalido" }
 
@@ -37,13 +43,17 @@ function Refresh-Kube {
   . (Join-Path $root "scripts\gcp-kubectl-token.ps1")
 }
 
+function Write-JsonFile([string]$path, $obj) {
+  [IO.File]::WriteAllText((Join-Path $root $path), ($obj | ConvertTo-Json -Depth 12), $utf8)
+}
+
 function Set-ExperimentRound([string]$round) {
   Refresh-Kube
   $resilience = if ($round -eq 'r1') { 'true' } else { 'false' }
-  Write-Host "=== ConfigMap EXPERIMENT_ROUND=$round RESILIENCE_ENABLED=$resilience ==="
+  Write-Host "=== ConfigMap EXPERIMENT_ROUND=$round RESILIENCE_ENABLED=$resilience BULKHEAD_ENTER_TIMEOUT_MS=200 ==="
   $patchFile = Join-Path $env:TEMP "cine-cm-patch.json"
   Set-Content -Path $patchFile -Value (@'
-{"data":{"EXPERIMENT_ROUND":"ROUND_PLACEHOLDER","RESILIENCE_ENABLED":"RES_PLACEHOLDER"}}
+{"data":{"EXPERIMENT_ROUND":"ROUND_PLACEHOLDER","RESILIENCE_ENABLED":"RES_PLACEHOLDER","BULKHEAD_ENTER_TIMEOUT_MS":"200"}}
 '@).Replace('ROUND_PLACEHOLDER',$round).Replace('RES_PLACEHOLDER',$resilience) -Encoding ascii
   kubectl -n cine-caos patch configmap cine-api-config --type merge --patch-file $patchFile | Out-Host
   kubectl -n cine-caos rollout restart deployment/cine-api | Out-Host
@@ -74,7 +84,6 @@ function Set-Replicas([int]$n) {
 }
 
 function Invoke-SaturationHttp([string]$action) {
-  # Con 1 réplica, el LB apunta al único pod → satura el proceso in-process completo.
   $headers = @{ "x-chaos-token" = $chaosToken }
   if ($action -eq 'start') {
     $tmp = Join-Path $env:TEMP "cine-sat-body.json"
@@ -96,9 +105,13 @@ function Invoke-SaturationHttp([string]$action) {
 }
 
 function Save-PodSnapshot([string]$label) {
-  Refresh-Kube
-  $out = "chaos/results/gke-pods-$label.txt"
-  kubectl -n cine-caos get pods,deploy,svc -o wide 2>&1 | Out-File -FilePath $out -Encoding utf8
+  try {
+    Refresh-Kube
+    $out = "chaos/results/gke-pods-$seriesSuffix-$label.txt"
+    kubectl -n cine-caos get pods,deploy,svc -o wide 2>&1 | Out-File -FilePath $out -Encoding utf8
+  } catch {
+    Write-Host "WARN snapshot $label : $_"
+  }
 }
 
 function Invoke-Round([string]$round) {
@@ -109,7 +122,7 @@ function Invoke-Round([string]$round) {
     Invoke-SaturationHttp 'start'
   }
   try {
-    Write-Host "=== k6 GKE round=$round rate=$($env:CINE_ARRIVAL_RATE) duration=$($env:CINE_DURATION) url=$($env:CINE_BASE_URL) ==="
+    Write-Host "=== k6 GKE $seriesSuffix round=$round rate=$($env:CINE_ARRIVAL_RATE) duration=$($env:CINE_DURATION) ==="
     k6 run load/k6/cine-chaos-profile.js
   }
   finally {
@@ -124,34 +137,35 @@ function Invoke-Round([string]$round) {
     Save-PodSnapshot "post-$round"
   }
 
-  $src = Get-Content "chaos/results/$round.json" -Raw | ConvertFrom-Json
-  $src | Add-Member -NotePropertyName series -NotePropertyValue 'gke-k6-constant-arrival-rate' -Force
+  $raw = ([IO.File]::ReadAllText((Join-Path $root "chaos/results/$round.json"))) -replace '^\uFEFF',''
+  $src = $raw | ConvertFrom-Json
+  $src | Add-Member -NotePropertyName series -NotePropertyValue $seriesName -Force
   $src | Add-Member -NotePropertyName environment -NotePropertyValue 'gke-autopilot-cine-caos' -Force
   $src | Add-Member -NotePropertyName public_url -NotePropertyValue $env:CINE_BASE_URL -Force
   $src | Add-Member -NotePropertyName replicas_during_experiment -NotePropertyValue 1 -Force
-  $src | Add-Member -NotePropertyName note -NotePropertyValue '1 replica durante medicion para aplicar saturacion in-process de forma comparable; cluster vuelve a 2' -Force
-  $json = $src | ConvertTo-Json -Depth 10
-  Set-Content "chaos/results/$round-k6-gke.json" -Value $json -Encoding utf8
-  Set-Content "docs/seguimiento-4/evidencias/$round-k6-gke.json" -Value $json -Encoding utf8
-  Set-Content "chaos/results/$round.json" -Value $json -Encoding utf8
+  $src | Add-Member -NotePropertyName note -NotePropertyValue '1 replica durante medicion (misma metodologia que GKE v1); cluster vuelve a 2. Evidencia v1 intacta.' -Force
+  $src | Add-Member -NotePropertyName guard_order -NotePropertyValue 'bulkhead->admission->saturation' -Force
+  $src | Add-Member -NotePropertyName bulkhead_enter_timeout_ms -NotePropertyValue 200 -Force
+  Write-JsonFile "chaos/results/$round-$fileSuffix.json" $src
+  Write-JsonFile "docs/seguimiento-4/evidencias/$round-$fileSuffix.json" $src
 }
 
 $pre = Invoke-WebRequest -Uri "$($env:CINE_BASE_URL)/readyz" -UseBasicParsing -TimeoutSec 15
 if ($pre.StatusCode -ne 200) { throw "API publica no ready" }
 
-# Escala a 1 para mediciones comparables (saturacion in-process); se restaura a 2 al final.
+Write-Host "Serie=$seriesSuffix (archivos *-$fileSuffix.json). GKE v1 no se sobrescribe."
 Set-Replicas 1
 
 Invoke-Round 'baseline'
 Invoke-Round 'r0'
 Invoke-Round 'r1'
 
-Write-Host "=== Comparacion GKE ==="
-$env:COMPARE_OUT = "chaos/results/comparison-k6-gke.json"
-node scripts/chaos/compare-rounds.mjs chaos/results/r0-k6-gke.json chaos/results/r1-k6-gke.json
-Copy-Item chaos/results/comparison-k6-gke.json docs/seguimiento-4/evidencias/comparison-k6-gke.json -Force
+Write-Host "=== Comparacion GKE $seriesSuffix ==="
+$env:COMPARE_OUT = "chaos/results/comparison-$fileSuffix.json"
+node scripts/chaos/compare-rounds.mjs "chaos/results/r0-$fileSuffix.json" "chaos/results/r1-$fileSuffix.json"
+Copy-Item "chaos/results/comparison-$fileSuffix.json" "docs/seguimiento-4/evidencias/comparison-$fileSuffix.json" -Force
 
 Set-Replicas 2
 Set-ExperimentRound 'baseline'
 Remove-Variable chaosToken -ErrorAction SilentlyContinue
-Write-Host "Serie k6 GKE completada; replicas restauradas a 2."
+Write-Host "Serie k6 GKE $seriesSuffix completada; replicas restauradas a 2."

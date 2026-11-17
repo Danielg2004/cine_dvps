@@ -6,7 +6,7 @@ metadata:
   labels:
     app: cine-api
 data:
-  APP_VERSION: "5.0.1-caos-110f734"
+  APP_VERSION: "5.0.1-caos-r1guard-f46e5f4"
   APP_TRACK: "caos"
   PORT: "3000"
   DB_NAME: "cine_dvps"
