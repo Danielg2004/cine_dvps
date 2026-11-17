@@ -3,7 +3,9 @@
 **Autorización:** N1–N8 (ventana 8 h, presupuesto ref. USD 10)  
 **Proyecto:** `cine-devops-canary` · **Región:** `us-central1`  
 **Fecha:** 2026-11-16 / 2026-11-17 UTC  
-**HEAD al build:** `110f734` · imagen `5.0.1-caos-110f734`
+**HEAD al build inicial:** `110f734` · imagen `5.0.1-caos-110f734`  
+**Rollout Continuación #8:** commit `f46e5f4` · imagen `5.0.1-caos-r1guard-f46e5f4`  
+**Digest:** `sha256:8b0172aca858f73c3f3037e95e52418f75fca5b9aae74e1839ec836dd2bfd64b`
 
 ## URL pública (real)
 
@@ -17,8 +19,8 @@ http://35.239.107.54
 | `GET /readyz` | 200 `database":"up"` |
 | `GET /api/v2/peliculas/1` + `x-trace-id` | 200, origen `database` |
 
-Experimentos k6 GKE (Continuación #6): ejecutados — ver `evidencias/LAB_K6_GKE_SUMMARY.md`.  
-Hipótesis throughput en cloud: **NO confirmada** (R1 21.4 vs R0 28.6 RPS).
+Experimentos k6 GKE v1 (Continuación #6): `evidencias/LAB_K6_GKE_SUMMARY.md` — hipótesis **NO confirmada** (R1 21.4 vs R0 28.6 RPS).  
+Serie GKE v2 post-fix (Continuación #8): `evidencias/LAB_K6_GKE_V2_SUMMARY.md` — hipótesis throughput **NO confirmada** (R1 27.87 vs R0 29.97 RPS, −7 %).
 
 ## Recursos creados (nuevos)
 
@@ -28,7 +30,8 @@ Hipótesis throughput en cloud: **NO confirmada** (R1 21.4 vs R0 28.6 RPS).
 | GKE Autopilot | `cine-caos-autopilot` (RUNNING, 1.36.4-gke.2377000) |
 | GSA | `cine-gke-sa@cine-devops-canary.iam.gserviceaccount.com` |
 | IAM | `roles/cloudsql.client` + WI `cine-caos/cine-api` |
-| Imagen AR | `…/cine-api:5.0.1-caos-110f734` |
+| Imagen AR (v1) | `…/cine-api:5.0.1-caos-110f734` |
+| Imagen AR (v2 / live) | `…/cine-api:5.0.1-caos-r1guard-f46e5f4` |
 | Namespace | `cine-caos` |
 | Secret K8s | `cine-api-secrets` (desde Secret Manager; valores no en git) |
 | Deployment | `cine-api` **2/2 Ready** (+ sidecar Cloud SQL Auth Proxy) |

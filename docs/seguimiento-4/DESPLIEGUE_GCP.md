@@ -50,10 +50,11 @@ Ver comandos en `PROPUESTA_AUTORIZACION_GCP.md` (N1–N8).
 | Manifiestos Autopilot | Hechos |
 | Habilitar APIs | **Hecho** (autorizado N1–N8) |
 | Crear Autopilot | **Hecho** `cine-caos-autopilot` |
-| Push imagen | **Hecho** `5.0.1-caos-110f734` |
+| Push imagen | **Hecho** `5.0.1-caos-r1guard-f46e5f4` (live) · previa `5.0.1-caos-110f734` |
 | Apply K8s | **Hecho** 2/2 Ready |
 | URL pública LB | **http://35.239.107.54** |
-| Experimentos k6 cloud | **No ejecutados** (no autorizados) |
+| Experimentos k6 GKE v1 | **Hecho** (`*-k6-gke.json`) |
+| Experimentos k6 GKE v2 | **Hecho** (`*-k6-gke-v2.json`) · hipótesis throughput NO confirmada |
 
 Evidencia: `DESPLIEGUE_GKE_EJECUTADO.md`
 

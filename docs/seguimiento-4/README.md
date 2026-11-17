@@ -30,7 +30,7 @@ Legado canary: `/api/v3/__test/fault` (conservado).
 - Manifiestos: `deploy/gcp/k8s/` (Autopilot + Cloud SQL Auth Proxy + LoadBalancer)
 - Validación: `scripts/validate-k8s.ps1`
 - Inventario RO / costos / auth: `INVENTARIO_GCP_READONLY.md`, `COSTOS_ESTIMADOS_GCP.md`, `PROPUESTA_AUTORIZACION_GCP.md`
-- **Despliegue real: PENDIENTE de autorización explícita**
+- **Despliegue real:** GKE Autopilot `cine-caos-autopilot` · LB `http://35.239.107.54` · imagen live `5.0.1-caos-r1guard-f46e5f4`
 
 ## Trace ID
 
@@ -55,7 +55,8 @@ Ver `TRAZABILIDAD.md`. E2E tres nubes **no verificado** aún.
 
 Ver `PROCEDIMIENTO_RONDAS.md`.  
 Serie local oficial comparable: **k6 v3** (`npm run chaos:lab:k6`) — `evidencias/LAB_K6_V3_SUMMARY.md`.  
-Serie cloud GKE: **k6 GKE** (`npm run chaos:gke:k6`) — `evidencias/LAB_K6_GKE_SUMMARY.md`.  
+Serie cloud GKE v1: `evidencias/LAB_K6_GKE_SUMMARY.md` (`*-k6-gke.json`).  
+Serie cloud GKE v2 (post-fix): `evidencias/LAB_K6_GKE_V2_SUMMARY.md` (`*-k6-gke-v2.json`).  
 URL pública lab: `http://35.239.107.54`.
 
 ## Recuperación
@@ -64,11 +65,12 @@ URL pública lab: `http://35.239.107.54`.
 
 ## Limitaciones y dependencias
 
-- URLs/contratos Sports y Hotel pendientes
-- Collector OTLP / dashboard Samuel pendiente
-- Clúster GKE pendiente de creación autorizada
+- URLs/contratos Sports y Hotel pendientes (plantilla: `PARA_JARRISON_SPORTS_GKE.md`)
+- Collector OTLP / dashboard Samuel pendiente (`PARA_SAMUEL_OTEL.md`)
+- Clúster GKE **creado** (`cine-caos-autopilot`); limpieza post-sustentación pendiente de autorización
 - Perfil k6 Cine listo (`load/k6/`); coordinación gate: Jarrison
 - Chaos gate CI: Jarrison
+- Hipótesis throughput R1>R0: **no confirmada** (local + GKE v1 + GKE v2)
 
 ## Uso de IA
 

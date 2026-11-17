@@ -1,10 +1,16 @@
-# Serie GKE v2 — pendiente de autorización
+# Serie GKE v2 — ejecutada
 
-Tras el fix `bulkhead→admission` + timeout 200 ms (`f8fdc03`):
+Estado: **COMPLETADA** (Continuación #8).
 
-1. Publicar imagen nueva (p. ej. `5.0.1-caos-r1guard-<sha>`).
-2. Rollout en `cine-caos`.
-3. Ejecutar `npm run chaos:gke:k6` → evidencias `*-k6-gke-v2.json` (**sin** sobrescribir `*-k6-gke.json`).
-4. Comparar R0/R1 v2 de forma honesta.
+| Paso | Estado |
+|------|--------|
+| Imagen `5.0.1-caos-r1guard-f46e5f4` | Publicada |
+| Digest `sha256:8b0172aca858f73c3f3037e95e52418f75fca5b9aae74e1839ec836dd2bfd64b` | OK |
+| Rollout Deployment Cine | OK (2/2) |
+| Baseline / R0 / R1 | `*-k6-gke-v2.json` |
+| Evidencia v1 | Intacta (`*-k6-gke.json`) |
+| Restauración 2 réplicas + baseline | OK |
 
-**No ejecutado en Continuación #7** (sin nueva inyección cloud ni push de imagen en este turno).
+Detalle: `evidencias/LAB_K6_GKE_V2_SUMMARY.md`.
+
+**Hipótesis de throughput R1>R0: NO confirmada** en v2 (−7% RPS vs R0). Bulkhead evidenciado vía `x-reject-reason: bulkhead_timeout`.

@@ -45,9 +45,22 @@ Detalle: `docs/seguimiento-4/evidencias/LAB_K6_V3_SUMMARY.md`
 
 Series previas (no oficiales para hipótesis de RPS): v1 in-process, v2 HTTP closed-loop (oferta no comparable).
 
-## 7. Conclusión
+## 7. Resultados cloud (GKE Autopilot)
 
-- **Hipótesis de mejora de throughput exitoso: NO confirmada** con carga ofrecida comparable.
-- R1 **sí** mejora p95 de éxitos (−44 %) y mantiene rechazo controlado 503.
+Misma carga k6 80/s × 30s; 1 réplica durante medición; LB `http://35.239.107.54`.
+
+| Serie | Baseline RPS | R0 RPS | R1 RPS | Δ R1−R0 | Conclusión throughput |
+|-------|--------------|--------|--------|---------|------------------------|
+| GKE v1 (imagen pre-fix) | 79.43 | 28.6 | 21.4 | −25 % | NO confirmada |
+| GKE v2 (bulkhead→admission, timeout 200 ms) | 78.33 | 29.97 | 27.87 | −7 % | NO confirmada |
+
+Evidencias: `*-k6-gke.json` (v1 intacta), `*-k6-gke-v2.json`, `LAB_K6_GKE_V2_SUMMARY.md`.  
+Bulkhead en prod: `x-reject-reason: bulkhead_timeout` (`gke-v2-reject-probe.json`).
+
+## 8. Conclusión
+
+- **Hipótesis de mejora de throughput exitoso: NO confirmada** (local k6 v3, GKE v1 y GKE v2).
+- Localmente R1 mejoró p95 de éxitos (−44 %); en GKE v2 p95 no mejoró.
+- Rechazo controlado 503 con `x-reject-reason` verificado en GKE v2.
 - Límite físico del fallo ≈ `maxInflight / holdMs` ≈ 32 RPS; admission/bulkhead no aumentan ese techo.
-- Experimentación **cloud GCP / GKE: no ejecutada** (sin create/apply). Local Docker validado.
+- Clúster vivo: `cine-caos-autopilot`, imagen `5.0.1-caos-r1guard-f46e5f4`, 2 réplicas restauradas.

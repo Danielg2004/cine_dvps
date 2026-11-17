@@ -1,0 +1,9 @@
+{
+    "tag":  "5.0.1-caos-r1guard-f46e5f4",
+    "commit":  "f46e5f4",
+    "previous_tag":  "5.0.1-caos-110f734",
+    "public_url":  "http://35.239.107.54",
+    "series":  "gke-v2",
+    "digest":  "sha256:8b0172aca858f73c3f3037e95e52418f75fca5b9aae74e1839ec836dd2bfd64b",
+    "deployed_at":  "2026-11-17T01:52:00Z"
+}
