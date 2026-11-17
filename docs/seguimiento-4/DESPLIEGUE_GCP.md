@@ -4,6 +4,7 @@ Documentos vivos:
 
 - Inventario RO: `INVENTARIO_GCP_READONLY.md`
 - Costos: `COSTOS_ESTIMADOS_GCP.md`
+- Créditos / Free Trial: `CREDITOS_GCP_VERIFICACION.md` (**saldo no legible por CLI**)
 - **Autorización requerida:** `PROPUESTA_AUTORIZACION_GCP.md`
 
 ## Decisión de infraestructura

@@ -4,8 +4,9 @@
 **Cuenta:** `giraldoroldandaniel@gmail.com`  
 **Proyecto:** `cine-devops-canary`  
 **Rol verificado:** `roles/owner`  
-**Facturación:** habilitada (`billingAccounts/014FA9-993BF5-75DD57`, cuenta abierta “Daniel G”)  
-**Créditos / presupuestos:** no verificados (CLI alpha no disponible en esta máquina)
+**Facturación:** habilitada (`billingAccounts/014FA9-993BF5-75DD57`, cuenta abierta “Daniel G”, moneda COP)  
+**Créditos Free Trial / promocionales / vencimiento:** **no disponibles vía gcloud ni Billing API** (ver `CREDITOS_GCP_VERIFICACION.md`). No asumir créditos activos solo porque Billing esté ON.  
+**Presupuestos (Billing Budgets API):** OFF; no se habilitó
 
 ## APIs habilitadas
 

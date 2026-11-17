@@ -34,6 +34,8 @@ Ver `COSTOS_ESTIMADOS_GCP.md`.
 
 Orden de magnitud lab: **~0.6–1.5 USD / 4 h**, **~1.2–3 USD / 8 h**, **~3.5–8 USD / 24 h** (aprox., sin egreso alto), más SQL ya existente.
 
+**Créditos Free Trial / promocionales:** no verificables por `gcloud` (ver `CREDITOS_GCP_VERIFICACION.md`). Billing ON ≠ créditos activos. Debes confirmar saldo y vencimiento en Consola antes de autorizar.
+
 ## 5. Comandos de creación (NO ejecutar aún)
 
 ```bash
