@@ -82,7 +82,7 @@ function Start-SaturationIfNeeded([string]$round) {
 
 function Stop-Saturation {
   try {
-    Invoke-WebRequest -Uri "$($env:CINE_BASE_URL)/api/v3/__test/saturation/stop" -Method POST -Headers @{ "x-chaos-token" = $env:CHAOS_FAULT_TOKEN } -UseBasicParsing | Out-Null
+    Invoke-WebRequest -Uri "$($env:CINE_BASE_URL)/api/v3/__test/saturation/stop" -Method POST -ContentType "application/json" -Body "{}" -Headers @{ "x-chaos-token" = $env:CHAOS_FAULT_TOKEN } -UseBasicParsing | Out-Null
   } catch {}
   try {
     Invoke-WebRequest -Uri "$($env:CINE_BASE_URL)/healthz" -UseBasicParsing -TimeoutSec 5 | Out-Null

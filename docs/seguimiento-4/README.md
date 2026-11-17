@@ -52,7 +52,9 @@ Ver `TRAZABILIDAD.md`. E2E tres nubes **no verificado** aún.
 
 ## Rondas
 
-Ver `PROCEDIMIENTO_RONDAS.md`. Ejecuciones cloud: **PENDIENTES**.
+Ver `PROCEDIMIENTO_RONDAS.md`.  
+Serie local oficial comparable: **k6 v3** (`npm run chaos:lab:k6`) — ver `evidencias/LAB_K6_V3_SUMMARY.md`.  
+Ejecuciones cloud: **PENDIENTES**.
 
 ## Recuperación
 
@@ -63,7 +65,7 @@ Ver `PROCEDIMIENTO_RONDAS.md`. Ejecuciones cloud: **PENDIENTES**.
 - URLs/contratos Sports y Hotel pendientes
 - Collector OTLP / dashboard Samuel pendiente
 - Clúster GKE pendiente de creación autorizada
-- k6 perfil común: Jarrison
+- Perfil k6 Cine listo (`load/k6/`); coordinación gate: Jarrison
 - Chaos gate CI: Jarrison
 
 ## Uso de IA
@@ -81,8 +83,9 @@ Asistente Cursor (Composer) para implementación, pruebas y documentación del S
 
 ## Backlog de resiliencia
 
-- [ ] Medir baseline real y fijar umbrales
-- [ ] Ejecutar R0/R1 en GKE
+- [x] Medir baseline/R0/R1 local con carga ofrecida comparable (k6 v3)
+- [ ] Ejecutar R0/R1 en GKE con el mismo perfil k6
 - [ ] Integrar gate de Jarrison
 - [ ] Conectar OTLP al tablero de Samuel
 - [ ] Auth servicio-a-servicio Sports→Cine
+- [ ] Fijar umbrales cloud tras baseline GCP

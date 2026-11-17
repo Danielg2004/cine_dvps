@@ -1,7 +1,6 @@
 # Informe — Experimento de agotamiento (Daniel / Cine)
 
-Documento listo para integrar al informe académico (máx. 6 páginas).  
-Los campos marcados **PENDIENTE** no deben rellenarse con cifras ficticias.
+Documento listo para integrar al informe académico (máx. 6 páginas).
 
 ## 1. Objetivo
 
@@ -16,38 +15,39 @@ Con bulkhead y admission (R1), bajo el mismo fallo, el throughput exitoso mejora
 
 Solicitudes exitosas por segundo (`successful_rps`) en la superficie experimental.
 
-| Indicador | Valor |
-|-----------|-------|
-| Baseline RPS | PENDIENTE |
-| Umbral degradación R0 | PENDIENTE |
-| Mejora R1 vs R0 | PENDIENTE |
+| Indicador | Valor (serie k6 v3, Docker) |
+|-----------|------------------------------|
+| Baseline RPS | 80.00 (llegada fija 80/s) |
+| Umbral degradación R0 | ~32.27 RPS (−60 % vs baseline) |
+| Mejora R1 vs R0 | **No**: 30.63 vs 32.27 (−5.1 %) |
 
 ## 4. Método de inyección
 
-1. Chaos Toolkit: `chaos/experiments/cine-resource-exhaustion.json`
-2. Interruptor propio: `POST /api/v3/__test/saturation/start`
-3. Intensidad acotada: holdMs ≤ 2000, duration ≤ 120s, inflight ≤ 32
+1. Interruptor: `POST /api/v3/__test/saturation/start`
+2. Intensidad lab: holdMs=250, maxInflight=8, maxQueueWaitMs=200, durationSec=90
+3. Carga: k6 `constant-arrival-rate` 80/s × 30s (`load/k6/cine-chaos-profile.js`)
 4. Rollback: `POST .../stop` + `/healthz`
 
 ## 5. Blast radius
 
-Pods/servicio Cine en namespace `cine-caos`, datos sintéticos. No incluye Sports ni Hotel.
+Servicio Cine lab Docker / futuro namespace `cine-caos`. Datos sintéticos. No incluye Sports ni Hotel.
 
-## 6. Resultados
+## 6. Resultados (serie oficial local comparable)
 
-| Ronda | successful_rps | Errores | Notas |
-|-------|----------------|---------|-------|
-| Baseline | PENDIENTE | PENDIENTE | Sin fallo |
-| R0 | PENDIENTE | PENDIENTE | Fallo sin resiliencia |
-| R1 | PENDIENTE | PENDIENTE | Fallo + bulkhead/admission |
+| Ronda | offered HTTP | successful_rps | success_rate | 503 | p95 éxitos |
+|-------|--------------|----------------|--------------|-----|------------|
+| Baseline | 2401 | 80.00 | 99.96 % | 0 | 3.24 ms |
+| R0 | 2401 | 32.27 | 40.32 % | 1432 | 452 ms |
+| R1 | 2402 | 30.63 | 38.26 % | 1482 | 254 ms |
 
-Comparación automática (cuando existan JSON reales):
+Comparación: `chaos/results/comparison-k6-v3.json`  
+Detalle: `docs/seguimiento-4/evidencias/LAB_K6_V3_SUMMARY.md`
 
-```bash
-node scripts/chaos/compare-rounds.mjs chaos/results/r0.json chaos/results/r1.json
-```
+Series previas (no oficiales para hipótesis de RPS): v1 in-process, v2 HTTP closed-loop (oferta no comparable).
 
-## 7. Conclusión preliminar
+## 7. Conclusión
 
-Implementación local verificada (código, tests, manifiestos, runners).  
-Ejecución cloud y cifras experimentales: **pendientes de autorización y medición**.
+- **Hipótesis de mejora de throughput exitoso: NO confirmada** con carga ofrecida comparable.
+- R1 **sí** mejora p95 de éxitos (−44 %) y mantiene rechazo controlado 503.
+- Límite físico del fallo ≈ `maxInflight / holdMs` ≈ 32 RPS; admission/bulkhead no aumentan ese techo.
+- Experimentación **cloud GCP / GKE: no ejecutada** (sin create/apply). Local Docker validado.

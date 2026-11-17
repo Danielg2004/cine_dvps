@@ -1,5 +1,3 @@
-import { context, propagation } from '@opentelemetry/api';
-
 export type CacheLookupResult = {
     value: unknown;
 } | null;
@@ -8,14 +6,15 @@ function cacheBaseUrl(): string {
     return process.env.CACHE_URL?.trim() || '';
 }
 
+/**
+ * Solo x-trace-id de negocio.
+ * W3C (traceparent/tracestate) lo inyecta UndiciInstrumentation;
+ * un inject manual aquí duplicaba headers y rompía la extracción en cache-service.
+ */
 function correlationHeaders(traceId: string): Record<string, string> {
-    const headers: Record<string, string> = {
+    return {
         'x-trace-id': traceId,
     };
-
-    propagation.inject(context.active(), headers);
-
-    return headers;
 }
 
 export function isCacheConfigured(): boolean {

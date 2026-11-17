@@ -70,3 +70,22 @@ Tras alinear admission=bulkhead=saturación(8), acotar cola de saturación y med
 | R1 | 32.00 | 0.0065 | 29304 | 269 ms |
 
 R1 **sostiene** ~el mismo RPS exitoso (−4 %) y convierte el exceso en 503. La hipótesis de “subir RPS” no se confirma; la de resiliencia/shed controlado sí de forma parcial. Detalle: `evidencias/LAB_HTTP_V2_SUMMARY.md`.
+
+**Limitación v2:** el generador closed-loop (20 workers) ofreció ~492 vs ~29496 muestras → no comparable en carga ofrecida. Ver `AUDITORIA_GENERADOR_CARGA.md`.
+
+## Resolución (serie v3 k6 open-loop — oficial local)
+
+Misma llegada fija 80/s × 30s en R0 y R1 (`constant-arrival-rate`):
+
+| Ronda | offered HTTP | successful_rps | success_rate | 503 | success p95 |
+|-------|--------------|----------------|--------------|-----|-------------|
+| Baseline | 2401 | 80.00 | 0.9996 | 0 | 3.24 ms |
+| R0 | 2401 | 32.27 | 0.4032 | 1432 | 452 ms |
+| R1 | 2402 | 30.63 | 0.3826 | 1482 | 254 ms |
+
+- Oferta comparable (Δ offered &lt; 0.1 %, dropped=0).
+- RPS exitoso: R1 **no mejora** (−5.1 %).
+- p95 éxitos: R1 mejora (−44 %).
+- Techo físico ≈ 32 RPS = maxInflight/holdMs; admission no lo eleva.
+
+Detalle: `evidencias/LAB_K6_V3_SUMMARY.md`.
