@@ -1,0 +1,61 @@
+# Metadatos del experimento de Daniel (Seguimiento #4)
+# Los umbrales numéricos de steady-state DEBEN medirse; no inventar.
+
+experiment_id: cine-resource-exhaustion-concurrency-v1
+title: Agotamiento controlado de concurrencia en API Cine
+owner: daniel
+cloud: gcp
+platform: kubernetes
+
+resource_under_test: concurrency
+justification: |
+  La saturación de concurrencia es reproducible, acotada y segura:
+  no ejecuta busy-loops de CPU ni reservas ilimitadas de memoria.
+  Demuestra degradación de throughput exitoso bajo contención,
+  alineada con bulkhead y control de admisión.
+
+hypothesis: |
+  Si se inyecta saturación de concurrencia en GET /api/v2/peliculas/:id
+  sin patrones de resiliencia (R0), el throughput de solicitudes exitosas
+  (HTTP 2xx) disminuirá respecto al baseline y subirá la latencia p95.
+  Con bulkhead + admission (R1), bajo el mismo fallo e intensidad,
+  la sobrecarga se convertirá en rechazos controlados 503 y la p95
+  del tráfico admitido/respuestas rápidas bajará respecto a R0.
+  Nota: el RPS exitoso del load ofrecido puede NO subir en R1 porque
+  los 503 no cuentan como éxitos (métrica primaria honesta).
+
+target_metric: successful_requests_per_second
+threshold:
+  baseline_rps: PENDING_MEASUREMENT
+  r0_min_degradation_pct: PENDING_MEASUREMENT
+  r1_recovery_vs_r0_pct: PENDING_MEASUREMENT
+
+injection:
+  tool: chaos-toolkit
+  experiment_file: chaos/experiments/cine-resource-exhaustion.json
+  in_process_switch: POST /api/v3/__test/saturation/start
+  intensity:
+    hold_ms: "${CHAOS_HOLD_MS:-200}"
+    max_inflight: "${CHAOS_MAX_INFLIGHT:-4}"
+    duration_sec: "${CHAOS_DURATION_SEC:-30}"
+
+blast_radius:
+  services: [cine-api]
+  namespace: cine-caos
+  data: synthetic-only
+  excludes: [sports-api, hotel-api, shared-dashboards-write]
+
+abort:
+  max_duration_sec: 120
+  require_token: true
+  stop_on_healthz_fail: true
+
+rollback:
+  automatic: true
+  action: POST /api/v3/__test/saturation/stop
+  verify: GET /healthz == 200
+
+rounds:
+  baseline: { resilience: false, saturation: false }
+  r0: { resilience: false, saturation: true }
+  r1: { resilience: true, saturation: true }

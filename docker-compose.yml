@@ -2,7 +2,6 @@ services:
 
   mysql:
     image: mysql:8.4
-    container_name: cine-mysql
     restart: unless-stopped
 
     environment:
@@ -25,7 +24,6 @@ services:
 
   api:
     build: .
-    container_name: cine-api
     restart: unless-stopped
 
     ports:
@@ -37,6 +35,17 @@ services:
       DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       DB_NAME: ${MYSQL_DATABASE}
       DB_PORT: 3306
+      APP_VERSION: ${APP_VERSION:-5.0.0}
+      APP_TRACK: ${APP_TRACK:-caos}
+      CACHE_URL: ${CACHE_URL:-}
+      CHAOS_FAULT_TOKEN: ${CHAOS_FAULT_TOKEN:-}
+      EXPERIMENT_ROUND: ${EXPERIMENT_ROUND:-baseline}
+      ADMISSION_MAX_INFLIGHT: ${ADMISSION_MAX_INFLIGHT:-8}
+      BULKHEAD_MAX_CONCURRENT: ${BULKHEAD_MAX_CONCURRENT:-8}
+      BULKHEAD_ENTER_TIMEOUT_MS: ${BULKHEAD_ENTER_TIMEOUT_MS:-2000}
+      OTEL_SERVICE_NAME: cine-api
+      OTEL_LOGS_EXPORTER: none
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
 
     depends_on:
       mysql:

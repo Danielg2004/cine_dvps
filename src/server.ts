@@ -1,4 +1,4 @@
-import './observability/instrumentation.js';
+﻿import './observability/instrumentation.js';
 import { buildApp } from './app.js';
 import { db, inicializarBaseDeDatos } from './database.js';
 import { AppDataSourceV2 } from './config/database-v2.js';
@@ -11,8 +11,12 @@ try {
     console.log('Conexion a MySQL exitosa');
 
  
-    await inicializarBaseDeDatos();
-    console.log('Tablas de la base de datos inicializadas');
+    if (process.env.DB_AUTO_INIT !== 'false') {
+        await inicializarBaseDeDatos();
+        console.log('Tablas de la base de datos inicializadas');
+    } else {
+        console.log('Inicializacion automatica de tablas desactivada');
+    }
 
 
     if (!AppDataSourceV2.isInitialized) {

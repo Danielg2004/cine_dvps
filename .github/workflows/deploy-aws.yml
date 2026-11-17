@@ -1,10 +1,9 @@
 
 name: Deploy Cine AWS
 
+# Despliegue AWS solo manual: evita ejecución automática al fusionar Seguimiento #4 a main.
+# El job histórico (ECR + EC2) se conserva íntegro vía workflow_dispatch.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:

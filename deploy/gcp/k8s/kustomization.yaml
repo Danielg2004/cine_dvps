@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: cine-caos
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  # ingress.yaml es opcional (dominio pendiente); exposición vía LoadBalancer
+images:
+  - name: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api
+    newTag: "5.0.1-caos-w3c-83efd43"
+labels:
+  - pairs:
+      seguimiento: "4"
+      owner: daniel
+    includeSelectors: false

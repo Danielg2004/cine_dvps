@@ -18,3 +18,5 @@ cache-service/
 Dockerfile
 .dockerignore
 npm-debug.log
+
+gha-creds-*.json

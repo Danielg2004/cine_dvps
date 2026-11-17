@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cine-api
+  namespace: cine-caos
+  labels:
+    app: cine-api
+    seguimiento: "4"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cine-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: cine-api
+        seguimiento: "4"
+      annotations:
+        cine.dvps/db-mode: "cloudsql-auth-proxy"
+    spec:
+      serviceAccountName: cine-api
+      # Autopilot: no privilegiado; proxy + app en el mismo Pod
+      volumes:
+        - name: otel-ca
+          configMap:
+            name: cine-otel-ca
+            optional: true
+            items:
+              - key: otel-lab-ca.crt
+                path: otel-lab-ca.crt
+      containers:
+        - name: cine-api
+          image: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api:5.0.1-caos-w3c-83efd43
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: cine-api-config
+            - secretRef:
+                name: cine-api-secrets
+            # OTEL Basic Auth: OTEL_EXPORTER_OTLP_HEADERS (nunca en Git)
+            - secretRef:
+                name: cine-otel-secrets
+                optional: true
+          volumeMounts:
+            - name: otel-ca
+              mountPath: /etc/otel/certs
+              readOnly: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+        - name: cloud-sql-proxy
+          # Sidecar oficial: túnel IAM → Cloud SQL (no requiere authorized networks)
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.3
+          args:
+            - "--structured-logs"
+            - "--address=127.0.0.1"
+            - "--port=3306"
+            - "cine-devops-canary:us-central1:cine-mysql-v4"
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            runAsUser: 65532
+            runAsGroup: 65532
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cine-api
+  namespace: cine-caos
+  annotations:
+    # Tras crear GSA cine-gke-sa y binding WI (requiere autorización):
+    iam.gke.io/gcp-service-account: cine-gke-sa@cine-devops-canary.iam.gserviceaccount.com

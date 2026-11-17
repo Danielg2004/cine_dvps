@@ -1,0 +1,35 @@
+﻿{
+    "configMap":  {
+                      "RESILIENCE_ENABLED":  "false",
+                      "BULKHEAD_ENTER_TIMEOUT_MS":  "200",
+                      "ADMISSION_MAX_INFLIGHT":  "8",
+                      "OTEL_TRACES_EXPORTER":  "otlp",
+                      "OTEL_ENDPOINT_CONFIGURED":  true,
+                      "OTEL_EXPORTER_OTLP_PROTOCOL":  "http/protobuf",
+                      "BULKHEAD_MAX_CONCURRENT":  "8",
+                      "name":  "cine-api-config",
+                      "OTEL_SERVICE_NAME":  "cine-api",
+                      "EXPERIMENT_ROUND":  "baseline",
+                      "OTEL_METRICS_EXPORTER":  "otlp",
+                      "APP_VERSION":  "5.0.1-caos-w3c-83efd43"
+                  },
+    "saturation":  {
+                       "active":  false
+                   },
+    "deployment":  {
+                       "replicas":  2,
+                       "name":  "cine-api",
+                       "readyReplicas":  2,
+                       "image":  "us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api:5.0.1-caos-w3c-83efd43"
+                   },
+    "namespace":  "cine-caos",
+    "capturedAtUtc":  "2026-11-17T22:36:42.5393704Z",
+    "cineUrl":  "http://35.239.107.54",
+    "context":  "cine-caos-autopilot",
+    "recovery":  {
+                     "stop":  "POST /api/v3/__test/saturation/stop",
+                     "scale":  "kubectl scale deploy/cine-api --replicas=2",
+                     "status":  "GET /api/v3/__test/saturation",
+                     "restoreCm":  "patch EXPERIMENT_ROUND=baseline RESILIENCE_ENABLED=false ADMISSION_MAX_INFLIGHT=8 BULKHEAD_MAX_CONCURRENT=8"
+                 }
+}

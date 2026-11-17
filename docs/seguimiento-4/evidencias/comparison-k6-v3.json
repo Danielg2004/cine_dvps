@@ -1,0 +1,41 @@
+{
+  "metric_primary": "successful_requests_per_second",
+  "metric_secondary": [
+    "latency_p95_ms",
+    "rejected_429_503",
+    "success_rate",
+    "offered_http_reqs"
+  ],
+  "r0": 32.2667,
+  "r1": 30.6333,
+  "absolute_diff": -1.6334000000000017,
+  "percent_change": -5.062184853114827,
+  "r0_p95_ms": 452.23,
+  "r1_p95_ms": 254.07,
+  "r0_rejected_429_503": 1432,
+  "r1_rejected_429_503": 1482,
+  "r0_success_rate": 0.4032,
+  "r1_success_rate": 0.3826,
+  "r0_offered_http_reqs": 2401,
+  "r1_offered_http_reqs": 2402,
+  "r0_offered_rps": 80.0333,
+  "r1_offered_rps": 80.0667,
+  "r0_dropped_iterations": 0,
+  "r1_dropped_iterations": 0,
+  "offered_load_comparable": true,
+  "series": "v3-k6-constant-arrival-rate",
+  "generator": "k6",
+  "signals": {
+    "rpsImproved": false,
+    "p95Improved": true,
+    "controlledRejects": true,
+    "offeredComparable": true
+  },
+  "hypothesis": "SOPORTADA_PARCIALMENTE: R1 bajó p95 y rechazó sobrecarga con 503",
+  "caution": "503/429 no son éxitos. dropped_iterations son del scheduler k6, no de la API. Admission no aumenta el límite físico del recurso saturado.",
+  "sources": {
+    "r0": "chaos/results/r0.json",
+    "r1": "chaos/results/r1.json"
+  },
+  "generated_at": "2026-11-17T00:04:17.163Z"
+}
