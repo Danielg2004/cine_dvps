@@ -41,8 +41,11 @@ function Set-ExperimentRound([string]$round) {
   Refresh-Kube
   $resilience = if ($round -eq 'r1') { 'true' } else { 'false' }
   Write-Host "=== ConfigMap EXPERIMENT_ROUND=$round RESILIENCE_ENABLED=$resilience ==="
-  $patch = "{`"data`":{`"EXPERIMENT_ROUND`":`"$round`",`"RESILIENCE_ENABLED`":`"$resilience`"}}"
-  kubectl -n cine-caos patch configmap cine-api-config --type merge -p $patch | Out-Host
+  $patchFile = Join-Path $env:TEMP "cine-cm-patch.json"
+  Set-Content -Path $patchFile -Value (@'
+{"data":{"EXPERIMENT_ROUND":"ROUND_PLACEHOLDER","RESILIENCE_ENABLED":"RES_PLACEHOLDER"}}
+'@).Replace('ROUND_PLACEHOLDER',$round).Replace('RES_PLACEHOLDER',$resilience) -Encoding ascii
+  kubectl -n cine-caos patch configmap cine-api-config --type merge --patch-file $patchFile | Out-Host
   # Reinicio para recargar envFrom del ConfigMap
   kubectl -n cine-caos rollout restart deployment/cine-api | Out-Host
   kubectl -n cine-caos rollout status deployment/cine-api --timeout=300s | Out-Host
@@ -83,8 +86,8 @@ function Invoke-SaturationOnAllPods([string]$action) {
 function Save-PodSnapshot([string]$label) {
   Refresh-Kube
   $out = "chaos/results/gke-pods-$label.txt"
-  kubectl -n cine-caos get pods,deploy,svc -o wide | Out-File -FilePath $out -Encoding utf8
-  kubectl -n cine-caos top pods 2>$null | Out-File -FilePath $out -Append -Encoding utf8
+  kubectl -n cine-caos get pods,deploy,svc -o wide 2>&1 | Out-File -FilePath $out -Encoding utf8
+  try { kubectl -n cine-caos top pods 2>&1 | Out-File -FilePath $out -Append -Encoding utf8 } catch {}
 }
 
 function Invoke-Round([string]$round) {
