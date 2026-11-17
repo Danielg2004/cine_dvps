@@ -66,7 +66,7 @@ URL pública lab: `http://35.239.107.54`.
 ## Limitaciones y dependencias
 
 - URLs/contratos Sports y Hotel pendientes (plantilla: `PARA_JARRISON_SPORTS_GKE.md`)
-- Collector OTLP Samuel (OCI) **activado en GKE** (CA+Basic); confirmación Tempo/Prometheus pendiente (`PARA_SAMUEL_OTEL.md`)
+- Collector OTLP Samuel (OCI) **activado** y validado en Tempo/Prometheus (`PARA_SAMUEL_OTEL.md`)
 - Clúster GKE **creado** (`cine-caos-autopilot`); limpieza post-sustentación pendiente de autorización
 - Perfil k6 Cine listo (`load/k6/`); coordinación gate: Jarrison
 - Chaos gate CI: Jarrison
@@ -89,8 +89,9 @@ Asistente Cursor (Composer) para implementación, pruebas y documentación del S
 ## Backlog de resiliencia
 
 - [x] Medir baseline/R0/R1 local con carga ofrecida comparable (k6 v3)
-- [ ] Ejecutar R0/R1 en GKE con el mismo perfil k6
+- [x] Ejecutar R0/R1 en GKE con el mismo perfil k6 (v1 + v2; CIERRE_EXPERIMENTO_CAOS.md)
 - [ ] Integrar gate de Jarrison
-- [x] Cablear OTLP → OCI Samuel en GKE (exporter OK localmente; falta confirmación Tempo/Prom de Samuel)
+- [x] Cablear OTLP → OCI Samuel en GKE (confirmado por Samuel)
 - [ ] Auth servicio-a-servicio Sports→Cine
-- [ ] Fijar umbrales cloud tras baseline GCP
+- [x] Umbrales cloud medidos (GKE v2); hipotesis throughput R1>R0 no confirmada
+- [ ] Limpieza GCP post-sustentacion (autorizacion)
