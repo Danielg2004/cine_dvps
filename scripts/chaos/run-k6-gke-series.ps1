@@ -30,7 +30,7 @@ $env:CHAOS_MAX_QUEUE_WAIT_MS = "200"
 New-Item -ItemType Directory -Force -Path "chaos\results" | Out-Null
 New-Item -ItemType Directory -Force -Path "docs\seguimiento-4\evidencias" | Out-Null
 
-$chaosToken = gcloud secrets versions access latest --secret=canary-fault-token --project=cine-devops-canary
+$chaosToken = ((gcloud secrets versions access latest --secret=canary-fault-token --project=cine-devops-canary) -replace '[\r\n]', '').Trim()
 if (-not $chaosToken -or $chaosToken.Length -lt 16) { throw "CHAOS token invalido" }
 
 function Refresh-Kube {
@@ -46,7 +46,6 @@ function Set-ExperimentRound([string]$round) {
 {"data":{"EXPERIMENT_ROUND":"ROUND_PLACEHOLDER","RESILIENCE_ENABLED":"RES_PLACEHOLDER"}}
 '@).Replace('ROUND_PLACEHOLDER',$round).Replace('RES_PLACEHOLDER',$resilience) -Encoding ascii
   kubectl -n cine-caos patch configmap cine-api-config --type merge --patch-file $patchFile | Out-Host
-  # Reinicio para recargar envFrom del ConfigMap
   kubectl -n cine-caos rollout restart deployment/cine-api | Out-Host
   kubectl -n cine-caos rollout status deployment/cine-api --timeout=300s | Out-Host
   for ($i = 1; $i -le 40; $i++) {
@@ -59,27 +58,40 @@ function Set-ExperimentRound([string]$round) {
   throw "readyz no disponible tras round=$round"
 }
 
-function Get-ApiPodNames {
+function Set-Replicas([int]$n) {
   Refresh-Kube
-  $names = kubectl -n cine-caos get pods -l app=cine-api -o jsonpath="{.items[*].metadata.name}"
-  return @($names -split '\s+' | Where-Object { $_ })
+  Write-Host "=== scale cine-api to $n ==="
+  kubectl -n cine-caos scale deployment/cine-api --replicas=$n | Out-Host
+  kubectl -n cine-caos rollout status deployment/cine-api --timeout=300s | Out-Host
+  for ($i = 1; $i -le 40; $i++) {
+    try {
+      $r = Invoke-WebRequest -Uri "$($env:CINE_BASE_URL)/readyz" -UseBasicParsing -TimeoutSec 5
+      if ($r.StatusCode -eq 200) { return }
+    } catch {}
+    Start-Sleep -Seconds 3
+  }
+  throw "readyz no disponible tras scale=$n"
 }
 
-function Invoke-SaturationOnAllPods([string]$action) {
-  Refresh-Kube
-  $pods = Get-ApiPodNames
-  if ($pods.Count -lt 1) { throw "No hay pods cine-api" }
-  Write-Host "=== saturacion $action en $($pods.Count) pods ==="
-  $bodyStart = "{`"holdMs`":$($env:CHAOS_HOLD_MS),`"maxInflight`":$($env:CHAOS_MAX_INFLIGHT),`"durationSec`":$($env:CHAOS_DURATION_SEC),`"maxQueueWaitMs`":$($env:CHAOS_MAX_QUEUE_WAIT_MS)}"
-  foreach ($pod in $pods) {
-    if ($action -eq 'start') {
-      $nodeCmd = "const t=process.argv[1]; const b=process.argv[2]; fetch('http://127.0.0.1:3000/api/v3/__test/saturation/start',{method:'POST',headers:{'content-type':'application/json','x-chaos-token':t},body:b}).then(async r=>{console.log('HTTP',r.status); const x=await r.text(); console.log(x.slice(0,180)); if(r.status!==202) process.exit(2);}).catch(e=>{console.error(String(e)); process.exit(1);});"
-      kubectl -n cine-caos exec $pod -c cine-api -- node -e $nodeCmd $chaosToken $bodyStart
-      if ($LASTEXITCODE -ne 0) { throw "fallo start saturacion en $pod" }
-    } else {
-      $nodeCmd = "const t=process.argv[1]; fetch('http://127.0.0.1:3000/api/v3/__test/saturation/stop',{method:'POST',headers:{'content-type':'application/json','x-chaos-token':t},body:'{}'}).then(async r=>{console.log('HTTP',r.status);}).catch(e=>{console.error(String(e)); process.exit(1);});"
-      kubectl -n cine-caos exec $pod -c cine-api -- node -e $nodeCmd $chaosToken
-    }
+function Invoke-SaturationHttp([string]$action) {
+  # Con 1 réplica, el LB apunta al único pod → satura el proceso in-process completo.
+  $headers = @{ "x-chaos-token" = $chaosToken }
+  if ($action -eq 'start') {
+    $tmp = Join-Path $env:TEMP "cine-sat-body.json"
+    @(
+      "{"
+      "  `"holdMs`": $($env:CHAOS_HOLD_MS),"
+      "  `"maxInflight`": $($env:CHAOS_MAX_INFLIGHT),"
+      "  `"durationSec`": $($env:CHAOS_DURATION_SEC),"
+      "  `"maxQueueWaitMs`": $($env:CHAOS_MAX_QUEUE_WAIT_MS)"
+      "}"
+    ) | Set-Content -Path $tmp -Encoding ascii
+    $resp = Invoke-WebRequest -Uri "$($env:CINE_BASE_URL)/api/v3/__test/saturation/start" -Method POST -ContentType "application/json" -Headers $headers -InFile $tmp -UseBasicParsing -TimeoutSec 30
+    Write-Host "saturation start HTTP=$($resp.StatusCode)"
+    if ($resp.StatusCode -ne 202) { throw "start saturacion fallo" }
+  } else {
+    $resp = Invoke-WebRequest -Uri "$($env:CINE_BASE_URL)/api/v3/__test/saturation/stop" -Method POST -ContentType "application/json" -Headers $headers -Body "{}" -UseBasicParsing -TimeoutSec 30
+    Write-Host "saturation stop HTTP=$($resp.StatusCode)"
   }
 }
 
@@ -87,7 +99,6 @@ function Save-PodSnapshot([string]$label) {
   Refresh-Kube
   $out = "chaos/results/gke-pods-$label.txt"
   kubectl -n cine-caos get pods,deploy,svc -o wide 2>&1 | Out-File -FilePath $out -Encoding utf8
-  try { kubectl -n cine-caos top pods 2>&1 | Out-File -FilePath $out -Append -Encoding utf8 } catch {}
 }
 
 function Invoke-Round([string]$round) {
@@ -95,7 +106,7 @@ function Invoke-Round([string]$round) {
   Set-ExperimentRound $round
   Save-PodSnapshot "pre-$round"
   if ($round -ne 'baseline') {
-    Invoke-SaturationOnAllPods 'start'
+    Invoke-SaturationHttp 'start'
   }
   try {
     Write-Host "=== k6 GKE round=$round rate=$($env:CINE_ARRIVAL_RATE) duration=$($env:CINE_DURATION) url=$($env:CINE_BASE_URL) ==="
@@ -103,9 +114,8 @@ function Invoke-Round([string]$round) {
   }
   finally {
     if ($round -ne 'baseline') {
-      try { Invoke-SaturationOnAllPods 'stop' } catch { Write-Host "WARN stop: $_" }
+      try { Invoke-SaturationHttp 'stop' } catch { Write-Host "WARN stop: $_" }
     }
-    # Verificar recuperacion
     Start-Sleep -Seconds 2
     $hz = Invoke-WebRequest -Uri "$($env:CINE_BASE_URL)/healthz" -UseBasicParsing -TimeoutSec 15
     $rz = Invoke-WebRequest -Uri "$($env:CINE_BASE_URL)/readyz" -UseBasicParsing -TimeoutSec 15
@@ -114,21 +124,23 @@ function Invoke-Round([string]$round) {
     Save-PodSnapshot "post-$round"
   }
 
-  # Versionar evidencia cloud + metadatos GKE
   $src = Get-Content "chaos/results/$round.json" -Raw | ConvertFrom-Json
   $src | Add-Member -NotePropertyName series -NotePropertyValue 'gke-k6-constant-arrival-rate' -Force
   $src | Add-Member -NotePropertyName environment -NotePropertyValue 'gke-autopilot-cine-caos' -Force
   $src | Add-Member -NotePropertyName public_url -NotePropertyValue $env:CINE_BASE_URL -Force
-  $src | Add-Member -NotePropertyName replicas_targeted -NotePropertyValue 2 -Force
+  $src | Add-Member -NotePropertyName replicas_during_experiment -NotePropertyValue 1 -Force
+  $src | Add-Member -NotePropertyName note -NotePropertyValue '1 replica durante medicion para aplicar saturacion in-process de forma comparable; cluster vuelve a 2' -Force
   $json = $src | ConvertTo-Json -Depth 10
   Set-Content "chaos/results/$round-k6-gke.json" -Value $json -Encoding utf8
   Set-Content "docs/seguimiento-4/evidencias/$round-k6-gke.json" -Value $json -Encoding utf8
   Set-Content "chaos/results/$round.json" -Value $json -Encoding utf8
 }
 
-# Comprobar salud inicial
 $pre = Invoke-WebRequest -Uri "$($env:CINE_BASE_URL)/readyz" -UseBasicParsing -TimeoutSec 15
 if ($pre.StatusCode -ne 200) { throw "API publica no ready" }
+
+# Escala a 1 para mediciones comparables (saturacion in-process); se restaura a 2 al final.
+Set-Replicas 1
 
 Invoke-Round 'baseline'
 Invoke-Round 'r0'
@@ -138,9 +150,8 @@ Write-Host "=== Comparacion GKE ==="
 $env:COMPARE_OUT = "chaos/results/comparison-k6-gke.json"
 node scripts/chaos/compare-rounds.mjs chaos/results/r0-k6-gke.json chaos/results/r1-k6-gke.json
 Copy-Item chaos/results/comparison-k6-gke.json docs/seguimiento-4/evidencias/comparison-k6-gke.json -Force
-Copy-Item chaos/results/baseline-k6-gke.json docs/seguimiento-4/evidencias/baseline-k6-gke.json -Force -ErrorAction SilentlyContinue
 
-# Restaurar baseline estable
+Set-Replicas 2
 Set-ExperimentRound 'baseline'
 Remove-Variable chaosToken -ErrorAction SilentlyContinue
-Write-Host "Serie k6 GKE completada."
+Write-Host "Serie k6 GKE completada; replicas restauradas a 2."
