@@ -30,7 +30,7 @@ Legado canary: `/api/v3/__test/fault` (conservado).
 - Manifiestos: `deploy/gcp/k8s/` (Autopilot + Cloud SQL Auth Proxy + LoadBalancer)
 - Validación: `scripts/validate-k8s.ps1`
 - Inventario RO / costos / auth: `INVENTARIO_GCP_READONLY.md`, `COSTOS_ESTIMADOS_GCP.md`, `PROPUESTA_AUTORIZACION_GCP.md`
-- **Despliegue real:** GKE Autopilot `cine-caos-autopilot` · LB `http://35.239.107.54` · imagen live `5.0.1-caos-r1guard-f46e5f4`
+- **Despliegue real:** GKE Autopilot `cine-caos-autopilot` · LB `http://35.239.107.54` · imagen live `5.0.1-caos-w3c-83efd43`
 
 ## Trace ID
 
@@ -51,13 +51,21 @@ Ver `TRAZABILIDAD.md`. E2E tres nubes **no verificado** aún.
 - R1: `EXPERIMENT_ROUND=r1` → bulkhead + admission
 - Códigos 503 en rechazo (no se maquillan como 200)
 
-## Rondas
+## Rondas y evidencias
 
-Ver `PROCEDIMIENTO_RONDAS.md`.  
-Serie local oficial comparable: **k6 v3** (`npm run chaos:lab:k6`) — `evidencias/LAB_K6_V3_SUMMARY.md`.  
-Serie cloud GKE v1: `evidencias/LAB_K6_GKE_SUMMARY.md` (`*-k6-gke.json`).  
-Serie cloud GKE v2 (post-fix): `evidencias/LAB_K6_GKE_V2_SUMMARY.md` (`*-k6-gke-v2.json`).  
-URL pública lab: `http://35.239.107.54`.
+Ver `PROCEDIMIENTO_RONDAS.md`. Índice de cierre: `CIERRE_EXPERIMENTO_CAOS.md`.
+
+| Familia | Qué mide | Dónde |
+|---------|----------|-------|
+| k6 local v3 | Throughput comparable baseline/R0/R1 | `evidencias/LAB_K6_V3_SUMMARY.md`, `*-k6-v3.json` |
+| k6 GKE v1 / v2 | Idem en cloud (Cine directo) | `LAB_K6_GKE_SUMMARY.md`, `LAB_K6_GKE_V2_SUMMARY.md`, `*-k6-gke*.json` |
+| Multicloud 75 s | Sports→flujo→Cine (disp./p95); **no** desglose de patrones | `evidencias/MULTICLOUD_75S_SERIES.md` |
+| Sonda bulkhead | `x-reject-reason: bulkhead_timeout` en GKE | `evidencias/gke-v2-reject-probe.json` |
+| Sonda admission | `x-reject-reason: inflight_limit` en GKE | `evidencias/gke-admission-reject-probe.json`, `GKE_ADMISSION_PROBE_SUMMARY.md` |
+
+URL pública lab: `http://35.239.107.54`.  
+Reproducir verificaciones de lectura: `GET /healthz`, `GET /readyz`, `GET /api/v2/peliculas/1`; sat off vía `GET /api/v3/__test/saturation` (token).  
+**No** atribuir eficacia de bulkhead/admission a la serie multicloud 75 s.
 
 ## Recuperación
 
@@ -65,12 +73,13 @@ URL pública lab: `http://35.239.107.54`.
 
 ## Limitaciones y dependencias
 
-- URLs/contratos Sports y Hotel pendientes (plantilla: `PARA_JARRISON_SPORTS_GKE.md`)
+- Flujo Sports: `PARA_JARRISON_SPORTS_GKE.md` / `INTEGRACION_SPORTS.md`
 - Collector OTLP Samuel (OCI) **activado** y validado en Tempo/Prometheus (`PARA_SAMUEL_OTEL.md`)
 - Clúster GKE **creado** (`cine-caos-autopilot`); limpieza post-sustentación pendiente de autorización
 - Perfil k6 Cine listo (`load/k6/`); coordinación gate: Jarrison
 - Chaos gate CI: Jarrison
 - Hipótesis throughput R1>R0: **no confirmada** (local + GKE v1 + GKE v2)
+- Patrones en GKE: **demostrados por sondas** (bulkhead + admission), no por multicloud 75 s
 - Cierre experimento: `CIERRE_EXPERIMENTO_CAOS.md`
 
 ## Uso de IA
@@ -94,4 +103,7 @@ Asistente Cursor (Composer) para implementación, pruebas y documentación del S
 - [x] Cablear OTLP → OCI Samuel en GKE (confirmado por Samuel)
 - [ ] Auth servicio-a-servicio Sports→Cine
 - [x] Umbrales cloud medidos (GKE v2); hipotesis throughput R1>R0 no confirmada
+- [x] Sondas GKE bulkhead + admission documentadas
+- [x] Serie multicloud 75 s documentada (sin atribuir patrones)
+- [ ] Publicar rama/tag GitHub (autorizacion)
 - [ ] Limpieza GCP post-sustentacion (autorizacion)

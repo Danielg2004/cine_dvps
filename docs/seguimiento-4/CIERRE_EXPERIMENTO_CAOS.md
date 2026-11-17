@@ -47,7 +47,9 @@ Recuperación: `saturation/stop` + healthz/readyz/películas 200 tras cada ronda
 | CPU / memoria | No medida | No medida | No medida | — |
 | Tiempo recuperación (s) | No medida** | No medida** | No medida** | — |
 
-\* Desglose por patrón: sonda ortogonal `gke-v2-reject-probe.json` → **108× `bulkhead_timeout`** (R1+sat); admission no apareció bajo ese perfil (bulkhead rechaza primero).  
+\* Desglose por patrón (sondas ortogonales, **no** serie k6 ni multicloud 75 s):  
+  - Bulkhead: `gke-v2-reject-probe.json` → **108× `bulkhead_timeout`** / 200 (R1+sat, BH=AD=8).  
+  - Admission: `gke-admission-reject-probe.json` → **9× `inflight_limit`** / 80 (R1+sat, BH=8/AD=2); 66×200, 0×`bulkhead_timeout`, 5 client_error.  
 \*\* Recuperación verificada funcionalmente (200 en healthz/readyz/películas tras stop); duración no cronometrada.
 
 ```mermaid
@@ -81,20 +83,22 @@ xychart-beta
 1. El fallo fija un techo ~32 RPS; ni bulkhead ni admission **aumentan** capacidad.
 2. R1 añade cola corta (200 ms) + posible rechazo previo → overhead y ligeramente **menos** éxitos (−7 %).
 3. p95 de éxitos **no mejoró** en GKE v2 (sí mejoró en serie local k6 v3: 452→254 ms).
-4. Beneficio demostrable de R1: **rechazos controlados** con `x-reject-reason` (`bulkhead_timeout`), no “errores opacos” ni hang indefinido del cupo.
+4. Beneficio demostrable de R1: **rechazos controlados** con `x-reject-reason` (`bulkhead_timeout` y `inflight_limit` en sondas), no “errores opacos” ni hang indefinido del cupo.
 5. Distinción: protección vía rechazo ≠ aumento de solicitudes exitosas.
+6. La serie **multicloud 75 s** (Sports→Cine) midió disponibilidad/p95 bajo sat; **no** demuestra intervención de patrones (0×503). Ver `evidencias/MULTICLOUD_75S_SERIES.md`.
 
 **Hipótesis de mejora de throughput R1>R0:** **NO confirmada** (GKE v2; coherente con GKE v1 y local k6 v3).  
-**Hipótesis parcial de rechazo controlado:** **soportada** (503 + header; sonda).  
-**Mejora p95 en cloud:** **no demostrada** en v2.
+**Hipótesis parcial de rechazo controlado:** **soportada** (sondas bulkhead + admission).  
+**Mejora p95 en cloud (k6 Cine):** **no demostrada** en v2.  
+**Eficacia de patrones vía multicloud 75 s:** **no atribuible** (sin rechazos).
 
 ## 5. Patrones — auditoría
 
 | Patrón | Implementación | Evidencia |
 |--------|----------------|-----------|
-| Bulkhead | `bulkhead.ts` + timeout 200 ms | Unit tests + sonda prod `bulkhead_timeout` |
-| Admission | `admission.ts`, cupo ≤ bulkhead | Unit tests; en sat pesada cede a bulkhead |
-| Orden R1 | bulkhead → admission → sat | Fix Continuación #7 (`f8fdc03`) |
+| Bulkhead | `bulkhead.ts` + timeout 200 ms | Unit tests + sonda GKE `gke-v2-reject-probe.json` (108× `bulkhead_timeout`) |
+| Admission | `admission.ts`, cupo ≤ bulkhead | Unit tests + sonda GKE `gke-admission-reject-probe.json` (9× `inflight_limit`; AD=2, BH=8) |
+| Orden R1 | bulkhead → admission → sat | Fix Continuación #7 (`f8fdc03`); con BH=AD=8 admission cede a bulkhead bajo sat pesada |
 | R0 | solo saturación | Config `RESILIENCE_ENABLED=false` |
 
 Defectos funcionales nuevos en esta auditoría: **ninguno**.  
@@ -102,23 +106,39 @@ No se retocan parámetros para fabricar mejora de RPS.
 
 ## 6. Evidencias (índice)
 
+### A) Series de carga Cine (k6 directo)
+
 | Archivo | Demuestra | No demuestra |
 |---------|-----------|--------------|
-| `evidencias/*-k6-gke-v2.json` | RPS/éxito/503/p95/oferta | p50/p99, CPU, parent OTEL |
+| `evidencias/*-k6-gke-v2.json` | RPS/éxito/503/p95/oferta | Desglose por patrón |
 | `evidencias/comparison-k6-gke-v2.json` | Δ R0→R1 | Confirmación de hipótesis de RPS |
-| `evidencias/gke-v2-reject-probe.json` | Bulkhead activo en prod | Contadores admission en k6 |
-| `evidencias/LAB_K6_GKE_V2_SUMMARY.md` | Metodología + restauración | Nueva serie |
+| `evidencias/LAB_K6_GKE_V2_SUMMARY.md` | Metodología + restauración | Intervención admission |
 | `evidencias/*-k6-gke.json` (v1) | Serie previa pre-fix | Post-fix |
 | `evidencias/LAB_K6_V3_SUMMARY.md` | Serie local comparable | Cloud |
 
+### B) Sondas de patrones (ortogonales a k6 y a multicloud)
+
+| Archivo | Demuestra | No demuestra |
+|---------|-----------|--------------|
+| `evidencias/gke-v2-reject-probe.json` | Bulkhead en GKE (108× `bulkhead_timeout`) | Admission |
+| `evidencias/gke-admission-reject-probe.json` | Admission en GKE (9× `inflight_limit`) | Throughput R1>R0 |
+| `evidencias/admission-probe-preflight-state.json` | Estado pre-sonda | — |
+| `evidencias/gke-admission-probe-recovery.json` | Restauración post-sonda | — |
+| `evidencias/GKE_ADMISSION_PROBE_SUMMARY.md` | Resumen corto admission | — |
+
+### C) Serie multicloud 75 s (Sports k6 → flujo → Cine)
+
+| Archivo | Demuestra | No demuestra |
+|---------|-----------|--------------|
+| `evidencias/MULTICLOUD_75S_SERIES.md` | Baseline 264/264, R0/R1 186/186, p95, sat appliedCount, restore | Intervención bulkhead/admission |
+
 ## 7. Estado operativo al cierre
 
-- GKE: ConfigMap `EXPERIMENT_ROUND=baseline`, `RESILIENCE_ENABLED=false`
-- HTTP: healthz/readyz/películas **200**, Cloud SQL `up` (verificado en auditoría)
-- OTLP: activo hacia collector OCI (validado por Samuel)
-- Multicloud: no alterada
-- **No** se lanzó caos remoto en Continuación #11
-
+- GKE: ConfigMap `EXPERIMENT_ROUND=baseline`, `RESILIENCE_ENABLED=false`, BH=8/AD=8, **2/2 Ready**
+- HTTP: healthz/readyz/películas **200**, Cloud SQL `up`
+- OTLP: activo hacia collector OCI (ConfigMap + validación Samuel)
+- Multicloud: no alterada por el cierre documental
+- Sondas de patrones y serie 75 s **ya ejecutadas**; no se relanza caos en Continuación #21
 ## 8. Protocolo opcional de re-ejecución (no lanzado)
 
 Solo si el grupo coordina ventana sin pruebas E2E compartidas:
@@ -136,10 +156,12 @@ No crear infra nueva. No tocar Sports/Hotel.
 ## 9. Qué falta para cerrar la parte Cine (rúbrica)
 
 - [x] Experimento reproducible documentado
-- [x] Baseline / R0 / R1 con carga comparable
-- [x] Evidencia de patrones (bulkhead)
+- [x] Baseline / R0 / R1 con carga comparable (k6 GKE v2)
+- [x] Serie multicloud 75 s documentada (sin atribuir eficacia de patrones)
+- [x] Evidencia de patrones: bulkhead + admission (sondas GKE)
 - [x] Recuperación y 2 réplicas
-- [x] Conclusión honesta de hipótesis
+- [x] Conclusión honesta de hipótesis throughput
 - [x] OTEL + W3C (Samuel/Jarrison)
+- [ ] Publicación rama/tag en GitHub (**autorización**; comandos preparados)
 - [ ] Informe académico final del grupo (integración de las 3 nubes)
 - [ ] Limpieza GCP post-sustentación (**autorización explícita**; ver `LIMPIEZA_POST_SUSTENTACION.md`)

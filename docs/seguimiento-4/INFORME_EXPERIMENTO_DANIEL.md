@@ -55,13 +55,15 @@ Misma carga k6 80/s × 30s; 1 réplica durante medición; LB `http://35.239.107.
 | GKE v1 (imagen pre-fix) | 79.43 | 28.6 | 21.4 | −25 % | NO confirmada |
 | GKE v2 (bulkhead→admission, timeout 200 ms) | 78.33 | 29.97 | 27.87 | −7 % | NO confirmada |
 
-Evidencias: `*-k6-gke.json` (v1 intacta), `*-k6-gke-v2.json`, `LAB_K6_GKE_V2_SUMMARY.md`.  
-Bulkhead en prod: `x-reject-reason: bulkhead_timeout` (`gke-v2-reject-probe.json`).
+Evidencias k6: `*-k6-gke.json` (v1 intacta), `*-k6-gke-v2.json`, `LAB_K6_GKE_V2_SUMMARY.md`.  
+Bulkhead GKE: `x-reject-reason: bulkhead_timeout` (`gke-v2-reject-probe.json`, 108/200).  
+Admission GKE: `x-reject-reason: inflight_limit` (`gke-admission-reject-probe.json`, 9/80; AD=2, BH=8).  
+Multicloud 75 s: `MULTICLOUD_75S_SERIES.md` (264/264, 186/186, 186/186) — mide flujo Sports→Cine; **no** demuestra patrones.
 
 ## 8. Conclusión
 
 - **Hipótesis de mejora de throughput exitoso: NO confirmada** (local k6 v3, GKE v1 y GKE v2).
 - Localmente R1 mejoró p95 de éxitos (−44 %); en GKE v2 p95 no mejoró.
-- Rechazo controlado 503 con `x-reject-reason` verificado en GKE v2.
+- Rechazo controlado 503 con `x-reject-reason` verificado en GKE (bulkhead + admission, sondas).
 - Límite físico del fallo ≈ `maxInflight / holdMs` ≈ 32 RPS; admission/bulkhead no aumentan ese techo.
-- Clúster vivo: `cine-caos-autopilot`, imagen `5.0.1-caos-r1guard-f46e5f4`, 2 réplicas restauradas.
+- Clúster vivo: `cine-caos-autopilot`, imagen `5.0.1-caos-w3c-83efd43`, 2 réplicas restauradas.

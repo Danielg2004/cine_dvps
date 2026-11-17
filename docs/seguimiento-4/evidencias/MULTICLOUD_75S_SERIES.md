@@ -28,8 +28,9 @@ Evidencia operativa. **No** sobrescribe `*-k6-gke*.json` históricos.
 ## Patrones R1
 
 - Habilitados: `EXPERIMENT_ROUND=r1`, `RESILIENCE_ENABLED=true` (pre-ronda).
-- Intervención bulkhead/admission: **no demostrada** (0 rechazos, sin métrica de peak in-flight).
+- Intervención bulkhead/admission: **no demostrada en esta serie** (0 rechazos, sin métrica de peak in-flight).
 - Concurrencia máxima real: **no medida**; perfil Sports ≤4 VUs + Hotel→Cine secuencial ⇒ techo plausible ≤4 ≪ 8.
+- Evidencia de patrones (sondas ortogonales, no esta serie): `gke-v2-reject-probe.json` (bulkhead), `gke-admission-reject-probe.json` (admission).
 
 ## Interpretación
 
