@@ -1,6 +1,6 @@
 # Entrega a Samuel — observabilidad Cine → OCI
 
-## Collector confirmado
+## Collector
 
 | Campo | Valor |
 |-------|--------|
@@ -9,37 +9,39 @@
 | Traces | `/v1/traces` |
 | Metrics | `/v1/metrics` |
 | Auth | HTTP Basic usuario `otel-lab` |
-| CA | `otel-lab-ca.crt` (suministrado por Samuel; no en Git) |
+| CA | `otel-lab-ca.crt` (montado en pods; no en Git) |
 | `OTEL_SERVICE_NAME` | `cine-api` |
 | Propagación | W3C `traceparent` / `tracestate` + `x-trace-id` |
 
-Certificado del servidor observado (solo diagnóstico): CN=`hotel-otel-lab`, SAN=`IP:157.137.233.183` + `DNS:otel-lab.local`, autofirmado → requiere CA de confianza.
+## Estado Cine (GKE) — activado
 
-## Identificadores Cine
+- Namespace `cine-caos`, Deployment `cine-api`, **2/2 Ready**
+- URL: `http://35.239.107.54`
+- ConfigMap: endpoint + protocolo + ruta CA
+- Secret `cine-otel-secrets`: `OTEL_EXPORTER_OTLP_HEADERS` (Basic; no en Git)
+- ConfigMap `cine-otel-ca`: certificado montado en `/etc/otel/certs/otel-lab-ca.crt`
+- Boot pods: `"otlp":"configured"`
+- Verificación local TLS+Basic hacia collector: **traces HTTP 200**, **metrics HTTP 200**; sin auth **401**
+- Tráfico real generado hacia `GET /api/v2/peliculas/1` con `traceparent` / `x-trace-id`
 
-| Campo | Valor |
-|-------|--------|
-| Proyecto GCP | `cine-devops-canary` |
-| Namespace | `cine-caos` |
-| URL pública | `http://35.239.107.54` |
+## Comprobaciones que debe hacer Samuel
 
-## Estado de cableado en Cine
+### Tempo (trazas)
 
-- Instrumentación (`src/observability/instrumentation.ts`): OTLP HTTP/protobuf, traces, metrics, `OTEL_EXPORTER_OTLP_HEADERS`, `OTEL_EXPORTER_OTLP_CERTIFICATE`, W3C.
-- Manifiestos: ConfigMap con endpoint/protocolo; volumen `/etc/otel/certs/otel-lab-ca.crt`; Secret `cine-otel-secrets` (headers Basic).
-- Script de apply (sin imprimir secretos): `scripts/gcp-apply-otel-oci.ps1`
+1. Buscar `service.name = cine-api` (últimos 15–30 min).
+2. Confirmar spans HTTP de rutas `/api/v2/peliculas/:id`, `/healthz`, `/readyz`.
+3. Verificar propagación W3C: traces con `traceparent` inyectado desde cliente (p. ej. prefijo `aa…` / `ee…` de las pruebas).
+4. Confirmar recurso/atributos de servicio `cine-api` (no Hotel).
 
-## Pendiente para activar en GKE
+### Prometheus (métricas)
 
-1. Archivo real `otel-lab-ca.crt` de Samuel.
-2. Token Basic (canal privado → `OTEL_LAB_TOKEN`).
-3. Ejecutar:
+1. Series con `service_name="cine-api"` / `job` asociado al receiver OTLP.
+2. Métricas HTTP / runtime exportadas por el SDK Node (p. ej. contadores/histograma de instrumentación HTTP si están habilitados; además métricas de experimento `cine.experiment.*` si hay carga experimental).
+3. Timestamp reciente alineado con las solicitudes de prueba.
 
-```powershell
-$env:OTEL_LAB_TOKEN = '<token>'
-.\scripts\gcp-apply-otel-oci.ps1 -CaPath 'C:\ruta\otel-lab-ca.crt'
-```
+### Negativo
 
-4. Confirmación de Samuel en Tempo (traces) y Prometheus (metrics) para `service.name=cine-api`.
+- Sin Basic Auth el collector debe responder **401** (ya verificado desde el lado Cine).
+- Hotel y Cine deben distinguirse por `service.name`.
 
-**No declarar integración completa solo porque el exporter no reporte errores.**
+**Integración completa solo tras confirmación tuya en Tempo/Prometheus.**
