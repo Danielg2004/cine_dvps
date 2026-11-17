@@ -26,10 +26,11 @@ Legado canary: `/api/v3/__test/fault` (conservado).
 
 ## Docker y Kubernetes GCP
 
-- Imagen: `Dockerfile` raíz
-- Manifiestos nuevos: `deploy/gcp/k8s/` (separados de `k8s/` Azure histórico)
+- Imagen: `Dockerfile` raíz (usuario no-root uid 1000)
+- Manifiestos: `deploy/gcp/k8s/` (Autopilot + Cloud SQL Auth Proxy + LoadBalancer)
 - Validación: `scripts/validate-k8s.ps1`
-- **Despliegue real: PENDIENTE de autorización**
+- Inventario RO / costos / auth: `INVENTARIO_GCP_READONLY.md`, `COSTOS_ESTIMADOS_GCP.md`, `PROPUESTA_AUTORIZACION_GCP.md`
+- **Despliegue real: PENDIENTE de autorización explícita**
 
 ## Trace ID
 
