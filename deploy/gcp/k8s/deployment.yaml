@@ -36,7 +36,7 @@ spec:
                 path: otel-lab-ca.crt
       containers:
         - name: cine-api
-          image: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api:5.0.1-caos-r1guard-f46e5f4
+          image: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api:5.0.1-caos-w3c-83efd43
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
