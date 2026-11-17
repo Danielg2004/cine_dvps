@@ -4,9 +4,9 @@
  *
  * Compatible con coordinación posterior de Jarrison (mismo estilo de rate/duration).
  *
- * Variables de entorno (k6):
- *   CINE_BASE_URL, CINE_PELICULA_ID, K6_RATE, K6_DURATION, K6_PRE_VUS, K6_MAX_VUS,
- *   K6_TIME_UNIT, EXPERIMENT_ROUND (solo etiqueta), X_TRACE_PREFIX
+ * Variables de entorno (script; NO usar K6_DURATION/K6_VUS — anulan scenarios):
+ *   CINE_BASE_URL, CINE_PELICULA_ID, CINE_ARRIVAL_RATE, CINE_DURATION,
+ *   CINE_PRE_VUS, CINE_MAX_VUS, CINE_TIME_UNIT, EXPERIMENT_ROUND, X_TRACE_PREFIX
  */
 import http from 'k6/http';
 import { check, sleep } from 'k6';
@@ -14,11 +14,11 @@ import { Counter, Rate, Trend } from 'k6/metrics';
 
 const BASE_URL = (__ENV.CINE_BASE_URL || 'http://127.0.0.1:3000').replace(/\/$/, '');
 const PELICULA_ID = __ENV.CINE_PELICULA_ID || '1';
-const RATE = Number(__ENV.K6_RATE || 80);
-const DURATION = __ENV.K6_DURATION || '30s';
-const TIME_UNIT = __ENV.K6_TIME_UNIT || '1s';
-const PRE_VUS = Number(__ENV.K6_PRE_VUS || 40);
-const MAX_VUS = Number(__ENV.K6_MAX_VUS || 120);
+const RATE = Number(__ENV.CINE_ARRIVAL_RATE || __ENV.K6_RATE || 80);
+const DURATION = __ENV.CINE_DURATION || '30s';
+const TIME_UNIT = __ENV.CINE_TIME_UNIT || '1s';
+const PRE_VUS = Number(__ENV.CINE_PRE_VUS || 40);
+const MAX_VUS = Number(__ENV.CINE_MAX_VUS || 120);
 const ROUND = __ENV.EXPERIMENT_ROUND || 'unknown';
 const TRACE_PREFIX = __ENV.X_TRACE_PREFIX || 'k6-cine';
 

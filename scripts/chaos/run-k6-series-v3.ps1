@@ -18,10 +18,17 @@ $env:ADMISSION_MAX_INFLIGHT = "8"
 $env:BULKHEAD_MAX_CONCURRENT = "8"
 $env:CINE_BASE_URL = "http://127.0.0.1:3000"
 $env:CINE_PELICULA_ID = "1"
-$env:K6_RATE = if ($env:K6_RATE) { $env:K6_RATE } else { "80" }
-$env:K6_DURATION = if ($env:K6_DURATION) { $env:K6_DURATION } else { "30s" }
-$env:K6_PRE_VUS = "40"
-$env:K6_MAX_VUS = "120"
+# IMPORTANTE: no usar K6_DURATION / K6_VUS / K6_ITERATIONS — k6 las trata como
+# opciones globales y anulan el scenario constant-arrival-rate.
+Remove-Item Env:K6_DURATION -ErrorAction SilentlyContinue
+Remove-Item Env:K6_VUS -ErrorAction SilentlyContinue
+Remove-Item Env:K6_ITERATIONS -ErrorAction SilentlyContinue
+Remove-Item Env:K6_STAGES -ErrorAction SilentlyContinue
+Remove-Item Env:K6_MAX_VUS -ErrorAction SilentlyContinue
+$env:CINE_ARRIVAL_RATE = if ($env:CINE_ARRIVAL_RATE) { $env:CINE_ARRIVAL_RATE } else { "80" }
+$env:CINE_DURATION = if ($env:CINE_DURATION) { $env:CINE_DURATION } else { "30s" }
+$env:CINE_PRE_VUS = "40"
+$env:CINE_MAX_VUS = "120"
 $env:K6_RESULTS_DIR = "chaos/results"
 $env:CHAOS_HOLD_MS = "250"
 $env:CHAOS_MAX_INFLIGHT = "8"
@@ -91,7 +98,7 @@ function Start-Round([string]$round) {
   Ensure-Pelicula
   Start-SaturationIfNeeded $round
   try {
-    Write-Host "=== k6 round=$round rate=$($env:K6_RATE) duration=$($env:K6_DURATION) ==="
+    Write-Host "=== k6 round=$round rate=$($env:CINE_ARRIVAL_RATE) duration=$($env:CINE_DURATION) ==="
     k6 run load/k6/cine-chaos-profile.js
   }
   finally {
