@@ -16,7 +16,12 @@ data:
   DB_AUTO_INIT: "false"
   OTEL_SERVICE_NAME: "cine-api"
   OTEL_LOGS_EXPORTER: "none"
-  # OTEL_EXPORTER_OTLP_ENDPOINT: pendiente endpoint Samuel
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+  # Collector compartido Samuel (OCI). Auth Basic + CA van por Secret/ConfigMap montado.
+  OTEL_EXPORTER_OTLP_ENDPOINT: "https://157.137.233.183:31443"
+  OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/otel/certs/otel-lab-ca.crt"
   RESILIENCE_ENABLED: "false"
   EXPERIMENT_ROUND: "baseline"
   BULKHEAD_MAX_CONCURRENT: "8"

@@ -25,6 +25,10 @@ gha-creds-*.json
 
 # Secrets locales Kubernetes Seguimiento #4
 deploy/gcp/k8s/secret.yaml
+deploy/gcp/k8s/otel-secret.yaml
+# CA OTEL OCI (Samuel) — nunca versionar
+**/otel-lab-ca.crt
+secrets/otel-lab-ca.crt
 chaos/results/*
 !chaos/results/.gitkeep
 docs/seguimiento-4/evidencias/*.json

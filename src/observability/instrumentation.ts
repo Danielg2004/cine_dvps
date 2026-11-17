@@ -1,3 +1,4 @@
+import { accessSync, constants as fsConstants } from 'node:fs';
 import { metrics } from '@opentelemetry/api';
 import { OTLPMetricExporter as OTLPMetricExporterGrpc } from '@opentelemetry/exporter-metrics-otlp-grpc';
 import { OTLPMetricExporter as OTLPMetricExporterHttp } from '@opentelemetry/exporter-metrics-otlp-http';
@@ -82,6 +83,34 @@ function createMetricExporter(): PushMetricExporter {
     }
 }
 
+function certDiagnostics(): { certificateConfigured: boolean; certificateReadable: boolean } {
+    const certPath = envValue('OTEL_EXPORTER_OTLP_CERTIFICATE');
+    if (!certPath) {
+        return { certificateConfigured: false, certificateReadable: false };
+    }
+    try {
+        // Solo comprueba existencia/lectura; el exporter OTLP vuelve a leer el CA.
+        accessSync(certPath, fsConstants.R_OK);
+        return { certificateConfigured: true, certificateReadable: true };
+    } catch {
+        return { certificateConfigured: true, certificateReadable: false };
+    }
+}
+
+function endpointHost(): string | null {
+    const raw = envValue('OTEL_EXPORTER_OTLP_ENDPOINT')
+        || envValue('OTEL_EXPORTER_OTLP_TRACES_ENDPOINT')
+        || envValue('OTEL_EXPORTER_OTLP_METRICS_ENDPOINT');
+    if (!raw) {
+        return null;
+    }
+    try {
+        return new URL(raw).host;
+    } catch {
+        return 'invalid-url';
+    }
+}
+
 function startTelemetry(): void {
     const serviceName = envValue('OTEL_SERVICE_NAME') || 'cine-api';
 
@@ -102,6 +131,12 @@ function startTelemetry(): void {
     const exportTraces = signalEnabled('traces');
     const exportMetrics = signalEnabled('metrics');
     const spanProcessors = [];
+    const cert = certDiagnostics();
+    const headersConfigured = Boolean(
+        envValue('OTEL_EXPORTER_OTLP_HEADERS')
+        || envValue('OTEL_EXPORTER_OTLP_TRACES_HEADERS')
+        || envValue('OTEL_EXPORTER_OTLP_METRICS_HEADERS')
+    );
 
     if (exportTraces) {
         spanProcessors.push(new BatchSpanProcessor(createTraceExporter()));
@@ -145,6 +180,15 @@ function startTelemetry(): void {
         msg: 'OpenTelemetry iniciado',
         service: serviceName,
         otlp: exportTraces || exportMetrics ? 'configured' : 'disabled',
+        traces: exportTraces,
+        metrics: exportMetrics,
+        protocol: signalProtocol(exportTraces ? 'traces' : 'metrics'),
+        endpointHost: endpointHost(),
+        headersConfigured,
+        certificateConfigured: cert.certificateConfigured,
+        certificateReadable: cert.certificateReadable,
+        // W3C Trace Context / Baggage: default del NodeSDK + HttpInstrumentation
+        propagator: 'w3c',
     }));
 }
 

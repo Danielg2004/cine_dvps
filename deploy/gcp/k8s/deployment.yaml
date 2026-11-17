@@ -26,6 +26,14 @@ spec:
     spec:
       serviceAccountName: cine-api
       # Autopilot: no privilegiado; proxy + app en el mismo Pod
+      volumes:
+        - name: otel-ca
+          configMap:
+            name: cine-otel-ca
+            optional: true
+            items:
+              - key: otel-lab-ca.crt
+                path: otel-lab-ca.crt
       containers:
         - name: cine-api
           image: us-central1-docker.pkg.dev/cine-devops-canary/cine-canary/cine-api:5.0.1-caos-r1guard-f46e5f4
@@ -38,6 +46,14 @@ spec:
                 name: cine-api-config
             - secretRef:
                 name: cine-api-secrets
+            # OTEL Basic Auth: OTEL_EXPORTER_OTLP_HEADERS (nunca en Git)
+            - secretRef:
+                name: cine-otel-secrets
+                optional: true
+          volumeMounts:
+            - name: otel-ca
+              mountPath: /etc/otel/certs
+              readOnly: true
           resources:
             requests:
               cpu: "100m"
