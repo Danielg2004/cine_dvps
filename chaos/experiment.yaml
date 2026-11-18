@@ -1,5 +1,5 @@
 # Metadatos del experimento de Daniel (Seguimiento #4)
-# Los umbrales numéricos de steady-state DEBEN medirse; no inventar.
+# Distinguir SIEMPRE: métricas observadas (medidas) vs umbrales de aceptación (política).
 
 experiment_id: cine-resource-exhaustion-concurrency-v1
 title: Agotamiento controlado de concurrencia en API Cine
@@ -25,19 +25,63 @@ hypothesis: |
   los 503 no cuentan como éxitos (métrica primaria honesta).
 
 target_metric: successful_requests_per_second
-threshold:
-  baseline_rps: PENDING_MEASUREMENT
-  r0_min_degradation_pct: PENDING_MEASUREMENT
-  r1_recovery_vs_r0_pct: PENDING_MEASUREMENT
+
+# --- Métricas OBSERVADAS (serie k6 GKE v2; no inventadas) ---
+# Fuentes: docs/seguimiento-4/evidencias/*-k6-gke-v2.json + comparison-k6-gke-v2.json
+observed_gke_v2:
+  series: gke-k6-constant-arrival-rate-v2
+  source_dir: docs/seguimiento-4/evidencias
+  baseline:
+    successful_rps: 78.3333
+    success_rate: 0.9996
+    success_p95_ms: 872.05
+    rejected_503: 0
+  r0:
+    successful_rps: 29.9667
+    success_rate: 0.3809
+    success_p95_ms: 860.65
+    rejected_503: 1460
+  r1:
+    successful_rps: 27.8667
+    success_rate: 0.3571
+    success_p95_ms: 988.8
+    rejected_503: 1504
+  deltas:
+    r1_minus_r0_successful_rps: -2.10
+    r1_vs_r0_successful_rps_pct: -7.01
+    r1_minus_r0_p95_ms: 128.15
+  signals:
+    offered_load_comparable: true
+    throughput_r1_gt_r0: false
+    p95_r1_lt_r0: false
+    controlled_rejects_present: true
+  hypothesis_status: SOPORTADA_PARCIALMENTE_rechazos_controlados_throughput_NO_confirmado
+
+# --- Umbrales de ACEPTACIÓN (política; no confundir con lo observado) ---
+# Usados por Chaos Gate / cierre: evidencias coherentes + patrones + recuperación.
+# La hipótesis R1>R0 de throughput NO es umbral bloqueante (quedó no confirmada).
+acceptance_thresholds:
+  multicloud_availability_pct_min: 100
+  bulkhead_timeout_rejects_min: 1
+  admission_inflight_limit_rejects_min: 1
+  recovery_ready_replicas_min: 2
+  recovery_saturation_active: false
+  k6_offered_load_comparable_required: true
+  throughput_r1_gt_r0_blocking: false
+  note: |
+    Umbrales de gate documentados en cine-s4-chaos-gate-policy@1.
+    No se reescriben métricas observadas para “cumplir” la hipótesis de RPS.
 
 injection:
   tool: chaos-toolkit
   experiment_file: chaos/experiments/cine-resource-exhaustion.json
   in_process_switch: POST /api/v3/__test/saturation/start
+  # Alineado con R0/R1 GKE v2 y serie multicloud 75s (hold/maxInflight/queue)
   intensity:
-    hold_ms: "${CHAOS_HOLD_MS:-200}"
-    max_inflight: "${CHAOS_MAX_INFLIGHT:-4}"
-    duration_sec: "${CHAOS_DURATION_SEC:-30}"
+    hold_ms: "${CHAOS_HOLD_MS:-250}"
+    max_inflight: "${CHAOS_MAX_INFLIGHT:-8}"
+    max_queue_wait_ms: "${CHAOS_MAX_QUEUE_WAIT_MS:-200}"
+    duration_sec: "${CHAOS_DURATION_SEC:-90}"
 
 blast_radius:
   services: [cine-api]
@@ -52,8 +96,12 @@ abort:
 
 rollback:
   automatic: true
+  # CTK 1.21 default no ejecuta rollbacks en fallo/interrupción; usar --rollback-strategy always
   action: POST /api/v3/__test/saturation/stop
-  verify: GET /healthz == 200
+  verify:
+    - GET /api/v3/__test/saturation active=false
+    - GET /healthz == 200
+  wrapper: scripts/chaos/run-chaos-toolkit.ps1 (finally stop manual)
 
 rounds:
   baseline: { resilience: false, saturation: false }

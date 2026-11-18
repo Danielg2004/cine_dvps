@@ -41,9 +41,17 @@ docs/seguimiento-4/evidencias/*.json
 !docs/seguimiento-4/evidencias/admission-probe-preflight-state.json
 !docs/seguimiento-4/evidencias/gke-admission-probe-recovery.json
 !docs/seguimiento-4/evidencias/multicloud-75s-series.json
+!docs/seguimiento-4/evidencias/chaos-toolkit-dry-run-journal.json
+!docs/seguimiento-4/evidencias/chaos-toolkit-journal.json
 !docs/seguimiento-4/evidencias/DEPLOY_GKE_V2.json
 !docs/seguimiento-4/evidencias/gke-v2-final-state.txt
 !docs/seguimiento-4/evidencias/LAB_K6_GKE_V2_SUMMARY.md
 
 chaos/gate-out/
+
+
+.venv-chaos/
+
+
+chaostoolkit.log
 

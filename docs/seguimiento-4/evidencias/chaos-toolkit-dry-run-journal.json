@@ -1,0 +1,475 @@
+{
+  "chaoslib-version": "1.45.1",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "node": "Danielpc",
+  "experiment": {
+    "version": "1.0.0",
+    "title": "Cine concurrency exhaustion — Seguimiento #4",
+    "description": "Agota de forma controlada la capacidad de concurrencia del endpoint experimental GET /api/v2/peliculas/:id mediante el interruptor propio de saturación. No usa bucles de CPU ni reservas ilimitadas de memoria. Nota: la saturación es in-process por pod; con 2 réplicas el start vía LB afecta solo al pod que recibe la request.",
+    "tags": [
+      "cine",
+      "gcp",
+      "kubernetes",
+      "concurrency",
+      "seguimiento-4"
+    ],
+    "secrets": {
+      "cine_chaos_token": {
+        "type": "env",
+        "key": "CHAOS_FAULT_TOKEN"
+      }
+    },
+    "configuration": {
+      "cine_base_url": {
+        "type": "env",
+        "key": "CINE_BASE_URL",
+        "default": "http://127.0.0.1:3000"
+      },
+      "pelicula_id": {
+        "type": "env",
+        "key": "CINE_PELICULA_ID",
+        "default": "1"
+      },
+      "hold_ms": {
+        "type": "env",
+        "key": "CHAOS_HOLD_MS",
+        "default": "250"
+      },
+      "max_inflight": {
+        "type": "env",
+        "key": "CHAOS_MAX_INFLIGHT",
+        "default": "8"
+      },
+      "duration_sec": {
+        "type": "env",
+        "key": "CHAOS_DURATION_SEC",
+        "default": "90"
+      },
+      "max_queue_wait_ms": {
+        "type": "env",
+        "key": "CHAOS_MAX_QUEUE_WAIT_MS",
+        "default": "200"
+      }
+    },
+    "steady-state-hypothesis": {
+      "title": "El endpoint experimental responde OK bajo carga de referencia",
+      "probes": [
+        {
+          "type": "probe",
+          "name": "healthz-alive",
+          "tolerance": 200,
+          "provider": {
+            "type": "http",
+            "url": "${cine_base_url}/healthz",
+            "timeout": 5
+          }
+        },
+        {
+          "type": "probe",
+          "name": "readyz-alive",
+          "tolerance": 200,
+          "provider": {
+            "type": "http",
+            "url": "${cine_base_url}/readyz",
+            "timeout": 5
+          }
+        },
+        {
+          "type": "probe",
+          "name": "experimental-get-ok",
+          "tolerance": 200,
+          "provider": {
+            "type": "http",
+            "url": "${cine_base_url}/api/v2/peliculas/${pelicula_id}",
+            "timeout": 8,
+            "headers": {
+              "x-trace-id": "chaos-steady-state"
+            }
+          }
+        }
+      ]
+    },
+    "method": [
+      {
+        "type": "action",
+        "name": "start-saturation-fault",
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/api/v3/__test/saturation/start",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json",
+            "x-chaos-token": "${cine_chaos_token}"
+          },
+          "body": {
+            "holdMs": "${hold_ms}",
+            "maxInflight": "${max_inflight}",
+            "durationSec": "${duration_sec}",
+            "maxQueueWaitMs": "${max_queue_wait_ms}"
+          },
+          "expected_status": [
+            202
+          ],
+          "timeout": 10
+        },
+        "pauses": {
+          "after": 2
+        }
+      },
+      {
+        "type": "probe",
+        "name": "saturation-is-active",
+        "tolerance": {
+          "type": "jsonpath",
+          "path": "$.active",
+          "expect": true,
+          "target": "body"
+        },
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/api/v3/__test/saturation",
+          "method": "GET",
+          "headers": {
+            "x-chaos-token": "${cine_chaos_token}"
+          },
+          "timeout": 8
+        }
+      }
+    ],
+    "rollbacks": [
+      {
+        "type": "action",
+        "name": "stop-saturation-fault",
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/api/v3/__test/saturation/stop",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json",
+            "x-chaos-token": "${cine_chaos_token}"
+          },
+          "body": {},
+          "expected_status": [
+            200
+          ],
+          "timeout": 10
+        }
+      },
+      {
+        "type": "probe",
+        "name": "saturation-is-inactive-after-rollback",
+        "tolerance": {
+          "type": "jsonpath",
+          "path": "$.active",
+          "expect": false,
+          "target": "body"
+        },
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/api/v3/__test/saturation",
+          "method": "GET",
+          "headers": {
+            "x-chaos-token": "${cine_chaos_token}"
+          },
+          "timeout": 8
+        }
+      },
+      {
+        "type": "probe",
+        "name": "healthz-after-rollback",
+        "tolerance": 200,
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/healthz",
+          "timeout": 5
+        }
+      }
+    ],
+    "extensions": [
+      {
+        "name": "cine.experiment.metadata",
+        "experiment_id": "cine-resource-exhaustion-concurrency-v1",
+        "metric": "successful_requests_per_second",
+        "injection": "POST /api/v3/__test/saturation/start (in-process concurrency hold)",
+        "blast_radius": "Solo cine-api; no afecta Sports/Hotel",
+        "rollback_strategy": [
+          "Chaos Toolkit rollbacks[] after method (and on failure unless --no-rollbacks)",
+          "API auto-stop by durationSec (<=120)",
+          "Manual: POST /api/v3/__test/saturation/stop",
+          "Wrapper scripts/chaos/run-chaos-toolkit.ps1 always stops in finally"
+        ],
+        "abort_conditions": [
+          "duration_sec > 120 bloqueado por API",
+          "token ausente",
+          "steady-state healthz/readyz/peliculas falla",
+          "ventana no coordinada con Sports/Hotel"
+        ],
+        "replicas_note": "Con 2 réplicas el start vía LB satura un solo pod; para cobertura completa escalar a 1 réplica solo en ventana autorizada y restaurar a 2."
+      }
+    ],
+    "dry": "activities"
+  },
+  "start": "2026-11-18T01:11:03.328053+00:00",
+  "status": "completed",
+  "deviated": false,
+  "steady_states": {
+    "before": {
+      "steady_state_met": true,
+      "probes": [
+        {
+          "activity": {
+            "type": "probe",
+            "name": "healthz-alive",
+            "tolerance": 200,
+            "provider": {
+              "type": "http",
+              "url": "${cine_base_url}/healthz",
+              "timeout": 5
+            }
+          },
+          "output": null,
+          "start": "2026-11-18T01:11:03.328474+00:00",
+          "status": "succeeded",
+          "end": "2026-11-18T01:11:03.328518+00:00",
+          "duration": 4.4e-05,
+          "tolerance_met": true
+        },
+        {
+          "activity": {
+            "type": "probe",
+            "name": "readyz-alive",
+            "tolerance": 200,
+            "provider": {
+              "type": "http",
+              "url": "${cine_base_url}/readyz",
+              "timeout": 5
+            }
+          },
+          "output": null,
+          "start": "2026-11-18T01:11:03.328607+00:00",
+          "status": "succeeded",
+          "end": "2026-11-18T01:11:03.328645+00:00",
+          "duration": 3.8e-05,
+          "tolerance_met": true
+        },
+        {
+          "activity": {
+            "type": "probe",
+            "name": "experimental-get-ok",
+            "tolerance": 200,
+            "provider": {
+              "type": "http",
+              "url": "${cine_base_url}/api/v2/peliculas/${pelicula_id}",
+              "timeout": 8,
+              "headers": {
+                "x-trace-id": "chaos-steady-state"
+              }
+            }
+          },
+          "output": null,
+          "start": "2026-11-18T01:11:03.328727+00:00",
+          "status": "succeeded",
+          "end": "2026-11-18T01:11:03.328765+00:00",
+          "duration": 3.8e-05,
+          "tolerance_met": true
+        }
+      ]
+    },
+    "after": {
+      "steady_state_met": true,
+      "probes": [
+        {
+          "activity": {
+            "type": "probe",
+            "name": "healthz-alive",
+            "tolerance": 200,
+            "provider": {
+              "type": "http",
+              "url": "${cine_base_url}/healthz",
+              "timeout": 5
+            }
+          },
+          "output": null,
+          "start": "2026-11-18T01:11:03.329387+00:00",
+          "status": "succeeded",
+          "end": "2026-11-18T01:11:03.329425+00:00",
+          "duration": 3.8e-05,
+          "tolerance_met": true
+        },
+        {
+          "activity": {
+            "type": "probe",
+            "name": "readyz-alive",
+            "tolerance": 200,
+            "provider": {
+              "type": "http",
+              "url": "${cine_base_url}/readyz",
+              "timeout": 5
+            }
+          },
+          "output": null,
+          "start": "2026-11-18T01:11:03.329503+00:00",
+          "status": "succeeded",
+          "end": "2026-11-18T01:11:03.329548+00:00",
+          "duration": 4.5e-05,
+          "tolerance_met": true
+        },
+        {
+          "activity": {
+            "type": "probe",
+            "name": "experimental-get-ok",
+            "tolerance": 200,
+            "provider": {
+              "type": "http",
+              "url": "${cine_base_url}/api/v2/peliculas/${pelicula_id}",
+              "timeout": 8,
+              "headers": {
+                "x-trace-id": "chaos-steady-state"
+              }
+            }
+          },
+          "output": null,
+          "start": "2026-11-18T01:11:03.329646+00:00",
+          "status": "succeeded",
+          "end": "2026-11-18T01:11:03.329683+00:00",
+          "duration": 3.7e-05,
+          "tolerance_met": true
+        }
+      ]
+    },
+    "during": []
+  },
+  "run": [
+    {
+      "activity": {
+        "type": "action",
+        "name": "start-saturation-fault",
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/api/v3/__test/saturation/start",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json",
+            "x-chaos-token": "${cine_chaos_token}"
+          },
+          "body": {
+            "holdMs": "${hold_ms}",
+            "maxInflight": "${max_inflight}",
+            "durationSec": "${duration_sec}",
+            "maxQueueWaitMs": "${max_queue_wait_ms}"
+          },
+          "expected_status": [
+            202
+          ],
+          "timeout": 10
+        },
+        "pauses": {
+          "after": 2
+        }
+      },
+      "output": null,
+      "start": "2026-11-18T01:11:03.328966+00:00",
+      "status": "succeeded",
+      "end": "2026-11-18T01:11:03.329006+00:00",
+      "duration": 4e-05
+    },
+    {
+      "activity": {
+        "type": "probe",
+        "name": "saturation-is-active",
+        "tolerance": {
+          "type": "jsonpath",
+          "path": "$.active",
+          "expect": true,
+          "target": "body"
+        },
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/api/v3/__test/saturation",
+          "method": "GET",
+          "headers": {
+            "x-chaos-token": "${cine_chaos_token}"
+          },
+          "timeout": 8
+        }
+      },
+      "output": null,
+      "start": "2026-11-18T01:11:03.329121+00:00",
+      "status": "succeeded",
+      "end": "2026-11-18T01:11:03.329160+00:00",
+      "duration": 3.9e-05
+    }
+  ],
+  "rollbacks": [
+    {
+      "activity": {
+        "type": "action",
+        "name": "stop-saturation-fault",
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/api/v3/__test/saturation/stop",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json",
+            "x-chaos-token": "${cine_chaos_token}"
+          },
+          "body": {},
+          "expected_status": [
+            200
+          ],
+          "timeout": 10
+        }
+      },
+      "output": null,
+      "start": "2026-11-18T01:11:03.329944+00:00",
+      "status": "succeeded",
+      "end": "2026-11-18T01:11:03.329980+00:00",
+      "duration": 3.6e-05
+    },
+    {
+      "activity": {
+        "type": "probe",
+        "name": "saturation-is-inactive-after-rollback",
+        "tolerance": {
+          "type": "jsonpath",
+          "path": "$.active",
+          "expect": false,
+          "target": "body"
+        },
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/api/v3/__test/saturation",
+          "method": "GET",
+          "headers": {
+            "x-chaos-token": "${cine_chaos_token}"
+          },
+          "timeout": 8
+        }
+      },
+      "output": null,
+      "start": "2026-11-18T01:11:03.330089+00:00",
+      "status": "succeeded",
+      "end": "2026-11-18T01:11:03.330126+00:00",
+      "duration": 3.7e-05
+    },
+    {
+      "activity": {
+        "type": "probe",
+        "name": "healthz-after-rollback",
+        "tolerance": 200,
+        "provider": {
+          "type": "http",
+          "url": "${cine_base_url}/healthz",
+          "timeout": 5
+        }
+      },
+      "output": null,
+      "start": "2026-11-18T01:11:03.330236+00:00",
+      "status": "succeeded",
+      "end": "2026-11-18T01:11:03.330273+00:00",
+      "duration": 3.7e-05
+    }
+  ],
+  "end": "2026-11-18T01:11:03.330314+00:00",
+  "duration": 0.002271890640258789
+}
