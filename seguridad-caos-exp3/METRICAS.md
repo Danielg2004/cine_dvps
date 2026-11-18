@@ -36,6 +36,22 @@
 
 En R0/R1 reales, `containedAtUtc` debe ser el instante del kill switch / stop de inyección (`controls/ABORT` o equivalente), distinto de `telemetryRestoredAtUtc`.
 
+## Contención observable (diseño MTTC)
+
+Acción verificable local (y la misma en el runner GKE futuro):
+
+1. Tras `detectedAtUtc`, el runner **crea** `seguridad-caos-exp3/controls/ABORT` (o exporta `CINE_TELEMETRY_CHAOS_ABORT=1`).
+2. El runner comprueba que el flag es detectable → registra `containedAtUtc`.
+3. Solo entonces inicia restore de exporters / heartbeats → `telemetryRestoredAtUtc`.
+
+Script reproducible (sin cloud):
+
+```bash
+node seguridad-caos-exp3/scripts/local-inject-detect-contain.mjs
+```
+
+Produce `evidencias-locales/local-inject-detect-contain-report.json` con `MTTD_sec` y `MTTC_sec` separados de `restore_sec`.
+
 ## Cobertura de detección (diseño)
 
 Mínimo declarado para Exp. 3 telemetría:

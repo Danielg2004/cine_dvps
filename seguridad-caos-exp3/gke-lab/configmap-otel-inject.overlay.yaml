@@ -1,0 +1,23 @@
+# DO NOT APPLY — manifiesto de laboratorio aislado (Experimento 3).
+# Inyección controlada: deshabilitar export OTEL en cine-api del lab.
+# Requiere autorización explícita del dueño del cluster antes de cualquier kubectl.
+#
+# Efecto esperado: deja de exportarse cine.telemetry.heartbeat → detector ALERT.
+# Blast radius: solo export OTEL de cine-api en namespace de lab. No SQL, no LB, no Sports/Hotel.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-api-config
+  namespace: cine-caos
+  labels:
+    app: cine-api
+    cine.security.chaos/experiment: "exp3-telemetry-loss"
+    cine.security.chaos/phase: "inject"
+    cine.security.chaos/apply: "FORBIDDEN_UNTIL_APPROVED"
+data:
+  OTEL_TRACES_EXPORTER: "none"
+  OTEL_METRICS_EXPORTER: "none"
+  # Alternativa equivalente documentada (no combinar sin plan):
+  # OTEL_SDK_DISABLED: "true"
+  CINE_TELEMETRY_HEARTBEAT_ENABLED: "true"
+  EXPERIMENT_ROUND: "security-telemetry-r0-or-r1"

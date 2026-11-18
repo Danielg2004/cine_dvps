@@ -1,0 +1,15 @@
+{
+  "id": "cine-ai-assistant-policy-r0@1",
+  "round": "r0",
+  "description": "Baseline comparable sin mitigaciones nuevas de delimitación/validación estricta",
+  "validateOutput": false,
+  "requireHumanConfirmationOnActions": false,
+  "rejectBenignOverrideOnAlert": false,
+  "untrustedOpenTag": null,
+  "untrustedCloseTag": null,
+  "toolsEnabled": false,
+  "notes": [
+    "R0 deliberadamente débil para comparación con R1",
+    "Aún así el runtime no expone herramientas de infra"
+  ]
+}

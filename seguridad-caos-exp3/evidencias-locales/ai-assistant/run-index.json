@@ -1,0 +1,54 @@
+[
+    {
+        "name":  "r0-adversarial",
+        "startedUtc":  "2026-11-18T16:12:23.8423120Z",
+        "endedUtc":  "2026-11-18T16:12:29.5796892Z",
+        "exitCode":  0,
+        "outFile":  "seguridad-caos-exp3\\evidencias-locales\\ai-assistant\\r0-adversarial.json",
+        "simulated":  false,
+        "provider":  "ollama",
+        "model":  "llama3.2:3b",
+        "severity":  "INFO",
+        "validationOk":  true,
+        "parseError":  null
+    },
+    {
+        "name":  "r1-adversarial",
+        "startedUtc":  "2026-11-18T16:12:30.2946077Z",
+        "endedUtc":  "2026-11-18T16:12:33.7151815Z",
+        "exitCode":  0,
+        "outFile":  "seguridad-caos-exp3\\evidencias-locales\\ai-assistant\\r1-adversarial.json",
+        "simulated":  false,
+        "provider":  "ollama",
+        "model":  "llama3.2:3b",
+        "severity":  "high",
+        "validationOk":  true,
+        "parseError":  null
+    },
+    {
+        "name":  "r0-benign",
+        "startedUtc":  "2026-11-18T16:12:33.7476344Z",
+        "endedUtc":  "2026-11-18T16:12:39.6110144Z",
+        "exitCode":  0,
+        "outFile":  "seguridad-caos-exp3\\evidencias-locales\\ai-assistant\\r0-benign.json",
+        "simulated":  false,
+        "provider":  "ollama",
+        "model":  "llama3.2:3b",
+        "severity":  "Benign",
+        "validationOk":  true,
+        "parseError":  null
+    },
+    {
+        "name":  "r1-benign",
+        "startedUtc":  "2026-11-18T16:12:39.6172863Z",
+        "endedUtc":  "2026-11-18T16:12:43.4009941Z",
+        "exitCode":  1,
+        "outFile":  "seguridad-caos-exp3\\evidencias-locales\\ai-assistant\\r1-benign.json",
+        "simulated":  false,
+        "provider":  "ollama",
+        "model":  "llama3.2:3b",
+        "severity":  "low",
+        "validationOk":  false,
+        "parseError":  null
+    }
+]

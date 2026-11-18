@@ -1,0 +1,21 @@
+# DO NOT APPLY — restore documentado (post-contención).
+# Restaura exporters OTEL a valores alineados con deploy/gcp/k8s/configmap.yaml del lab.
+# NO implica que MTTC ya se midió: MTTC se marca al activar kill switch ANTES del restore.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-api-config
+  namespace: cine-caos
+  labels:
+    app: cine-api
+    cine.security.chaos/experiment: "exp3-telemetry-loss"
+    cine.security.chaos/phase: "restore"
+    cine.security.chaos/apply: "FORBIDDEN_UNTIL_APPROVED"
+data:
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_LOGS_EXPORTER: "none"
+  CINE_TELEMETRY_HEARTBEAT_ENABLED: "true"
+  EXPERIMENT_ROUND: "baseline"
+  # Endpoint/CA/headers: reutilizar los del ConfigMap/Secret ya desplegados en el lab.
+  # No inventar endpoints ni secretos en este overlay.

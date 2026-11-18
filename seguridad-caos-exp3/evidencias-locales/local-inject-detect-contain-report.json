@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "lab": "local-inject-detect-contain",
+  "cloudTouched": false,
+  "timelineMode": "synthetic_coherent_utc",
+  "wallClockExecutedAtUtc": "2026-11-18T16:19:50.421Z",
+  "events": {
+    "faultInjectedAtUtc": "2026-11-18T16:00:46.000Z",
+    "detectedAtUtc": "2026-11-18T16:01:51.000Z",
+    "containedAtUtc": "2026-11-18T16:01:53.000Z",
+    "telemetryRestoredAtUtc": "2026-11-18T16:01:53.500Z"
+  },
+  "metrics": {
+    "MTTD_sec": 65,
+    "MTTC_sec": 67,
+    "restore_sec": 0.5,
+    "false_positives_pre_inject": 0
+  },
+  "definitions": {
+    "MTTD": "detectedAtUtc - faultInjectedAtUtc",
+    "MTTC": "containedAtUtc - faultInjectedAtUtc (kill switch ABORT verificable en FS)",
+    "restore_sec": "telemetryRestoredAtUtc - containedAtUtc (NO es MTTC)"
+  },
+  "killSwitch": {
+    "abort": true,
+    "source": "file:controls/ABORT"
+  },
+  "preInjectStatus": "OK",
+  "detectionStatus": "ALERT",
+  "postRestoreAlert": false,
+  "audit": {
+    "abortAction": "create controls/ABORT file (runner-detectable kill switch)",
+    "adverseCondition": "stop appending heartbeatOk samples (synthetic export silence)",
+    "adverseStoppedByAbortAlone": false,
+    "restoreSeparateFromContainment": true,
+    "mttcJustification": "synthetic_timeline: silenceThresholdSec+5 (MTTD) + 2s post-ALERT before ABORT",
+    "notGkeMeasurement": true
+  }
+}

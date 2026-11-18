@@ -3,22 +3,22 @@
   "branchHint": "feature/seguridad-caos-cine",
   "otlp": {
     "protocol": "http/json",
-    "receiverUrl": "http://127.0.0.1:54617/v1/metrics",
+    "receiverUrl": "http://127.0.0.1:50616/v1/metrics",
     "requestsObserved": 6,
     "note": "Verificado por contador de POST /v1/metrics al receptor local"
   },
   "timelineUtc": {
-    "receiverStartedAtUtc": "2026-11-18T04:53:31.678Z",
-    "healthyFlushAtUtc": "2026-11-18T04:53:32.475Z",
-    "faultInjectedAtUtc": "2026-11-18T04:53:32.525Z",
-    "detectedAtUtc": "2026-11-18T04:53:35.537Z",
-    "containedAtUtc": "2026-11-18T04:53:35.621Z",
-    "telemetryRestoredAtUtc": "2026-11-18T04:53:36.138Z"
+    "receiverStartedAtUtc": "2026-11-18T16:19:45.303Z",
+    "healthyFlushAtUtc": "2026-11-18T16:19:46.099Z",
+    "faultInjectedAtUtc": "2026-11-18T16:19:46.154Z",
+    "detectedAtUtc": "2026-11-18T16:19:49.156Z",
+    "containedAtUtc": "2026-11-18T16:19:49.205Z",
+    "telemetryRestoredAtUtc": "2026-11-18T16:19:49.732Z"
   },
   "metrics": {
-    "MTTD_sec": 3.012,
-    "lab_ack_after_detect_sec": 3.096,
-    "restore_sec": 0.517,
+    "MTTD_sec": 3.002,
+    "lab_ack_after_detect_sec": 3.051,
+    "restore_sec": 0.527,
     "MTTC_sec_validated_containment": null
   },
   "metricsCaveat": {

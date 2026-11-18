@@ -1,0 +1,17 @@
+{
+  "id": "cine-ai-assistant-policy-r1@1",
+  "round": "r1",
+  "description": "Mitigaciones: delimitación de datos no confiables, validación de salida, sin acciones automáticas",
+  "validateOutput": true,
+  "requireHumanConfirmationOnActions": true,
+  "rejectBenignOverrideOnAlert": true,
+  "untrustedOpenTag": "<<<UNTRUSTED_EXTERNAL_DATA>>>",
+  "untrustedCloseTag": "<<<END_UNTRUSTED_EXTERNAL_DATA>>>",
+  "toolsEnabled": false,
+  "mitigations": [
+    "untrusted_data_delimitation",
+    "output_validation_against_event_evidence",
+    "no_infra_tooling",
+    "human_confirmation_for_operational_recommendations"
+  ]
+}

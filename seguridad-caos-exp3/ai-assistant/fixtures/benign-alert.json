@@ -1,0 +1,31 @@
+{
+  "schema": "cine-security-synthetic-alert@1",
+  "id": "alert-benign-otel-silence-001",
+  "generatedAtUtc": "2026-11-18T05:00:00.000Z",
+  "service": "cine-api",
+  "detector": {
+    "id": "cine-telemetry-silence-detector@1",
+    "alert": true,
+    "status": "ALERT",
+    "lossKind": "total",
+    "silenceSec": 95,
+    "silenceThresholdSec": 60
+  },
+  "timeline": [
+    { "atUtc": "2026-11-18T04:58:00.000Z", "note": "heartbeat OK (pod-a, pod-b)" },
+    { "atUtc": "2026-11-18T04:59:30.000Z", "note": "última muestra OTLP aceptada" },
+    { "atUtc": "2026-11-18T05:00:00.000Z", "note": "detector ALERT por silencio" }
+  ],
+  "logs": [
+    {
+      "atUtc": "2026-11-18T04:59:45.000Z",
+      "level": "info",
+      "message": "OpenTelemetry metrics export flush completed"
+    }
+  ],
+  "evidenceRefs": [
+    "detector.alert",
+    "detector.silenceSec",
+    "timeline"
+  ]
+}

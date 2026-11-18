@@ -10,9 +10,12 @@ No modifica Seguimiento 4 DevOps ni despliegues cloud en esta fase.
 | 1 Detector + R0/R1 diseño + kill switch | Hecha |
 | 2 Heartbeat real OTEL + puente local al detector | Hecha |
 | 3 Cadena OTLP local → adaptador externo → detector | Hecha |
-| Despliegue GKE / R0-R1 reales / capa IA | Pendiente autorización |
+| 4 Asistente IA aislado + prompt injection R0/R1 | Hecha (harness + **corridas reales Ollama** `llama3.2:3b`) |
+| Manifiestos lab GKE (sin apply) | Preparados en `gke-lab/` |
+| Despliegue GKE / corridas reales telemetría en cluster | Pendiente autorización |
 
-**No incluido aún:** componente de IA, corridas reales en GCP, commits, cambios de ConfigMap desplegado.
+**Informe individual:** `INFORME_EXPERIMENTO_3.md`. Evidencias IA: `evidencias-locales/ai-assistant/`.  
+**No incluido aún:** apply/rollout GCP, commits (hasta instrucción), Experimento 4 grupal.
 
 ## Por qué heartbeat (y no solo tráfico HTTP)
 
@@ -25,19 +28,25 @@ La señal canónica es:
 - El detector solo alerta si ya estuvo **armado** (≥ N heartbeats OK) y luego el silencio supera el umbral.  
 - Idle sin heartbeats → `NOT_ARMED` (sin alerta falsa por falta de tráfico).
 
-> **Dependencia pendiente:** emitir este heartbeat desde `cine-api` en runtime (intervalo estable). Hoy el detector y las pruebas usan **muestras sintéticas**; no se inventan lecturas Tempo/Prometheus.
+> **Código listo / GKE pendiente:** el emisor existe en `src/observability/heartbeat.ts` (`CINE_TELEMETRY_HEARTBEAT_ENABLED`). Las pruebas locales usan fixtures + lab OTLP; **no** se inventan lecturas Tempo/Prometheus de cluster.
 
 ## Estructura
 
 ```
 seguridad-caos-exp3/
-  detections/     detector + política
-  fixtures/       muestras sintéticas (+/-)
-  experiments/    diseño R0/R1 (DESIGN_ONLY)
-  controls/       kill switch (ABORT.example)
-  scripts/        verify-kill-switch.mjs
+  detections/          detector + política
+  fixtures/            muestras sintéticas (+/-)
+  experiments/         diseño R0/R1 telemetría
+  ai-assistant/        asistente IA aislado (R0/R1)
+  otlp-local/          receptor OTLP + lab cadena
+  gke-lab/             overlays GKE — NO APLICAR
+  controls/            kill switch (ABORT.example)
+  scripts/             verify / inject-detect-contain / AI runs
+  evidencias-locales/  OTLP + IA + contención local
+  INFORME_EXPERIMENTO_3.md
   REVERSION.md
   METRICAS.md
+  RISKS_RESIDUAL.md
   README.md
 ```
 
@@ -52,6 +61,17 @@ npm run security:otlp-lab
 
 # Kill switch (sin GCP)
 npm run security:telemetry-verify
+
+# Asistente IA (harness; requiere CINE_AI_PROVIDER para modelo real)
+npm run security:ai-test
+
+# Contención local con MTTC medible (kill switch ABORT; sin GCP)
+node seguridad-caos-exp3/scripts/local-inject-detect-contain.mjs
+
+# Corridas R0/R1 reales (Ollama):
+#   set CINE_AI_PROVIDER=ollama
+#   set CINE_AI_MODEL=llama3.2:3b
+#   npm run security:ai-lab
 
 # Detector CLI — negativa / positiva (fixtures)
 node seguridad-caos-exp3/detections/telemetry-silence-detector.mjs \

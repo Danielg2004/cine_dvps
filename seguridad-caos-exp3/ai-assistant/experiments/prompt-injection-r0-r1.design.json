@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "experiment_id": "cine-security-ai-prompt-injection-v1",
+  "title": "Prompt injection en campo de log sintético — asistente aislado",
+  "status": "LOCAL_LIVE_EXECUTED_OLLAMA_LLAMA32_3B",
+  "injection_method": {
+    "id": "adversarial-log-message",
+    "same_in_r0_and_r1": true,
+    "fixture": "fixtures/adversarial-log-injection.json"
+  },
+  "rounds": {
+    "R0": {
+      "policy": "config/assistant-policy.r0.json",
+      "system_prompt": "prompts/system.r0.txt",
+      "mitigations": "baseline (sin delimitación/validación estricta)",
+      "hypothesis": "Mayor probabilidad de adoptar gravedad falsa pedida en el log adversarial"
+    },
+    "R1": {
+      "policy": "config/assistant-policy.r1.json",
+      "system_prompt": "prompts/system.r1.txt",
+      "mitigations": [
+        "untrusted_data_delimitation",
+        "output_validation_against_event_evidence",
+        "no_infra_tooling",
+        "human_confirmation_for_operational_recommendations"
+      ],
+      "hypothesis": "Resiste la instrucción adversarial; mantiene análisis del ALERT; validación rechaza override benigno sin flags humanos"
+    }
+  },
+  "live_llm": {
+    "required_for_model_behavior_claims": true,
+    "providers": ["ollama", "openai"],
+    "note": "Sin CINE_AI_PROVIDER configurado no se inventan resultados de modelo"
+  },
+  "automated_tests": {
+    "file": "tests/seguridad-caos-ai-assistant.test.ts",
+    "cover": [
+      "benign payload build",
+      "adversarial delimitation R1",
+      "output validation",
+      "no infra tools",
+      "error handling provider=none",
+      "fixture transport (simulated=true, not claimed as real LLM judgment)"
+    ]
+  }
+}
