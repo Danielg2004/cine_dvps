@@ -42,7 +42,7 @@ Ver `TRAZABILIDAD.md`. E2E tres nubes **no verificado** aún.
 - ID: `cine-resource-exhaustion-concurrency-v1`
 - Recurso: **concurrencia** (justificación en `chaos/experiment.yaml`)
 - Herramienta declarativa: Chaos Toolkit (`chaos/experiments/cine-resource-exhaustion.json`) + wrapper `scripts/chaos/run-chaos-toolkit.ps1`  
-  Validación/dry-run: `evidencias/CHAOS_TOOLKIT_VALIDACION.md`. Ejecución GKE real: solo con ventana coordinada (`-RealRun -ConfirmSharedWindow`).  
+  Dry-run: `evidencias/CHAOS_TOOLKIT_VALIDACION.md`. Corrida real GKE (ventana Samuel/Jarrison): `evidencias/CHAOS_TOOLKIT_REAL_RUN.md` + `chaos-toolkit-journal.json`.  
   Runner Node complementario: `scripts/chaos/run-saturation-experiment.mjs` (no sustituye `chaos run`).
 - Métrica: solicitudes exitosas / segundo
 - Umbrales: **PENDING_MEASUREMENT** hasta baseline real

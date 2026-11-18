@@ -1,0 +1,15 @@
+﻿{
+    "readyReplicas":  2,
+    "RESILIENCE_ENABLED":  "false",
+    "healthz":  200,
+    "cluster":  "cine-caos-autopilot",
+    "EXPERIMENT_ROUND":  "baseline",
+    "readyz":  "ready",
+    "saturationActive":  false,
+    "project":  "cine-devops-canary",
+    "database":  "up",
+    "capturedAtUtc":  "2026-11-18T01:26:44.9117426Z",
+    "peliculas":  200,
+    "replicas":  2,
+    "namespace":  "cine-caos"
+}

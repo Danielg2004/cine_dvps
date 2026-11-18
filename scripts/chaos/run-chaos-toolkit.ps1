@@ -38,6 +38,12 @@ Write-Host "chaos_bin=$ChaosBin"
 Write-Host "experiment=$experiment"
 Write-Host "mode=$(if ($RealRun) { 'REAL' } else { 'DRY-RUN' })"
 
+# CTK exige secrets anidados y la clave env presente en validate.
+# En dry-run usamos placeholder local; en RealRun el token real es obligatorio.
+if (-not $RealRun -and (-not $env:CHAOS_FAULT_TOKEN -or $env:CHAOS_FAULT_TOKEN.Length -lt 16)) {
+    $env:CHAOS_FAULT_TOKEN = "dry-run-placeholder-16c"
+}
+
 & $ChaosBin validate $experiment
 if ($LASTEXITCODE -ne 0) { throw "chaos validate falló" }
 
