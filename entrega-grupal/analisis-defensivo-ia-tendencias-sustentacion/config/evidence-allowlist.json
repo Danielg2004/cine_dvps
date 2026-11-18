@@ -1,10 +1,10 @@
 {
-  "id": "group-defensive-ai-allowlist@2",
-  "updatedAtUtc": "2026-11-18T18:20:00.000Z",
+  "id": "group-defensive-ai-allowlist@3",
+  "updatedAtUtc": "2026-11-18T19:10:00.000Z",
   "notes": [
     "El analizador SOLO puede leer rutas listadas aquí.",
-    "Rutas relativas al root del paquete entrega-grupal/analisis-defensivo-ia-tendencias-sustentacion/.",
-    "Exp1 y Exp4 ausentes a propósito hasta recibir fuentes oficiales."
+    "Exp1: solo artefactos publishable/sanitizados en cine_dvps; originales privados quedan fuera de Git.",
+    "Exp4 ausente hasta entrega de Samuel."
   ],
   "experiments": {
     "exp3": {
@@ -27,9 +27,15 @@
       ]
     },
     "exp1": {
-      "status": "pending_jarrison",
-      "files": [],
-      "incorporationTemplate": "templates/pending-experiment-slot.json"
+      "status": "available_aws_sanitized",
+      "sourceRepo": "JarrisonLopez/defensa-profundidad-caos-2026",
+      "sourceCommit": "1cad076ffed34e70774c3a7dceba941b83660da7",
+      "files": [
+        "evidencias/exp1-aws-jarrison/FINAL-EXTRACT.sanitized.json",
+        "evidencias/exp1-aws-jarrison/extractos/honeytoken-aws.min.json",
+        "evidencias/exp1-aws-jarrison/fuentes-aws/comparison-r0-r1.sanitized.json",
+        "evidencias/exp1-aws-jarrison/SOURCE.md"
+      ]
     },
     "exp4": {
       "status": "pending_samuel_in_progress",

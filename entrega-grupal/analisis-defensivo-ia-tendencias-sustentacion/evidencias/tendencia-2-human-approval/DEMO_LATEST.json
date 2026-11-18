@@ -1,50 +1,50 @@
 {
-  "demoId": "t2-demo-1795026470941",
+  "demoId": "t2-demo-1795028933141",
   "scope": "local-lab-only",
   "notCloudRemediation": true,
   "timeline": [
     {
       "step": "detection",
-      "atUtc": "2026-11-18T18:27:50.940Z",
+      "atUtc": "2026-11-18T19:08:53.139Z",
       "alert": {
         "id": "lab-alert-telemetry-partial-demo",
         "verified": true,
         "severity": "high",
         "signal": "cine.telemetry.heartbeat silence partial",
         "evidenceRef": "evidencias/exp3-daniel/FINAL-REPORT.extract.json#R1.alert=true",
-        "detectedAtUtc": "2026-11-18T18:27:50.940Z"
+        "detectedAtUtc": "2026-11-18T19:08:53.139Z"
       }
     },
     {
       "step": "proposal_pending",
-      "atUtc": "2026-11-18T18:27:50.940Z",
+      "atUtc": "2026-11-18T19:08:53.139Z",
       "executed": false
     },
     {
       "step": "human_decision",
-      "atUtc": "2026-11-18T18:27:50.940Z",
+      "atUtc": "2026-11-18T19:08:53.139Z",
       "decision": "approve",
       "approverId": "lab-approver-daniel",
       "executed": true
     },
     {
       "step": "verify",
-      "atUtc": "2026-11-18T18:27:50.940Z",
+      "atUtc": "2026-11-18T19:08:53.140Z",
       "result": {
         "flagExists": true,
         "approverMatches": true,
         "cloudTouched": false,
-        "verifiedAtUtc": "2026-11-18T18:27:50.940Z"
+        "verifiedAtUtc": "2026-11-18T19:08:53.140Z"
       }
     },
     {
       "step": "revert",
-      "atUtc": "2026-11-18T18:27:50.940Z",
+      "atUtc": "2026-11-18T19:08:53.140Z",
       "result": {
         "trendId": "T2-human-approval-remediation",
         "stage": "revert",
         "approverId": "lab-approver-daniel",
-        "revertedAtUtc": "2026-11-18T18:27:50.940Z",
+        "revertedAtUtc": "2026-11-18T19:08:53.140Z",
         "cloudTouched": false,
         "ok": true,
         "flagRemoved": true
@@ -61,7 +61,7 @@
       "severity": "high",
       "signal": "cine.telemetry.heartbeat silence partial",
       "evidenceRef": "evidencias/exp3-daniel/FINAL-REPORT.extract.json#R1.alert=true",
-      "detectedAtUtc": "2026-11-18T18:27:50.940Z"
+      "detectedAtUtc": "2026-11-18T19:08:53.139Z"
     },
     "proposedAction": {
       "type": "set_local_containment_flag",
@@ -69,25 +69,25 @@
     },
     "decision": "approve",
     "approverId": "lab-approver-daniel",
-    "decidedAtUtc": "2026-11-18T18:27:50.940Z",
+    "decidedAtUtc": "2026-11-18T19:08:53.139Z",
     "executed": true,
     "executionResult": {
       "status": "applied_local_lab",
       "flagPath": "evidencias/tendencia-2-human-approval/CONTAINMENT_PROPOSED_APPLIED",
-      "sha256": "6c3b0eeb90f4c69d7ef6156c3fffd4b0f7aa4b2ca0fb533402c2a5311634056d"
+      "sha256": "6c41256bedc00848cfa2b405d519e91128580f76f19effcb72c395976f2a0dc5"
     },
     "verifiedAfter": {
       "flagExists": true,
       "approverMatches": true,
       "cloudTouched": false,
-      "verifiedAtUtc": "2026-11-18T18:27:50.940Z"
+      "verifiedAtUtc": "2026-11-18T19:08:53.140Z"
     },
     "reverted": true,
     "revertResult": {
       "trendId": "T2-human-approval-remediation",
       "stage": "revert",
       "approverId": "lab-approver-daniel",
-      "revertedAtUtc": "2026-11-18T18:27:50.940Z",
+      "revertedAtUtc": "2026-11-18T19:08:53.140Z",
       "cloudTouched": false,
       "ok": true,
       "flagRemoved": true

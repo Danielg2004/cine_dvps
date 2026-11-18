@@ -1,33 +1,32 @@
-# Análisis defensivo con IA — etapa 3
+# Análisis defensivo con IA — con Exp.1 AWS
 
 ## Diseño
 
 | Propiedad | Decisión |
 |-----------|----------|
-| Modelo | Ollama **real** `llama3.2:3b` |
-| Allowlist | `config/evidence-allowlist.json` |
-| Autoridad métrica | Borrador determinista |
-| Respuesta LLM | **Intacta** (`responseUnmodified`) |
-| Formato | `formatStatus` + `formatErrors` **separados** de claims factuales |
-| Recuperación JSON | Solo para auditoría (`auditRecovery`); nunca reescribe `response` |
+| Modelo | Ollama real `llama3.2:3b` |
+| Allowlist | `config/evidence-allowlist.json` @3 |
+| Exp1 | Extractos sanitizados desde commit grupal `1cad076…` |
+| Formato | `formatErrors` ≠ alucinaciones |
 | Script | `scripts/defensive-ai-analyzer.mjs` @3 |
 
-### Clasificación
+## Exp. 1 (Jarrison / AWS lab) — DISPONIBLE
 
-1. Afirmaciones factuales → `verificada` / `incorrecta` / `no_verificable`  
-2. Errores de contrato JSON → `formatErrors` (no son alucinaciones automáticas)
+| Campo | Contenido anclado a evidencia |
+|-------|-------------------------------|
+| Incidente | Reuse de machine-token + ejercicio de honeytoken en lab ClusterIP+túnel |
+| R0 | `r0_weak`: reuseAllowed=8, detections=0; honeytoken 403/`identity.honeytoken_use` |
+| R1 | `r1_strict`: reuseDenied=8, detections=8, mttdMs=398 (reuse); honeytoken 403/`identity.honeytoken_use` |
+| Honeytoken | Evento **A** distinto de reuse **B**; sin grant |
+| Alertamiento | Application securityEvent — **not CloudWatch/SIEM** |
+| Riesgos | Sin ts/traceId honeytoken en events[]; lab≠prod |
 
-### Exp. 2 etapa 3
+Run: `evidencias/ai-runs/exp1-latest.json` (`llm_real_ollama`, 2026-11-18T19:03:34Z).
 
-- Reejecutado 2026-11-18T18:22:39Z  
-- `formatStatus=valid_json_shape_warning` (falta key `claims`)  
-- Factual: 4 verificadas, 1 incorrecta (control NP OKE), 0 no verificables  
-- Guardrail: Docker + gateway L4; **no** NP OKE  
+## Exp. 2 / 3
 
-### Exp. 3
+Sin cambio de veredicto (ver `AUDITORIA_CONCLUSIONES_IA.md`).
 
-- Run válido conservado; evidencias GKE originales **no modificadas**
+## Exp. 4
 
-### Exp. 1 / 4
-
-- Pendientes — plantilla `templates/pending-experiment-slot.json`
+PENDIENTE Samuel.

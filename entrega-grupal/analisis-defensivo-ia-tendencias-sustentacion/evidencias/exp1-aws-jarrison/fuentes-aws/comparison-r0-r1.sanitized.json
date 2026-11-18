@@ -1,0 +1,41 @@
+{
+  "hypothesis": "Con el mismo método (token reuse firmado), R0 autoriza y R1 deniega con identity.reuse_detected en lab AWS aislado ClusterIP+túnel.",
+  "generatedAt": "2026-11-18T04:51:00.000Z",
+  "access": "ssh-tunnel to ClusterIP [REDACTED_CLUSTERIP] via [REDACTED_LOCAL_TUNNEL] (not NodePort 30080)",
+  "sportsUntouchedImage": "sports-tournaments-api:4.1.1-ac7b0fd",
+  "labImage": "sports-tournaments-api:identity-lab",
+  "tempSshRuleId": "[REDACTED_SGR]",
+  "tempSshRuleRevoked": true,
+  "sources": {
+    "r0": "results/aws-live-2026-11-18T0447/",
+    "r1": "results/aws-live-2026-11-18T0448/",
+    "ops": "results/aws-lab-live-202611172341/"
+  },
+  "R0": {
+    "mode": "r0_weak",
+    "reuseAllowed": 8,
+    "reuseDenied": 0,
+    "detections": 0,
+    "detectionCoverage": 0,
+    "falsePositives": 0,
+    "mttdMs": null,
+    "honeytokenGrantsAccess": false
+  },
+  "R1": {
+    "mode": "r1_strict",
+    "reuseAllowed": 0,
+    "reuseDenied": 8,
+    "detections": 8,
+    "detectionCoverage": 100,
+    "falsePositives": 0,
+    "mttdMs": 398,
+    "mttcMs": 12182,
+    "mttcNote": "ms desde primera identity.reuse_detected (2026-11-18T04:48:44.573Z) hasta evidencia de contención kill switch (16-containment.json LastWriteTimeUtc)",
+    "honeytokenGrantsAccess": false,
+    "honeytokenEvent": "identity.honeytoken_use",
+    "detectionRuleAlerts": 8
+  },
+  "hypothesisHeld": true,
+  "otelLabExporters": "none",
+  "alertingMechanism": "application securityEvent + rules/detect-scope-reuse.json (not CloudWatch)"
+}

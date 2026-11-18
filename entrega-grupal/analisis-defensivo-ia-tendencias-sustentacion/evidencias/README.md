@@ -2,10 +2,11 @@
 
 | Carpeta | Contenido |
 |---------|-----------|
-| `exp3-daniel/` | Extracto FINAL-REPORT Exp. 3 (lab GKE válido) |
-| `exp2-samuel/` | Summaries públicos R0/R1 + SOURCE.md |
-| `ai-runs/` | Runs Ollama reales + prompts + audits (etapa 2) |
-| `tendencia-2-human-approval/` | Propuesta, decisiones, demo, revert (lab local) |
+| `exp1-aws-jarrison/` | Extractos **publishable** + `SOURCE.md`/hashes (originales privados **no** versionados) |
+| `exp3-daniel/` | Extracto FINAL-REPORT Exp. 3 |
+| `exp2-samuel/` | Summaries públicos R0/R1 |
+| `ai-runs/` | Runs Ollama (incl. exp1-latest publishable-only) |
+| `tendencia-2-human-approval/` | Lab HITL local |
 
-Evidencias completas Exp. 3: `seguridad-caos-exp3/evidencias-locales/` (referenciadas por allowlist; no secretos).  
-Exp. 1 y Exp. 4: **sin archivos** hasta fuentes oficiales.
+Exp. 4: **sin archivos** (Samuel).  
+Exp. 1: originales `r0.json`/`r1.json`/doc completo quedan fuera de Git (repo privado Jarrison); ver `.gitignore` local.

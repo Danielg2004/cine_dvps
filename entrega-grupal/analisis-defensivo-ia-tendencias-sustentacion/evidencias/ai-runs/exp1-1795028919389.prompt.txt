@@ -1,0 +1,141 @@
+Eres un analista defensivo. Emite UN objeto JSON compacto.
+REGLAS: no inventes cifras; copia metrics del borrador; no uses markdown; cierra todas las llaves.
+Keys exactas (todas al nivel raíz, no anides residualRisks dentro de metrics):
+summary,chronology,severity,causeHypothesis,controls,metrics,residualRisks,recommendations,claims
+GUARDRAIL_EXP1: distingue identity.honeytoken_use vs identity.reuse_detected (NO son el mismo evento).
+NO afirmes SIEM/CloudWatch. NO inventes timestamp/traceId/latencia individuales del honeytoken.
+mttdMs de R1 es de reuse, NO del honeytoken. Lab AWS aislado ≠ producción.
+Experimento: exp1
+BORRADOR_DETERMINISTA_JSON=
+{"summary":"Exp.1 AWS lab (ClusterIP+túnel, no prod/SIEM): R0_weak permite reuse de token; R1_strict deniega reuse (identity.reuse_detected). Honeytoken ejercitado en R0/R1 con identity.honeytoken_use, HTTP 403, allowed=false (sin grant).","chronology":["R0 r0_weak 2026-11-18T04:47:50.010Z","Issue+invoke honeytoken → deny (identity.honeytoken_use)","R1 r1_strict 2026-11-18T04:48:44.175Z","Reuse denegado + honeytoken deny (eventos distintos)"],"severity":"medium (lab identidad; Sports imagen prod no sustituida como hipótesis rota)","causeHypothesis":"R0 política débil no detecta reuse; R1 strict detecta reuse firmado. Honeytoken canary (purpose=honey) siempre denegado al invoke.","controls":["Machine identity issue/invoke lab","Honeytoken canary (honey:true / subject canary)","Regla detect-scope-reuse (application securityEvent)","SSH temporal revocado (comparison.tempSshRuleRevoked)"],"metrics":{"honeytoken":{"R0":{"httpStatus":403,"allowed":false,"eventType":"identity.honeytoken_use"},"R1":{"httpStatus":403,"allowed":false,"eventType":"identity.honeytoken_use"}},"identityRounds":{"R0":{"mode":"r0_weak","mttdMs":null,"mttcMs":null,"detectionCoverage":0,"falsePositives":0,"reuseAllowed":8,"reuseDenied":0,"detections":0,"containmentVerified":false},"R1":{"mode":"r1_strict","mttdMs":398,"mttcMs":null,"detectionCoverage":100,"falsePositives":0,"reuseAllowed":0,"reuseDenied":8,"detections":8,"containmentVerified":false}},"comparison":{"hypothesisHeld":true,"alertingMechanism":"application securityEvent + rules/detect-scope-reuse.json (not CloudWatch)","honeytokenGrantsAccess_R0":false,"honeytokenGrantsAccess_R1":false,"honeytokenEvent":"identity.honeytoken_use","mttdMs_reuse_R1":398,"mttcMs_reuse_containment_note":"ms desde primera identity.reuse_detected (2026-11-18T04:48:44.573Z) hasta evidencia de contención kill switch (16-containment.json LastWriteTimeUtc)"},"sourceCommit":"1cad076ffed34e70774c3a7dceba941b83660da7"},"residualRisks":["Sin alerta SIEM/CloudWatch en evidencias","Sin timestamp/traceId individual del invoke honeytoken en events[]","MTTD/MTTC de ronda de reuse ≠ latencia del honeytoken"],"recommendations":["Persistir x-trace-id y timestamp del invoke honeytoken en events[]","Separar métricas honeytoken vs reuse en reportes","Integrar securityEvent a canal de alertamiento SIEM solo como mejora futura (no demostrado)"]}
+EVIDENCIA_COMPACTA=
+### evidencias/exp1-aws-jarrison/FINAL-EXTRACT.sanitized.json
+{
+  "sourceRepo": "JarrisonLopez/defensa-profundidad-caos-2026",
+  "sourceCommit": "1cad076ffed34e70774c3a7dceba941b83660da7",
+  "scope": "AWS lab aislado ClusterIP+tunel (no produccion, no SIEM)",
+  "sportsCommit": "26c8ce6b96e1d18429ca68498e493f17b24d1e7c",
+  "branch": "feature/defense-in-depth-security-chaos",
+  "distinction": {
+    "identity_honeytoken_use": "Alerta de uso de canary; fuente: objeto honeytoken en r1.json/r0.json",
+    "identity_reuse_detected": "NO es honeytoken; vive en events-r1.json / detection-r1.json con honeytokenHit:false"
+  },
+  "honeytoken": {
+    "R0": {
+      "startedAt": "2026-11-18T04:47:50.010Z",
+      "endedAt": "2026-11-18T04:47:52.298Z",
+      "mode": "r0_weak",
+      "honeytoken": {
+        "httpStatus": 403,
+        "allowed": false,
+        "eventType": "identity.honeytoken_use"
+      }
+    },
+    "R1": {
+      "startedAt": "2026-11-18T04:48:44.175Z",
+      "endedAt": "2026-11-18T04:48:46.489Z",
+      "mode": "r1_strict",
+      "honeytoken": {
+        "httpStatus": 403,
+        "allowed": false,
+        "eventType": "identity.honeytoken_use"
+      },
+      "nota": "No hay timestamp ni traceId dedicados del invoke honey en events[]; el runner uso x-trace-id R1-honey pero no lo persistio en rows/events"
+    },
+    "note": "No hay timestamp ni traceId dedicados del invoke honey en events[]; el runner uso x-trace-id R1-honey pero no lo persistio en rows/events"
+  },
+  "identityExperimentMetrics": {
+    "R0": {
+      "mode": "r0_weak",
+      "mttdMs": null,
+      "mttcMs": null,
+      "detectionCoverage": 0,
+      "falsePositives": 0,
+      "reuseAllowed": 8,
+      "reuseDenied": 0,
+      "detections": 0,
+      "containmentVerified": false
+    },
+    "R1": {
+      "mode": "r1_strict",
+      "mttdMs": 398,
+      "mttcMs": null,
+      "d
+
+### evidencias/exp1-aws-jarrison/extractos/honeytoken-aws.min.json
+{
+  "ambito": "AWS lab aislado ClusterIP+tunel (no produccion, no SIEM)",
+  "sportsCommit": "26c8ce6b96e1d18429ca68498e493f17b24d1e7c",
+  "branch": "feature/defense-in-depth-security-chaos",
+  "R1": {
+    "startedAt": "2026-11-18T04:48:44.175Z",
+    "endedAt": "2026-11-18T04:48:46.489Z",
+    "mode": "r1_strict",
+    "honeytoken": {
+      "httpStatus": 403,
+      "allowed": false,
+      "eventType": "identity.honeytoken_use"
+    },
+    "nota": "No hay timestamp ni traceId dedicados del invoke honey en events[]; el runner uso x-trace-id R1-honey pero no lo persistio en rows/events"
+  },
+  "R0": {
+    "startedAt": "2026-11-18T04:47:50.010Z",
+    "endedAt": "2026-11-18T04:47:52.298Z",
+    "mode": "r0_weak",
+    "honeytoken": {
+      "httpStatus": 403,
+      "allowed": false,
+      "eventType": "identity.honeytoken_use"
+    }
+  },
+  "contraste": {
+    "identity_honeytoken_use": "Alerta de uso de canary; fuente: objeto honeytoken en r1.json/r0.json",
+    "identity_reuse_detected": "NO es honeytoken; vive en events-r1.json / detection-r1.json con honeytokenHit:false"
+  }
+}
+
+
+### evidencias/exp1-aws-jarrison/fuentes-aws/comparison-r0-r1.sanitized.json
+{
+  "hypothesis": "Con el mismo método (token reuse firmado), R0 autoriza y R1 deniega con identity.reuse_detected en lab AWS aislado ClusterIP+túnel.",
+  "generatedAt": "2026-11-18T04:51:00.000Z",
+  "access": "ssh-tunnel to ClusterIP [REDACTED_CLUSTERIP] via [REDACTED_LOCAL_TUNNEL] (not NodePort 30080)",
+  "sportsUntouchedImage": "sports-tournaments-api:4.1.1-ac7b0fd",
+  "labImage": "sports-tournaments-api:identity-lab",
+  "tempSshRuleId": "[REDACTED_SGR]",
+  "tempSshRuleRevoked": true,
+  "sources": {
+    "r0": "results/aws-live-2026-11-18T0447/",
+    "r1": "results/aws-live-2026-11-18T0448/",
+    "ops": "results/aws-lab-live-202611172341/"
+  },
+  "R0": {
+    "mode": "r0_weak",
+    "reuseAllowed": 8,
+    "reuseDenied": 0,
+    "detections": 0,
+    "detectionCoverage": 0,
+    "falsePositives": 0,
+    "mttdMs": null,
+    "honeytokenGrantsAccess": false
+  },
+  "R1": {
+    "mode": "r1_strict",
+    "reuseAllowed": 0,
+    "reuseDenied": 8,
+    "detections": 8,
+    "detectionCoverage": 100,
+    "falsePositives": 0,
+    "mttdMs": 398,
+    "mttcMs": 12182,
+    "mttcNote": "ms desde primera identity.reuse_detected (2026-11-18T04:48:44.573Z) hasta evidencia de contención kill switch (16-containment.json LastWriteTimeUtc)",
+    "honeytokenGrantsAccess": false,
+    "honeytokenEvent": "identity.honeytoken_use",
+    "detectionRuleAlerts": 8
+  },
+  "hypothesisHeld": true,
+  "otelLabExporters": "none",
+  "alertingMechanism": "application securityEvent + rules/detect-scope-reuse.json (not CloudWatch)"
+}
+
+JSON=

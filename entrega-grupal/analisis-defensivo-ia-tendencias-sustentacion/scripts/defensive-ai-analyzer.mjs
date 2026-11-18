@@ -57,7 +57,8 @@ function loadAllowedFiles(experimentId) {
       loaded.push({ path: rel, missing: true });
       continue;
     }
-    const text = readFileSync(abs, 'utf8');
+    let text = readFileSync(abs, 'utf8');
+    if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
     loaded.push({
       path: rel,
       missing: false,
@@ -68,8 +69,13 @@ function loadAllowedFiles(experimentId) {
   return { status: exp.status, files: loaded };
 }
 
+function stripBomJson(text) {
+  const t = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  return JSON.parse(t);
+}
+
 function deterministicDraft(experimentId, bundle) {
-  if (experimentId === 'exp1' || experimentId === 'exp4') {
+  if (experimentId === 'exp4') {
     return {
       experimentId,
       mode: 'deterministic-pending',
@@ -90,6 +96,125 @@ function deterministicDraft(experimentId, bundle) {
         },
       ],
     };
+  }
+
+  if (experimentId === 'exp1') {
+    const extractFile = bundle.files.find((f) => f.path.includes('FINAL-EXTRACT.sanitized.json'));
+    let extract = null;
+    try {
+      extract = extractFile && !extractFile.missing
+        ? stripBomJson(readFileSync(resolve(root, extractFile.path), 'utf8'))
+        : null;
+    } catch {
+      extract = null;
+    }
+    const honeyR1 = extract?.honeytoken?.R1?.honeytoken;
+    const honeyR0 = extract?.honeytoken?.R0?.honeytoken;
+    const idR1 = extract?.identityExperimentMetrics?.R1;
+    const idR0 = extract?.identityExperimentMetrics?.R0;
+    const cmp = extract?.comparison || {};
+    const draft = {
+      experimentId: 'exp1',
+      mode: 'deterministic-from-aws-sanitized',
+      llmEligible: true,
+      summary:
+        'Exp.1 AWS lab (ClusterIP+túnel, no prod/SIEM): R0_weak permite reuse de token; R1_strict deniega reuse (identity.reuse_detected). Honeytoken ejercitado en R0/R1 con identity.honeytoken_use, HTTP 403, allowed=false (sin grant).',
+      chronology: [
+        `R0 ${idR0?.mode || 'r0_weak'} ${extract?.honeytoken?.R0?.startedAt || ''}`.trim(),
+        'Issue+invoke honeytoken → deny (identity.honeytoken_use)',
+        `R1 ${idR1?.mode || 'r1_strict'} ${extract?.honeytoken?.R1?.startedAt || ''}`.trim(),
+        'Reuse denegado + honeytoken deny (eventos distintos)',
+      ],
+      severity: 'medium (lab identidad; Sports imagen prod no sustituida como hipótesis rota)',
+      causeHypothesis:
+        'R0 política débil no detecta reuse; R1 strict detecta reuse firmado. Honeytoken canary (purpose=honey) siempre denegado al invoke.',
+      controls: [
+        'Machine identity issue/invoke lab',
+        'Honeytoken canary (honey:true / subject canary)',
+        'Regla detect-scope-reuse (application securityEvent)',
+        'SSH temporal revocado (comparison.tempSshRuleRevoked)',
+      ],
+      metrics: {
+        honeytoken: { R0: honeyR0, R1: honeyR1 },
+        identityRounds: { R0: idR0, R1: idR1 },
+        comparison: {
+          hypothesisHeld: cmp.hypothesisHeld,
+          alertingMechanism: cmp.alertingMechanism,
+          honeytokenGrantsAccess_R0: cmp.R0?.honeytokenGrantsAccess,
+          honeytokenGrantsAccess_R1: cmp.R1?.honeytokenGrantsAccess,
+          honeytokenEvent: cmp.R1?.honeytokenEvent,
+          mttdMs_reuse_R1: cmp.R1?.mttdMs,
+          mttcMs_reuse_containment_note: cmp.R1?.mttcNote || null,
+        },
+        sourceCommit: extract?.sourceCommit,
+      },
+      residualRisks: [
+        'Sin alerta SIEM/CloudWatch en evidencias',
+        'Sin timestamp/traceId individual del invoke honeytoken en events[]',
+        'MTTD/MTTC de ronda de reuse ≠ latencia del honeytoken',
+      ],
+      recommendations: [
+        'Persistir x-trace-id y timestamp del invoke honeytoken en events[]',
+        'Separar métricas honeytoken vs reuse en reportes',
+        'Integrar securityEvent a canal de alertamiento SIEM solo como mejora futura (no demostrado)',
+      ],
+      claims: [],
+    };
+    if (honeyR1?.eventType === 'identity.honeytoken_use' && honeyR1?.httpStatus === 403 && honeyR1?.allowed === false) {
+      draft.claims.push({
+        claim: 'R1: honeytoken → identity.honeytoken_use, HTTP 403, allowed=false',
+        classification: 'verificada',
+        evidence: 'honeytoken-aws.min.json / r1.sanitized.json honeytoken',
+        kind: 'factual',
+      });
+    }
+    if (cmp.R1?.honeytokenGrantsAccess === false) {
+      draft.claims.push({
+        claim: 'Honeytoken no concedió acceso (honeytokenGrantsAccess=false)',
+        classification: 'verificada',
+        evidence: 'comparison-r0-r1.sanitized.json R1.honeytokenGrantsAccess',
+        kind: 'factual',
+      });
+    }
+    if (idR0?.reuseAllowed === 8 && idR0?.detections === 0) {
+      draft.claims.push({
+        claim: 'R0: reuseAllowed=8, detections=0 (política débil)',
+        classification: 'verificada',
+        evidence: 'r0.sanitized.json / FINAL-EXTRACT',
+        kind: 'factual',
+      });
+    }
+    if (idR1?.reuseDenied === 8 && idR1?.detections === 8 && idR1?.mttdMs === 398) {
+      draft.claims.push({
+        claim: 'R1 reuse: reuseDenied=8, detections=8, mttdMs=398 (métrica de reuse, no del honeytoken)',
+        classification: 'verificada',
+        evidence: 'r1.sanitized.json identity metrics',
+        kind: 'factual',
+      });
+    }
+    if (String(cmp.alertingMechanism || '').toLowerCase().includes('not cloudwatch')) {
+      draft.claims.push({
+        claim: 'Alertamiento es application securityEvent (not CloudWatch/SIEM)',
+        classification: 'verificada',
+        evidence: 'comparison-r0-r1.sanitized.json alertingMechanism',
+        kind: 'factual',
+      });
+    }
+    draft.claims.push({
+      claim: 'identity.honeytoken_use es el mismo evento que identity.reuse_detected',
+      classification: 'incorrecta',
+      evidence: 'EVIDENCIAS + min.contraste: eventos distintos',
+      kind: 'factual',
+      note: 'Control negativo deliberado',
+    });
+    draft.claims.push({
+      claim: 'Hubo alerta SIEM/CloudWatch del honeytoken',
+      classification: 'incorrecta',
+      evidence: 'comparison.alertingMechanism niega CloudWatch; scope lab',
+      kind: 'factual',
+      note: 'Control negativo deliberado',
+    });
+    return draft;
   }
 
   if (experimentId === 'exp3') {
@@ -264,12 +389,21 @@ function buildPrompt(experimentId, draft, bundle) {
           'Si mencionas OKE, solo para negar equivalencia.',
         ]
       : [];
+  const exp1Guard =
+    experimentId === 'exp1'
+      ? [
+          'GUARDRAIL_EXP1: distingue identity.honeytoken_use vs identity.reuse_detected (NO son el mismo evento).',
+          'NO afirmes SIEM/CloudWatch. NO inventes timestamp/traceId/latencia individuales del honeytoken.',
+          'mttdMs de R1 es de reuse, NO del honeytoken. Lab AWS aislado ≠ producción.',
+        ]
+      : [];
   return [
     'Eres un analista defensivo. Emite UN objeto JSON compacto.',
     'REGLAS: no inventes cifras; copia metrics del borrador; no uses markdown; cierra todas las llaves.',
     'Keys exactas (todas al nivel raíz, no anides residualRisks dentro de metrics):',
     'summary,chronology,severity,causeHypothesis,controls,metrics,residualRisks,recommendations,claims',
     ...exp2Guard,
+    ...exp1Guard,
     `Experimento: ${experimentId}`,
     'BORRADOR_DETERMINISTA_JSON=',
     JSON.stringify({
@@ -535,6 +669,16 @@ function auditFactualClaims(llmObject, draft, bundle, rawResponse) {
     if (draft.experimentId === 'exp2' && claimsOkeNetworkPolicyEquivalence(claim)) {
       classification = 'incorrecta';
       reason = 'Exp2 es lab Docker + gateway L4; no equivale a NetworkPolicy OKE prod';
+    } else if (
+      draft.experimentId === 'exp1' &&
+      /honeytoken.{0,40}(reuse_detected|reutilizaci[oó]n)|(reuse_detected|reutilizaci[oó]n).{0,40}honeytoken/i.test(claim) &&
+      /(mismo|igual|equivalente|es\s+el\s+mismo)/i.test(claim)
+    ) {
+      classification = 'incorrecta';
+      reason = 'identity.honeytoken_use ≠ identity.reuse_detected';
+    } else if (draft.experimentId === 'exp1' && /\bsiem\b|cloudwatch/i.test(claim) && !/\bno\b|\bnot\b|sin\b/i.test(claim)) {
+      classification = 'incorrecta';
+      reason = 'Evidencias niegan CloudWatch/SIEM; alertamiento es application securityEvent';
     } else if (/\brpo\b|\brto\b/i.test(claim) && draft.experimentId !== 'exp4') {
       classification = 'incorrecta';
       reason = 'RPO/RTO no están en evidencias de este experimento';

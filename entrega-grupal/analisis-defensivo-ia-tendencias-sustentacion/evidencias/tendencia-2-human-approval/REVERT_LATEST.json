@@ -2,7 +2,7 @@
   "trendId": "T2-human-approval-remediation",
   "stage": "revert",
   "approverId": "lab-approver-daniel",
-  "revertedAtUtc": "2026-11-18T18:27:50.940Z",
+  "revertedAtUtc": "2026-11-18T19:08:53.140Z",
   "cloudTouched": false,
   "ok": true,
   "flagRemoved": true

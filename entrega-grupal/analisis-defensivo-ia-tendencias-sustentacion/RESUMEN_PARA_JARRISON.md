@@ -2,52 +2,34 @@
 
 **Paquete:** `entrega-grupal/analisis-defensivo-ia-tendencias-sustentacion/`  
 **Autor:** Daniel (Cine GCP) · **Rama:** `feature/seguridad-caos-cine`  
-**Cierre auditoría etapa 3 UTC:** 2026-11-18  
-**Listo para integrar** (sin commit desde este chat hasta autorización).
+**Actualización Exp1 AWS UTC:** 2026-11-18  
+**Fuente AWS:** `JarrisonLopez/defensa-profundidad-caos-2026` @ `1cad076ffed34e70774c3a7dceba941b83660da7`
 
 ## Resultados confirmados
 
-**Exp. 3 (Cine/GCP):** pérdida parcial de telemetría. R0 agregado no alerta (cobertura 0). R1 por instancia alerta `partial` (cobertura 1), MTTD **7.51 s**, MTTC **148.1 s**, FP pre-inyección 0, identidad B estable, lab eliminado, DevOps 2/2. R1 histórica con restart = inválida.
+**Exp.1 AWS (identidad + honeytoken):** lab ClusterIP+túnel. R0_weak permite reuse (8/0 detecciones). R1_strict deniega reuse (8/8, MTTD reuse **398 ms**). Honeytoken en R0/R1: `identity.honeytoken_use`, HTTP **403**, `allowed=false`, sin grant. **≠** `identity.reuse_detected`. Alertamiento: application securityEvent (**no** CloudWatch/SIEM).
 
-**Exp. 2 (Hotel/OCI lab, Samuel @ `742c575a`):** lab **Docker + gateway L4** (no NetworkPolicy OKE). R0 sin detección observada. R1 `VALID_R1`: bloqueo + alerta, MTTD **20 ms**, contención **preventive**.
+**Exp.2 OCI lab:** Docker+L4; R1 bloqueo+alerta mttd 20 ms; no NP OKE.
 
-**Exp. 1 / Exp. 4:** sin evidencias en este paquete → no se inventan resultados.
+**Exp.3 Cine/GCP:** R1 partial MTTD 7.51 s / MTTC 148.1 s; DevOps intacto.
 
-## Valor aportado por la IA
+**Exp.4:** pendiente Samuel.
 
-- Narrativa defensiva reproducible con Ollama `llama3.2:3b` real sobre evidencias allowlisted.  
-- Conserva prompt, parámetros, respuesta **cruda intacta**, timestamps UTC.  
-- Fuerza contraste humano: el LLM **no** es fuente de verdad.  
-- Etapa 3 separa **errores de formato JSON** de **alucinaciones factuales**.
+## IA
 
-## Errores y alucinaciones identificados
-
-| Tipo | Hallazgo |
-|------|----------|
-| Formato (Exp2 etapa 2) | JSON truncado/mal anidado; mal clasificado antes como “incorrecta” factual → **corregido** |
-| Formato (Exp2 etapa 3) | JSON válido con warning `missing_key:claims` (**1** error de formato, no alucinación) |
-| Factual incorrecta | Control negativo: “equivale a NP OKE” = **incorrecta**; Samuel no aplicó NP OKE |
-| Pendientes | Exp1/Exp4 = no verificables por ausencia de fuente |
-
-**Conteo factual auditado:** Exp3 **7** verificadas; Exp2 **4** verificadas + **1** incorrecta (control); **2** no verificables (Exp1+4); **1** error de formato aparte.
+Ollama `llama3.2:3b` real sobre allowlist; formato JSON separado de factuales; auditoría humana manda. Exp1 run: narrativa coherente; 1 warning `missing_key:claims`.
 
 ## Tendencias
 
 | ID | Estado |
 |----|--------|
-| T1 Honeytoken + alerta real | **Pendiente** de evidencias originales de Jarrison |
-| T2 Remediación + aprobación humana | **Instrumentada y validada en lab local** (no cloud): detección→propuesta→approve/reject→flag→verify→revert; Vitest 6/6; `cloudTouched=false` |
+| T1 Honeytoken | **Implementada/evidenciada en lab AWS** (detección local; no SIEM) |
+| T2 Remediación + aprobación humana | Lab local validado (no cloud) |
 
-## Evidencias disponibles en el paquete
+## Limitaciones
 
-- `evidencias/exp3-daniel/`, allowlist → `seguridad-caos-exp3/.../gke-r0-r1-retest/`  
-- `evidencias/exp2-samuel/` (summaries sanitizados)  
-- `evidencias/ai-runs/` (historial + latest etapa 3 Exp2)  
-- `evidencias/tendencia-2-human-approval/`  
-- Docs: matriz, análisis, auditoría, tendencias, guía, este resumen  
+Sin SIEM; sin ts/traceId individual honeytoken; no usar MTTD reuse como latencia honeytoken; labs ≠ prod completa; Exp4 ausente.
 
-## Dependencias faltantes
+## Dependencia restante
 
-1. **Jarrison:** URL/paquete Exp.1 + honeytoken (activación, alerta UTC, prueba negativa).  
-2. **Samuel:** Exp.4 (RPO/RTO/ransomware).  
-3. Confirmación de reutilización del honeytoken como tendencia grupal.
+**Samuel — Exp.4** (RPO/RTO/ransomware).

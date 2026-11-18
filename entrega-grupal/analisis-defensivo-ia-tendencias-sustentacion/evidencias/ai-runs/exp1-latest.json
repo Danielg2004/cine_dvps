@@ -1,48 +1,409 @@
 {
-  "analyzer": "group-defensive-ai-analyzer@2",
-  "stage": 2,
-  "startedAtUtc": "2026-11-18T18:15:36.345Z",
-  "endedAtUtc": "2026-11-18T18:15:36.345Z",
+  "analyzer": "group-defensive-ai-analyzer@3",
+  "stage": 3,
+  "startedAtUtc": "2026-11-18T19:08:29.701Z",
+  "endedAtUtc": "2026-11-18T19:08:39.389Z",
   "experiment": "exp1",
-  "allowlistId": "group-defensive-ai-allowlist@2",
-  "evidenceBundleStatus": "pending_jarrison",
-  "analysisKind": "deterministic_only",
-  "filesLoaded": [],
+  "allowlistId": "group-defensive-ai-allowlist@3",
+  "evidenceBundleStatus": "available_aws_sanitized",
+  "analysisKind": "llm_real_ollama",
+  "filesLoaded": [
+    {
+      "path": "evidencias/exp1-aws-jarrison/FINAL-EXTRACT.sanitized.json",
+      "missing": false,
+      "bytes": 4012
+    },
+    {
+      "path": "evidencias/exp1-aws-jarrison/extractos/honeytoken-aws.min.json",
+      "missing": false,
+      "bytes": 1083
+    },
+    {
+      "path": "evidencias/exp1-aws-jarrison/fuentes-aws/comparison-r0-r1.sanitized.json",
+      "missing": false,
+      "bytes": 1514
+    },
+    {
+      "path": "evidencias/exp1-aws-jarrison/SOURCE.md",
+      "missing": false,
+      "bytes": 2587
+    }
+  ],
   "deterministicDraft": {
     "experimentId": "exp1",
-    "mode": "deterministic-pending",
-    "llmEligible": false,
-    "summary": "PENDIENTE: no hay evidencias allowlisted para exp1.",
-    "chronology": [],
-    "severity": null,
-    "causeHypothesis": null,
-    "controls": [],
-    "metrics": {},
-    "residualRisks": [
-      "Dependencia de entrega del compañero responsable"
+    "mode": "deterministic-from-aws-sanitized",
+    "llmEligible": true,
+    "summary": "Exp.1 AWS lab (ClusterIP+túnel, no prod/SIEM): R0_weak permite reuse de token; R1_strict deniega reuse (identity.reuse_detected). Honeytoken ejercitado en R0/R1 con identity.honeytoken_use, HTTP 403, allowed=false (sin grant).",
+    "chronology": [
+      "R0 r0_weak 2026-11-18T04:47:50.010Z",
+      "Issue+invoke honeytoken → deny (identity.honeytoken_use)",
+      "R1 r1_strict 2026-11-18T04:48:44.175Z",
+      "Reuse denegado + honeytoken deny (eventos distintos)"
     ],
-    "recommendations": [],
+    "severity": "medium (lab identidad; Sports imagen prod no sustituida como hipótesis rota)",
+    "causeHypothesis": "R0 política débil no detecta reuse; R1 strict detecta reuse firmado. Honeytoken canary (purpose=honey) siempre denegado al invoke.",
+    "controls": [
+      "Machine identity issue/invoke lab",
+      "Honeytoken canary (honey:true / subject canary)",
+      "Regla detect-scope-reuse (application securityEvent)",
+      "SSH temporal revocado (comparison.tempSshRuleRevoked)"
+    ],
+    "metrics": {
+      "honeytoken": {
+        "R0": {
+          "httpStatus": 403,
+          "allowed": false,
+          "eventType": "identity.honeytoken_use"
+        },
+        "R1": {
+          "httpStatus": 403,
+          "allowed": false,
+          "eventType": "identity.honeytoken_use"
+        }
+      },
+      "identityRounds": {
+        "R0": {
+          "mode": "r0_weak",
+          "mttdMs": null,
+          "mttcMs": null,
+          "detectionCoverage": 0,
+          "falsePositives": 0,
+          "reuseAllowed": 8,
+          "reuseDenied": 0,
+          "detections": 0,
+          "containmentVerified": false
+        },
+        "R1": {
+          "mode": "r1_strict",
+          "mttdMs": 398,
+          "mttcMs": null,
+          "detectionCoverage": 100,
+          "falsePositives": 0,
+          "reuseAllowed": 0,
+          "reuseDenied": 8,
+          "detections": 8,
+          "containmentVerified": false
+        }
+      },
+      "comparison": {
+        "hypothesisHeld": true,
+        "alertingMechanism": "application securityEvent + rules/detect-scope-reuse.json (not CloudWatch)",
+        "honeytokenGrantsAccess_R0": false,
+        "honeytokenGrantsAccess_R1": false,
+        "honeytokenEvent": "identity.honeytoken_use",
+        "mttdMs_reuse_R1": 398,
+        "mttcMs_reuse_containment_note": "ms desde primera identity.reuse_detected (2026-11-18T04:48:44.573Z) hasta evidencia de contención kill switch (16-containment.json LastWriteTimeUtc)"
+      },
+      "sourceCommit": "1cad076ffed34e70774c3a7dceba941b83660da7"
+    },
+    "residualRisks": [
+      "Sin alerta SIEM/CloudWatch en evidencias",
+      "Sin timestamp/traceId individual del invoke honeytoken en events[]",
+      "MTTD/MTTC de ronda de reuse ≠ latencia del honeytoken"
+    ],
+    "recommendations": [
+      "Persistir x-trace-id y timestamp del invoke honeytoken en events[]",
+      "Separar métricas honeytoken vs reuse en reportes",
+      "Integrar securityEvent a canal de alertamiento SIEM solo como mejora futura (no demostrado)"
+    ],
     "claims": [
       {
-        "claim": "Análisis completo de exp1 no disponible",
-        "classification": "no_verificable",
-        "reason": "fuente ausente en allowlist"
+        "claim": "R1: honeytoken → identity.honeytoken_use, HTTP 403, allowed=false",
+        "classification": "verificada",
+        "evidence": "honeytoken-aws.min.json / r1.sanitized.json honeytoken",
+        "kind": "factual"
+      },
+      {
+        "claim": "Honeytoken no concedió acceso (honeytokenGrantsAccess=false)",
+        "classification": "verificada",
+        "evidence": "comparison-r0-r1.sanitized.json R1.honeytokenGrantsAccess",
+        "kind": "factual"
+      },
+      {
+        "claim": "R0: reuseAllowed=8, detections=0 (política débil)",
+        "classification": "verificada",
+        "evidence": "r0.sanitized.json / FINAL-EXTRACT",
+        "kind": "factual"
+      },
+      {
+        "claim": "R1 reuse: reuseDenied=8, detections=8, mttdMs=398 (métrica de reuse, no del honeytoken)",
+        "classification": "verificada",
+        "evidence": "r1.sanitized.json identity metrics",
+        "kind": "factual"
+      },
+      {
+        "claim": "Alertamiento es application securityEvent (not CloudWatch/SIEM)",
+        "classification": "verificada",
+        "evidence": "comparison-r0-r1.sanitized.json alertingMechanism",
+        "kind": "factual"
+      },
+      {
+        "claim": "identity.honeytoken_use es el mismo evento que identity.reuse_detected",
+        "classification": "incorrecta",
+        "evidence": "EVIDENCIAS + min.contraste: eventos distintos",
+        "kind": "factual",
+        "note": "Control negativo deliberado"
+      },
+      {
+        "claim": "Hubo alerta SIEM/CloudWatch del honeytoken",
+        "classification": "incorrecta",
+        "evidence": "comparison.alertingMechanism niega CloudWatch; scope lab",
+        "kind": "factual",
+        "note": "Control negativo deliberado"
       }
     ]
   },
   "llm": {
     "simulated": false,
-    "skipped": true,
-    "reason": "experiment_pending_no_evidence",
     "model": "llama3.2:3b",
-    "createdAtUtc": "2026-11-18T18:15:36.345Z"
+    "endpoint": "http://127.0.0.1:11434/api/generate",
+    "requestParams": {
+      "model": "llama3.2:3b",
+      "stream": false,
+      "options": {
+        "temperature": 0,
+        "num_predict": 2200
+      }
+    },
+    "promptChars": 7656,
+    "promptShaPreview": "Eres un analista defensivo. Emite UN objeto JSON compacto.\nREGLAS: no inventes cifras; copia metrics del borrador; no uses markdown; cierra todas las llaves.\nKeys exactas (todas al nivel raíz, no anides residualRisks dentro de metrics):\nsum",
+    "promptFull": "Eres un analista defensivo. Emite UN objeto JSON compacto.\nREGLAS: no inventes cifras; copia metrics del borrador; no uses markdown; cierra todas las llaves.\nKeys exactas (todas al nivel raíz, no anides residualRisks dentro de metrics):\nsummary,chronology,severity,causeHypothesis,controls,metrics,residualRisks,recommendations,claims\nGUARDRAIL_EXP1: distingue identity.honeytoken_use vs identity.reuse_detected (NO son el mismo evento).\nNO afirmes SIEM/CloudWatch. NO inventes timestamp/traceId/latencia individuales del honeytoken.\nmttdMs de R1 es de reuse, NO del honeytoken. Lab AWS aislado ≠ producción.\nExperimento: exp1\nBORRADOR_DETERMINISTA_JSON=\n{\"summary\":\"Exp.1 AWS lab (ClusterIP+túnel, no prod/SIEM): R0_weak permite reuse de token; R1_strict deniega reuse (identity.reuse_detected). Honeytoken ejercitado en R0/R1 con identity.honeytoken_use, HTTP 403, allowed=false (sin grant).\",\"chronology\":[\"R0 r0_weak 2026-11-18T04:47:50.010Z\",\"Issue+invoke honeytoken → deny (identity.honeytoken_use)\",\"R1 r1_strict 2026-11-18T04:48:44.175Z\",\"Reuse denegado + honeytoken deny (eventos distintos)\"],\"severity\":\"medium (lab identidad; Sports imagen prod no sustituida como hipótesis rota)\",\"causeHypothesis\":\"R0 política débil no detecta reuse; R1 strict detecta reuse firmado. Honeytoken canary (purpose=honey) siempre denegado al invoke.\",\"controls\":[\"Machine identity issue/invoke lab\",\"Honeytoken canary (honey:true / subject canary)\",\"Regla detect-scope-reuse (application securityEvent)\",\"SSH temporal revocado (comparison.tempSshRuleRevoked)\"],\"metrics\":{\"honeytoken\":{\"R0\":{\"httpStatus\":403,\"allowed\":false,\"eventType\":\"identity.honeytoken_use\"},\"R1\":{\"httpStatus\":403,\"allowed\":false,\"eventType\":\"identity.honeytoken_use\"}},\"identityRounds\":{\"R0\":{\"mode\":\"r0_weak\",\"mttdMs\":null,\"mttcMs\":null,\"detectionCoverage\":0,\"falsePositives\":0,\"reuseAllowed\":8,\"reuseDenied\":0,\"detections\":0,\"containmentVerified\":false},\"R1\":{\"mode\":\"r1_strict\",\"mttdMs\":398,\"mttcMs\":null,\"detectionCoverage\":100,\"falsePositives\":0,\"reuseAllowed\":0,\"reuseDenied\":8,\"detections\":8,\"containmentVerified\":false}},\"comparison\":{\"hypothesisHeld\":true,\"alertingMechanism\":\"application securityEvent + rules/detect-scope-reuse.json (not CloudWatch)\",\"honeytokenGrantsAccess_R0\":false,\"honeytokenGrantsAccess_R1\":false,\"honeytokenEvent\":\"identity.honeytoken_use\",\"mttdMs_reuse_R1\":398,\"mttcMs_reuse_containment_note\":\"ms desde primera identity.reuse_detected (2026-11-18T04:48:44.573Z) hasta evidencia de contención kill switch (16-containment.json LastWriteTimeUtc)\"},\"sourceCommit\":\"1cad076ffed34e70774c3a7dceba941b83660da7\"},\"residualRisks\":[\"Sin alerta SIEM/CloudWatch en evidencias\",\"Sin timestamp/traceId individual del invoke honeytoken en events[]\",\"MTTD/MTTC de ronda de reuse ≠ latencia del honeytoken\"],\"recommendations\":[\"Persistir x-trace-id y timestamp del invoke honeytoken en events[]\",\"Separar métricas honeytoken vs reuse en reportes\",\"Integrar securityEvent a canal de alertamiento SIEM solo como mejora futura (no demostrado)\"]}\nEVIDENCIA_COMPACTA=\n### evidencias/exp1-aws-jarrison/FINAL-EXTRACT.sanitized.json\n{\n  \"sourceRepo\": \"JarrisonLopez/defensa-profundidad-caos-2026\",\n  \"sourceCommit\": \"1cad076ffed34e70774c3a7dceba941b83660da7\",\n  \"scope\": \"AWS lab aislado ClusterIP+tunel (no produccion, no SIEM)\",\n  \"sportsCommit\": \"26c8ce6b96e1d18429ca68498e493f17b24d1e7c\",\n  \"branch\": \"feature/defense-in-depth-security-chaos\",\n  \"distinction\": {\n    \"identity_honeytoken_use\": \"Alerta de uso de canary; fuente: objeto honeytoken en r1.json/r0.json\",\n    \"identity_reuse_detected\": \"NO es honeytoken; vive en events-r1.json / detection-r1.json con honeytokenHit:false\"\n  },\n  \"honeytoken\": {\n    \"R0\": {\n      \"startedAt\": \"2026-11-18T04:47:50.010Z\",\n      \"endedAt\": \"2026-11-18T04:47:52.298Z\",\n      \"mode\": \"r0_weak\",\n      \"honeytoken\": {\n        \"httpStatus\": 403,\n        \"allowed\": false,\n        \"eventType\": \"identity.honeytoken_use\"\n      }\n    },\n    \"R1\": {\n      \"startedAt\": \"2026-11-18T04:48:44.175Z\",\n      \"endedAt\": \"2026-11-18T04:48:46.489Z\",\n      \"mode\": \"r1_strict\",\n      \"honeytoken\": {\n        \"httpStatus\": 403,\n        \"allowed\": false,\n        \"eventType\": \"identity.honeytoken_use\"\n      },\n      \"nota\": \"No hay timestamp ni traceId dedicados del invoke honey en events[]; el runner uso x-trace-id R1-honey pero no lo persistio en rows/events\"\n    },\n    \"note\": \"No hay timestamp ni traceId dedicados del invoke honey en events[]; el runner uso x-trace-id R1-honey pero no lo persistio en rows/events\"\n  },\n  \"identityExperimentMetrics\": {\n    \"R0\": {\n      \"mode\": \"r0_weak\",\n      \"mttdMs\": null,\n      \"mttcMs\": null,\n      \"detectionCoverage\": 0,\n      \"falsePositives\": 0,\n      \"reuseAllowed\": 8,\n      \"reuseDenied\": 0,\n      \"detections\": 0,\n      \"containmentVerified\": false\n    },\n    \"R1\": {\n      \"mode\": \"r1_strict\",\n      \"mttdMs\": 398,\n      \"mttcMs\": null,\n      \"d\n\n### evidencias/exp1-aws-jarrison/extractos/honeytoken-aws.min.json\n{\n  \"ambito\": \"AWS lab aislado ClusterIP+tunel (no produccion, no SIEM)\",\n  \"sportsCommit\": \"26c8ce6b96e1d18429ca68498e493f17b24d1e7c\",\n  \"branch\": \"feature/defense-in-depth-security-chaos\",\n  \"R1\": {\n    \"startedAt\": \"2026-11-18T04:48:44.175Z\",\n    \"endedAt\": \"2026-11-18T04:48:46.489Z\",\n    \"mode\": \"r1_strict\",\n    \"honeytoken\": {\n      \"httpStatus\": 403,\n      \"allowed\": false,\n      \"eventType\": \"identity.honeytoken_use\"\n    },\n    \"nota\": \"No hay timestamp ni traceId dedicados del invoke honey en events[]; el runner uso x-trace-id R1-honey pero no lo persistio en rows/events\"\n  },\n  \"R0\": {\n    \"startedAt\": \"2026-11-18T04:47:50.010Z\",\n    \"endedAt\": \"2026-11-18T04:47:52.298Z\",\n    \"mode\": \"r0_weak\",\n    \"honeytoken\": {\n      \"httpStatus\": 403,\n      \"allowed\": false,\n      \"eventType\": \"identity.honeytoken_use\"\n    }\n  },\n  \"contraste\": {\n    \"identity_honeytoken_use\": \"Alerta de uso de canary; fuente: objeto honeytoken en r1.json/r0.json\",\n    \"identity_reuse_detected\": \"NO es honeytoken; vive en events-r1.json / detection-r1.json con honeytokenHit:false\"\n  }\n}\n\n\n### evidencias/exp1-aws-jarrison/fuentes-aws/comparison-r0-r1.sanitized.json\n{\n  \"hypothesis\": \"Con el mismo método (token reuse firmado), R0 autoriza y R1 deniega con identity.reuse_detected en lab AWS aislado ClusterIP+túnel.\",\n  \"generatedAt\": \"2026-11-18T04:51:00.000Z\",\n  \"access\": \"ssh-tunnel to ClusterIP [REDACTED_CLUSTERIP] via [REDACTED_LOCAL_TUNNEL] (not NodePort 30080)\",\n  \"sportsUntouchedImage\": \"sports-tournaments-api:4.1.1-ac7b0fd\",\n  \"labImage\": \"sports-tournaments-api:identity-lab\",\n  \"tempSshRuleId\": \"[REDACTED_SGR]\",\n  \"tempSshRuleRevoked\": true,\n  \"sources\": {\n    \"r0\": \"results/aws-live-2026-11-18T0447/\",\n    \"r1\": \"results/aws-live-2026-11-18T0448/\",\n    \"ops\": \"results/aws-lab-live-202611172341/\"\n  },\n  \"R0\": {\n    \"mode\": \"r0_weak\",\n    \"reuseAllowed\": 8,\n    \"reuseDenied\": 0,\n    \"detections\": 0,\n    \"detectionCoverage\": 0,\n    \"falsePositives\": 0,\n    \"mttdMs\": null,\n    \"honeytokenGrantsAccess\": false\n  },\n  \"R1\": {\n    \"mode\": \"r1_strict\",\n    \"reuseAllowed\": 0,\n    \"reuseDenied\": 8,\n    \"detections\": 8,\n    \"detectionCoverage\": 100,\n    \"falsePositives\": 0,\n    \"mttdMs\": 398,\n    \"mttcMs\": 12182,\n    \"mttcNote\": \"ms desde primera identity.reuse_detected (2026-11-18T04:48:44.573Z) hasta evidencia de contención kill switch (16-containment.json LastWriteTimeUtc)\",\n    \"honeytokenGrantsAccess\": false,\n    \"honeytokenEvent\": \"identity.honeytoken_use\",\n    \"detectionRuleAlerts\": 8\n  },\n  \"hypothesisHeld\": true,\n  \"otelLabExporters\": \"none\",\n  \"alertingMechanism\": \"application securityEvent + rules/detect-scope-reuse.json (not CloudWatch)\"\n}\n\nJSON=",
+    "response": "{\"summary\":\"Exp.1 AWS lab (ClusterIP+túnel, no prod/SIEM): R0_weak permite reuse de token; R1_strict deniega reuse (identity.reuse_detected). Honeytoken ejercitado en R0/R1 con identity.honeytoken_use, HTTP 403, allowed=false (sin grant).\",\"chronology\":[\"R0 r0_weak 2026-11-18T04:47:50.010Z\",\"Issue+invoke honeytoken → deny (identity.honeytoken_use)\",\"R1 r1_strict 2026-11-18T04:48:44.175Z\",\"Reuse denegado + honeytoken deny (eventos distintos)\"],\"severity\":\"medium (lab identidad; Sports imagen prod no sustituida como hipótesis rota)\",\"causeHypothesis\":\"R0 política débil no detecta reuse; R1 strict detecta reuse firmado. Honeytoken canary (purpose=honey) siempre denegado al invoke.\",\"controls\":[\"Machine identity issue/invoke lab\",\"Honeytoken canary (honey:true / subject canary)\",\"Regla detect-scope-reuse (application securityEvent)\",\"SSH temporal revocado (comparison.tempSshRuleRevoked)\"],\"metrics\":{\"honeytoken\":{\"R0\":{\"httpStatus\":403,\"allowed\":false,\"eventType\":\"identity.honeytoken_use\"},\"R1\":{\"httpStatus\":403,\"allowed\":false,\"eventType\":\"identity.honeytoken_use\"}},\"identityRounds\":{\"R0\":{\"mode\":\"r0_weak\",\"mttdMs\":null,\"mttcMs\":null,\"detectionCoverage\":0,\"falsePositives\":0,\"reuseAllowed\":8,\"reuseDenied\":0,\"detections\":0,\"containmentVerified\":false},\"R1\":{\"mode\":\"r1_strict\",\"mttdMs\":398,\"mttcMs\":null,\"detectionCoverage\":100,\"falsePositives\":0,\"reuseAllowed\":0,\"reuseDenied\":8,\"detections\":8,\"containmentVerified\":false}},\"comparison\":{\"hypothesisHeld\":true,\"alertingMechanism\":\"application securityEvent + rules/detect-scope-reuse.json (not CloudWatch)\",\"honeytokenGrantsAccess_R0\":false,\"honeytokenGrantsAccess_R1\":false,\"honeytokenEvent\":\"identity.honeytoken_use\",\"mttdMs_reuse_R1\":398,\"mttcMs_reuse_containment_note\":\"ms desde primera identity.reuse_detected (2026-11-18T04:48:44.573Z) hasta evidencia de contención kill switch (16-containment.json LastWriteTimeUtc)\"},\"sourceCommit\":\"1cad076ffed34e70774c3a7dceba941b83660da7\"},\"residualRisks\":[\"Sin alerta SIEM/CloudWatch en evidencias\",\"Sin timestamp/traceId individual del invoke honeytoken en events[]\",\"MTTD/MTTC de ronda de reuse ≠ latencia del honeytoken\"],\"recommendations\":[\"Persistir x-trace-id y timestamp del invoke honeytoken en events[]\",\"Separar métricas honeytoken vs reuse en reportes\",\"Integrar securityEvent a canal de alertamiento SIEM solo como mejora futura (no demostrado)\"]}",
+    "responseUnmodified": true,
+    "formatStatus": "valid_json_shape_warning",
+    "formatErrors": [
+      {
+        "code": "shape_warning",
+        "message": "missing_key:claims"
+      }
+    ],
+    "parsedJson": {
+      "summary": "Exp.1 AWS lab (ClusterIP+túnel, no prod/SIEM): R0_weak permite reuse de token; R1_strict deniega reuse (identity.reuse_detected). Honeytoken ejercitado en R0/R1 con identity.honeytoken_use, HTTP 403, allowed=false (sin grant).",
+      "chronology": [
+        "R0 r0_weak 2026-11-18T04:47:50.010Z",
+        "Issue+invoke honeytoken → deny (identity.honeytoken_use)",
+        "R1 r1_strict 2026-11-18T04:48:44.175Z",
+        "Reuse denegado + honeytoken deny (eventos distintos)"
+      ],
+      "severity": "medium (lab identidad; Sports imagen prod no sustituida como hipótesis rota)",
+      "causeHypothesis": "R0 política débil no detecta reuse; R1 strict detecta reuse firmado. Honeytoken canary (purpose=honey) siempre denegado al invoke.",
+      "controls": [
+        "Machine identity issue/invoke lab",
+        "Honeytoken canary (honey:true / subject canary)",
+        "Regla detect-scope-reuse (application securityEvent)",
+        "SSH temporal revocado (comparison.tempSshRuleRevoked)"
+      ],
+      "metrics": {
+        "honeytoken": {
+          "R0": {
+            "httpStatus": 403,
+            "allowed": false,
+            "eventType": "identity.honeytoken_use"
+          },
+          "R1": {
+            "httpStatus": 403,
+            "allowed": false,
+            "eventType": "identity.honeytoken_use"
+          }
+        },
+        "identityRounds": {
+          "R0": {
+            "mode": "r0_weak",
+            "mttdMs": null,
+            "mttcMs": null,
+            "detectionCoverage": 0,
+            "falsePositives": 0,
+            "reuseAllowed": 8,
+            "reuseDenied": 0,
+            "detections": 0,
+            "containmentVerified": false
+          },
+          "R1": {
+            "mode": "r1_strict",
+            "mttdMs": 398,
+            "mttcMs": null,
+            "detectionCoverage": 100,
+            "falsePositives": 0,
+            "reuseAllowed": 0,
+            "reuseDenied": 8,
+            "detections": 8,
+            "containmentVerified": false
+          }
+        },
+        "comparison": {
+          "hypothesisHeld": true,
+          "alertingMechanism": "application securityEvent + rules/detect-scope-reuse.json (not CloudWatch)",
+          "honeytokenGrantsAccess_R0": false,
+          "honeytokenGrantsAccess_R1": false,
+          "honeytokenEvent": "identity.honeytoken_use",
+          "mttdMs_reuse_R1": 398,
+          "mttcMs_reuse_containment_note": "ms desde primera identity.reuse_detected (2026-11-18T04:48:44.573Z) hasta evidencia de contención kill switch (16-containment.json LastWriteTimeUtc)"
+        },
+        "sourceCommit": "1cad076ffed34e70774c3a7dceba941b83660da7"
+      },
+      "residualRisks": [
+        "Sin alerta SIEM/CloudWatch en evidencias",
+        "Sin timestamp/traceId individual del invoke honeytoken en events[]",
+        "MTTD/MTTC de ronda de reuse ≠ latencia del honeytoken"
+      ],
+      "recommendations": [
+        "Persistir x-trace-id y timestamp del invoke honeytoken en events[]",
+        "Separar métricas honeytoken vs reuse en reportes",
+        "Integrar securityEvent a canal de alertamiento SIEM solo como mejora futura (no demostrado)"
+      ]
+    },
+    "auditRecovery": null,
+    "totalDurationNs": 9649900900,
+    "evalCount": 681,
+    "createdAtUtc": "2026-11-18T19:08:39.389Z"
   },
-  "llmClaimsAudit": [],
+  "factualClaimsAudit": [
+    {
+      "claim": "Exp.1 AWS lab (ClusterIP+túnel, no prod/SIEM): R0_weak permite reuse de token; R1_strict deniega reuse (identity.reuse_detected). Honeytoken ejercitado en R0/R1 con identity.honeytoken_use, HTTP 403, allowed=false (sin grant).",
+      "classification": "no_verificable",
+      "reason": "afirmación narrativa sin ancla literal suficiente",
+      "source": "llm",
+      "kind": "factual"
+    },
+    {
+      "claim": "R0 política débil no detecta reuse; R1 strict detecta reuse firmado. Honeytoken canary (purpose=honey) siempre denegado al invoke.",
+      "classification": "no_verificable",
+      "reason": "afirmación narrativa sin ancla literal suficiente",
+      "source": "llm",
+      "kind": "factual"
+    },
+    {
+      "claim": "R1: honeytoken → identity.honeytoken_use, HTTP 403, allowed=false",
+      "classification": "verificada",
+      "evidence": "honeytoken-aws.min.json / r1.sanitized.json honeytoken",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Honeytoken no concedió acceso (honeytokenGrantsAccess=false)",
+      "classification": "verificada",
+      "evidence": "comparison-r0-r1.sanitized.json R1.honeytokenGrantsAccess",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "R0: reuseAllowed=8, detections=0 (política débil)",
+      "classification": "verificada",
+      "evidence": "r0.sanitized.json / FINAL-EXTRACT",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "R1 reuse: reuseDenied=8, detections=8, mttdMs=398 (métrica de reuse, no del honeytoken)",
+      "classification": "verificada",
+      "evidence": "r1.sanitized.json identity metrics",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Alertamiento es application securityEvent (not CloudWatch/SIEM)",
+      "classification": "verificada",
+      "evidence": "comparison-r0-r1.sanitized.json alertingMechanism",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "identity.honeytoken_use es el mismo evento que identity.reuse_detected",
+      "classification": "incorrecta",
+      "evidence": "EVIDENCIAS + min.contraste: eventos distintos",
+      "kind": "factual",
+      "note": "Control negativo deliberado",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Hubo alerta SIEM/CloudWatch del honeytoken",
+      "classification": "incorrecta",
+      "evidence": "comparison.alertingMechanism niega CloudWatch; scope lab",
+      "kind": "factual",
+      "note": "Control negativo deliberado",
+      "source": "deterministic"
+    }
+  ],
+  "llmClaimsAudit": [
+    {
+      "claim": "Exp.1 AWS lab (ClusterIP+túnel, no prod/SIEM): R0_weak permite reuse de token; R1_strict deniega reuse (identity.reuse_detected). Honeytoken ejercitado en R0/R1 con identity.honeytoken_use, HTTP 403, allowed=false (sin grant).",
+      "classification": "no_verificable",
+      "reason": "afirmación narrativa sin ancla literal suficiente",
+      "source": "llm",
+      "kind": "factual"
+    },
+    {
+      "claim": "R0 política débil no detecta reuse; R1 strict detecta reuse firmado. Honeytoken canary (purpose=honey) siempre denegado al invoke.",
+      "classification": "no_verificable",
+      "reason": "afirmación narrativa sin ancla literal suficiente",
+      "source": "llm",
+      "kind": "factual"
+    },
+    {
+      "claim": "R1: honeytoken → identity.honeytoken_use, HTTP 403, allowed=false",
+      "classification": "verificada",
+      "evidence": "honeytoken-aws.min.json / r1.sanitized.json honeytoken",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Honeytoken no concedió acceso (honeytokenGrantsAccess=false)",
+      "classification": "verificada",
+      "evidence": "comparison-r0-r1.sanitized.json R1.honeytokenGrantsAccess",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "R0: reuseAllowed=8, detections=0 (política débil)",
+      "classification": "verificada",
+      "evidence": "r0.sanitized.json / FINAL-EXTRACT",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "R1 reuse: reuseDenied=8, detections=8, mttdMs=398 (métrica de reuse, no del honeytoken)",
+      "classification": "verificada",
+      "evidence": "r1.sanitized.json identity metrics",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Alertamiento es application securityEvent (not CloudWatch/SIEM)",
+      "classification": "verificada",
+      "evidence": "comparison-r0-r1.sanitized.json alertingMechanism",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "identity.honeytoken_use es el mismo evento que identity.reuse_detected",
+      "classification": "incorrecta",
+      "evidence": "EVIDENCIAS + min.contraste: eventos distintos",
+      "kind": "factual",
+      "note": "Control negativo deliberado",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Hubo alerta SIEM/CloudWatch del honeytoken",
+      "classification": "incorrecta",
+      "evidence": "comparison.alertingMechanism niega CloudWatch; scope lab",
+      "kind": "factual",
+      "note": "Control negativo deliberado",
+      "source": "deterministic"
+    }
+  ],
   "claimCounts": {
-    "verificada": 0,
-    "incorrecta": 0,
-    "no_verificable": 1
+    "verificada": 5,
+    "incorrecta": 2,
+    "no_verificable": 2
+  },
+  "formatErrorCount": 1,
+  "formatStatus": "valid_json_shape_warning",
+  "classificationLegend": {
+    "verificada": "Afirmación factual coherente con evidencia allowlisted",
+    "incorrecta": "Afirmación factual contradicha por evidencia o cifra inventada",
+    "no_verificable": "Afirmación factual sin ancla suficiente",
+    "format_error": "Problema de contrato/sintaxis JSON — NO es alucinación factual automática"
   },
   "humanAuditRequired": true,
-  "note": "Las conclusiones oficiales viven en AUDITORIA_CONCLUSIONES_IA.md tras revisión humana. El LLM no es fuente de verdad."
+  "note": "Las conclusiones oficiales viven en AUDITORIA_CONCLUSIONES_IA.md. El LLM no es fuente de verdad. Errores de formato se registran aparte."
 }

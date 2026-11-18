@@ -8,13 +8,13 @@
     "severity": "high",
     "signal": "cine.telemetry.heartbeat silence partial",
     "evidenceRef": "evidencias/exp3-daniel/FINAL-REPORT.extract.json#R1.alert=true",
-    "detectedAtUtc": "2026-11-18T18:27:50.940Z"
+    "detectedAtUtc": "2026-11-18T19:08:53.139Z"
   },
   "proposedAction": {
     "type": "set_local_containment_flag",
     "description": "Activar flag local de contención ante alerta verificada de telemetría/acceso (sin kubectl/cloud)."
   },
-  "proposedAtUtc": "2026-11-18T18:27:50.940Z",
+  "proposedAtUtc": "2026-11-18T19:08:53.139Z",
   "executed": false,
   "cloudTouched": false,
   "cloudCheck": {
