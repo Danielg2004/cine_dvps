@@ -1,0 +1,153 @@
+{
+  "analyzer": "group-defensive-ai-analyzer@2",
+  "stage": 2,
+  "startedAtUtc": "2026-11-18T18:16:47.816Z",
+  "endedAtUtc": "2026-11-18T18:16:53.001Z",
+  "experiment": "exp2",
+  "allowlistId": "group-defensive-ai-allowlist@2",
+  "evidenceBundleStatus": "available_public_extracts",
+  "analysisKind": "llm_real_ollama",
+  "filesLoaded": [
+    {
+      "path": "evidencias/exp2-samuel/R0-SUMMARY.json",
+      "missing": false,
+      "bytes": 1290
+    },
+    {
+      "path": "evidencias/exp2-samuel/R1-SUMMARY.json",
+      "missing": false,
+      "bytes": 1239
+    },
+    {
+      "path": "evidencias/exp2-samuel/SOURCE.md",
+      "missing": false,
+      "bytes": 346
+    }
+  ],
+  "deterministicDraft": {
+    "experimentId": "exp2",
+    "mode": "deterministic-from-public-summaries",
+    "llmEligible": true,
+    "summary": "Lab aislado Docker (no OKE prod): R0 proxy permisivo permite greeting MySQL a no autorizado; R1 política restrictiva bloquea path no autorizado y genera alerta (detección como código).",
+    "chronology": [
+      "R0 run r0-20261118T051339Z — baseline permisivo",
+      "R1 run r1-20261118T051805Z — política restrictiva + alerta"
+    ],
+    "severity": "medium (acceso no autorizado en lab L4; producción OKE no modificada)",
+    "causeHypothesis": "Baseline L4 permisivo vs control de acceso L4 + regla unauthorized_deny (según summaries públicos)",
+    "controls": [
+      "Proxy TCP L4",
+      "Política versionada",
+      "Detector eventos gateway",
+      "Watchdog/ABORT"
+    ],
+    "metrics": {
+      "R0": {
+        "t2": null,
+        "t1": null,
+        "mttd_status": "not_observed",
+        "containment_reactive": false,
+        "detection_coverage": false,
+        "false_positives_legitimate_alerted": false,
+        "t0": "2026-11-18T05:13:54.802Z",
+        "mttc_ms": null,
+        "mttd_ms": null,
+        "mttc_status": "not_observed",
+        "containment_class": "not_observed"
+      },
+      "R1": {
+        "mttd_ms": 20,
+        "containment_class": "preventive",
+        "detection_coverage": true,
+        "false_positives": false,
+        "g1_block": true,
+        "g2_alert": true
+      }
+    },
+    "residualRisks": [
+      "Lab no segmenta OKE producción",
+      "MTTC reactivo no aplica (bloqueo preventivo documentado por Samuel)"
+    ],
+    "recommendations": [
+      "Conservar distinción lab Docker vs NetworkPolicy OKE",
+      "Documentar containment_class=preventive al citar MTTC"
+    ],
+    "claims": [
+      {
+        "claim": "R0 no observó detección/contención (mttd/mttc not_observed)",
+        "classification": "verificada",
+        "evidence": "evidencias/exp2-samuel/R0-SUMMARY.json"
+      },
+      {
+        "claim": "R1 VALID_R1 con g1_block y g2_alert true; mttd_ms=20",
+        "classification": "verificada",
+        "evidence": "evidencias/exp2-samuel/R1-SUMMARY.json"
+      },
+      {
+        "claim": "Resultados equivalentes a NetworkPolicy OKE en producción",
+        "classification": "incorrecta",
+        "evidence": "README Exp2 declara explícitamente que NO aplica NP en OKE prod"
+      }
+    ]
+  },
+  "llm": {
+    "simulated": false,
+    "model": "llama3.2:3b",
+    "endpoint": "http://127.0.0.1:11434/api/generate",
+    "requestParams": {
+      "model": "llama3.2:3b",
+      "stream": false,
+      "options": {
+        "temperature": 0,
+        "num_predict": 1024
+      }
+    },
+    "promptChars": 4811,
+    "promptShaPreview": "Eres un analista defensivo. Tarea: emitir un JSON de análisis.\nREGLAS: no inventes cifras; copia métricas solo del borrador; no expliques archivos; no uses markdown.\nSalida: SOLO un objeto JSON con keys exactas:\n{\"summary\":string,\"chronolog",
+    "promptFull": "Eres un analista defensivo. Tarea: emitir un JSON de análisis.\nREGLAS: no inventes cifras; copia métricas solo del borrador; no expliques archivos; no uses markdown.\nSalida: SOLO un objeto JSON con keys exactas:\n{\"summary\":string,\"chronology\":string[],\"severity\":string,\"causeHypothesis\":string,\n\"controls\":string[],\"metrics\":object,\"residualRisks\":string[],\"recommendations\":string[],\n\"claims\":[{\"claim\":string,\"needsEvidence\":string}]}\nExperimento: exp2\nBORRADOR_DETERMINISTA_JSON=\n{\"summary\":\"Lab aislado Docker (no OKE prod): R0 proxy permisivo permite greeting MySQL a no autorizado; R1 política restrictiva bloquea path no autorizado y genera alerta (detección como código).\",\"chronology\":[\"R0 run r0-20261118T051339Z — baseline permisivo\",\"R1 run r1-20261118T051805Z — política restrictiva + alerta\"],\"severity\":\"medium (acceso no autorizado en lab L4; producción OKE no modificada)\",\"causeHypothesis\":\"Baseline L4 permisivo vs control de acceso L4 + regla unauthorized_deny (según summaries públicos)\",\"controls\":[\"Proxy TCP L4\",\"Política versionada\",\"Detector eventos gateway\",\"Watchdog/ABORT\"],\"metrics\":{\"R0\":{\"t2\":null,\"t1\":null,\"mttd_status\":\"not_observed\",\"containment_reactive\":false,\"detection_coverage\":false,\"false_positives_legitimate_alerted\":false,\"t0\":\"2026-11-18T05:13:54.802Z\",\"mttc_ms\":null,\"mttd_ms\":null,\"mttc_status\":\"not_observed\",\"containment_class\":\"not_observed\"},\"R1\":{\"mttd_ms\":20,\"containment_class\":\"preventive\",\"detection_coverage\":true,\"false_positives\":false,\"g1_block\":true,\"g2_alert\":true}},\"residualRisks\":[\"Lab no segmenta OKE producción\",\"MTTC reactivo no aplica (bloqueo preventivo documentado por Samuel)\"],\"recommendations\":[\"Conservar distinción lab Docker vs NetworkPolicy OKE\",\"Documentar containment_class=preventive al citar MTTC\"]}\nEVIDENCIA_COMPACTA=\n### evidencias/exp2-samuel/R0-SUMMARY.json\n{\n    \"run_id\":  \"r0-20261118T051339Z\",\n    \"scenario\":  \"r0\",\n    \"policy_id\":  \"seguridad-caos-exp2-r0-permissive\",\n    \"validity\":  \"VALID_R0_BASELINE\",\n    \"unauthorized\":  {\n                         \"mysql_greeting_received\":  true,\n                         \"tcp_connected\":  true,\n                         \"access_blocked\":  false,\n                         \"denied_event\":  false,\n                         \"allowed_event\":  true\n                     },\n    \"legitimate\":  {\n                       \"mysql_greeting_received\":  true,\n                       \"tcp_connected\":  true\n                   },\n    \"detection\":  {\n                      \"t2\":  null,\n                      \"t1\":  null,\n                      \"mttd_status\":  \"not_observed\",\n                      \"containment_reactive\":  false,\n                      \"detection_coverage\":  false,\n                      \"false_positives_legitimate_alerted\":  false,\n                      \"t0\":  \"2026-11-18T05:13:54.802Z\",\n                      \"mttc_ms\":  null,\n                      \"mttd_ms\":  null,\n                      \"mttc_status\":  \"not_observed\",\n                      \"containment_class\":  \"not_observed\"\n                  },\n    \"r1_executed\":  false,\n    \"evidence_path\":  \"evidencias-publicas/r0/r0-20261118T051339Z\"\n}\n\n\n### evidencias/exp2-samuel/R1-SUMMARY.json\n{\n    \"run_id\":  \"r1-20261118T051805Z\",\n    \"scenario\":  \"r1\",\n    \"policy_id\":  \"seguridad-caos-exp2-r1-restrictive\",\n    \"validity\":  \"VALID_R1\",\n    \"g1_block\":  true,\n    \"g2_alert\":  true,\n    \"unauthorized\":  {\n                         \"mysql_greeting_received\":  false,\n                         \"tcp_connected\":  true,\n                         \"access_blocked\":  true\n                     },\n    \"legitimate\":  {\n                       \"mysql_greeting_received\":  true,\n                       \"tcp_connected\":  true\n                   },\n    \"timings\":  {\n                    \"mttd_ms\":  20.0,\n                    \"t2_before_t1\":  true,\n                    \"t1\":  \"2026-11-18T05:18:21.290Z\",\n                    \"preventive_block_ms_from_t0\":  5.0,\n                    \"t2\":  \"2026-11-18T05:18:21.275Z\",\n                    \"containment_reactive\":  false,\n                    \"t0\":  \"2026-11-18T05:18:21.270Z\",\n                    \"containment_class\":  \"preventive\"\n                },\n    \"detection_coverage\":  true,\n    \"false_positives\":  false,\n    \"attack_alert_id\":  \"alert-evt-1c56c6253b97-52264-deny\",\n    \"deny_event_id\":  \"evt-1c56c6253b97-52264-deny\",\n    \"evidence_path\":  \"evidencias-publicas/r1/r1-20261118T051805Z\"\n}\n\n\n### evidencias/exp2-samuel/SOURCE.md\n﻿# Fuente Exp. 2 (Samuel)\n\n- Repo: https://github.com/sgiraldor/hotel-fastify\n- Rama: feat/defensa-profundidad-oci\n- Commit consultado: 742c575a647975b3039d713b5936a5169d50cd84\n- Fecha consulta UTC: 2026-11-18\n- Artefactos: R0-SUMMARY.json y R1-SUMMARY.json (paquete publico sanitizado)\n- Ruta remota: seguridad-caos-exp2/evidencias-publicas/\r\n\nJSON=",
+    "response": "{\"summary\":\"Lab aislado Docker (no OKE prod): R0 proxy permisivo permite greeting MySQL a no autorizado; R1 política restrictiva bloquea path no autorizado y genera alerta (detección como código).\",\"chronology\":[\"R0 run r0-20261118T051339Z — baseline permisivo\",\"R1 run r1-20261118T051805Z — política restrictiva + alerta\"],\"severity\":\"medium (acceso no autorizado en lab L4; producción OKE no modificada)\",\"causeHypothesis\":\"Baseline L4 permisivo vs control de acceso L4 + regla unauthorized_deny (según summaries públicos)\",\"controls\":[\"Proxy TCP L4\",\"Política versionada\",\"Detector eventos gateway\",\"Watchdog/ABORT\"],\"metrics\":{\"R0\":{\"t2\":null,\"t1\":null,\"mttd_status\":\"not_observed\",\"containment_reactive\":false,\"detection_coverage\":false,\"false_positives_legitimate_alerted\":false,\"t0\":\"2026-11-18T05:13:54.802Z\",\"mttc_ms\":null,\"mttd_ms\":null,\"mttc_status\":\"not_observed\",\"containment_class\":\"not_observed\"},\"R1\":{\"mttd_ms\":20,\"containment_class\":\"preventive\",\"detection_coverage\":true,\"false_positives\":false,\"g1_block\":true,\"g2_alert\":true},\"residualRisks\":[\"Lab no segmenta OKE producción\",\"MTTC reactivo no aplica (bloqueo preventivo documentado por Samuel)\"],\"recommendations\":[\"Conservar distinción lab Docker vs NetworkPolicy OKE\",\"Documentar containment_class=preventive al citar MTTC\"]}",
+    "parsedJson": null,
+    "totalDurationNs": 5148560900,
+    "evalCount": 362,
+    "createdAtUtc": "2026-11-18T18:16:53.000Z"
+  },
+  "llmClaimsAudit": [
+    {
+      "claim": "Respuesta LLM no es JSON estructurado (prosa/explicación de archivos)",
+      "classification": "incorrecta",
+      "reason": "incumple contrato de salida JSON; se conserva respuesta cruda para auditoría",
+      "source": "llm_format"
+    },
+    {
+      "claim": "LLM sugiere equivalencia NetworkPolicy OKE",
+      "classification": "incorrecta",
+      "reason": "Exp2 es lab Docker, no NP OKE prod",
+      "source": "llm_prose"
+    },
+    {
+      "claim": "R0 no observó detección/contención (mttd/mttc not_observed)",
+      "classification": "verificada",
+      "evidence": "evidencias/exp2-samuel/R0-SUMMARY.json",
+      "source": "deterministic"
+    },
+    {
+      "claim": "R1 VALID_R1 con g1_block y g2_alert true; mttd_ms=20",
+      "classification": "verificada",
+      "evidence": "evidencias/exp2-samuel/R1-SUMMARY.json",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Resultados equivalentes a NetworkPolicy OKE en producción",
+      "classification": "incorrecta",
+      "evidence": "README Exp2 declara explícitamente que NO aplica NP en OKE prod",
+      "source": "deterministic"
+    }
+  ],
+  "claimCounts": {
+    "verificada": 2,
+    "incorrecta": 3,
+    "no_verificable": 0
+  },
+  "humanAuditRequired": true,
+  "note": "Las conclusiones oficiales viven en AUDITORIA_CONCLUSIONES_IA.md tras revisión humana. El LLM no es fuente de verdad."
+}

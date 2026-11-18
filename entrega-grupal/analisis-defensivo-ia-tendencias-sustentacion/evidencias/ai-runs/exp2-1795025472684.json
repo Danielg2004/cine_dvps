@@ -1,0 +1,88 @@
+{
+  "analyzer": "group-defensive-ai-analyzer@1",
+  "startedAtUtc": "2026-11-18T18:11:12.683Z",
+  "endedAtUtc": "2026-11-18T18:11:12.684Z",
+  "experiment": "exp2",
+  "allowlistId": "group-defensive-ai-allowlist@1",
+  "evidenceBundleStatus": "available_public_extracts",
+  "filesLoaded": [
+    {
+      "path": "evidencias/exp2-samuel/R0-SUMMARY.json",
+      "missing": false,
+      "bytes": 1290
+    },
+    {
+      "path": "evidencias/exp2-samuel/R1-SUMMARY.json",
+      "missing": false,
+      "bytes": 1239
+    },
+    {
+      "path": "evidencias/exp2-samuel/SOURCE.md",
+      "missing": false,
+      "bytes": 346
+    }
+  ],
+  "deterministicDraft": {
+    "experimentId": "exp2",
+    "mode": "deterministic-from-public-summaries",
+    "summary": "Lab aislado Docker (no OKE prod): R0 proxy permisivo permite greeting MySQL a no autorizado; R1 política restrictiva bloquea path no autorizado y genera alerta (detección como código).",
+    "chronology": [
+      "R0 run r0-20261118T051339Z",
+      "R1 run r1-20261118T051805Z"
+    ],
+    "causeHypothesis": "Baseline L4 permisivo vs control de acceso L4 + regla unauthorized_deny (según summaries públicos)",
+    "controls": [
+      "Proxy TCP L4",
+      "Política versionada",
+      "Detector eventos gateway",
+      "Watchdog/ABORT"
+    ],
+    "metrics": {
+      "R0": {
+        "t2": null,
+        "t1": null,
+        "mttd_status": "not_observed",
+        "containment_reactive": false,
+        "detection_coverage": false,
+        "false_positives_legitimate_alerted": false,
+        "t0": "2026-11-18T05:13:54.802Z",
+        "mttc_ms": null,
+        "mttd_ms": null,
+        "mttc_status": "not_observed",
+        "containment_class": "not_observed"
+      },
+      "R1": {
+        "mttd_ms": 20,
+        "containment_class": "preventive",
+        "detection_coverage": true,
+        "false_positives": false,
+        "g1_block": true,
+        "g2_alert": true
+      }
+    },
+    "residualRisks": [
+      "Lab no segmenta OKE producción",
+      "MTTC reactivo no aplica (bloqueo preventivo documentado por Samuel)"
+    ],
+    "claims": [
+      {
+        "claim": "R0 no observó detección/contención (mttd/mttc not_observed)",
+        "classification": "verificada",
+        "evidence": "evidencias/exp2-samuel/R0-SUMMARY.json"
+      },
+      {
+        "claim": "R1 VALID_R1 con g1_block y g2_alert true; mttd_ms=20",
+        "classification": "verificada",
+        "evidence": "evidencias/exp2-samuel/R1-SUMMARY.json"
+      },
+      {
+        "claim": "Resultados equivalentes a NetworkPolicy OKE en producción",
+        "classification": "incorrecta",
+        "evidence": "README Exp2 declara explícitamente que NO aplica NP en OKE prod"
+      }
+    ]
+  },
+  "llm": null,
+  "humanAuditRequired": true,
+  "note": "Las conclusiones oficiales viven en AUDITORIA_CONCLUSIONES_IA.md tras revisión humana."
+}

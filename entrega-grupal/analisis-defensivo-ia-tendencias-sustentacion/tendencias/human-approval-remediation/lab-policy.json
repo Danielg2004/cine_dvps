@@ -1,0 +1,20 @@
+{
+  "id": "t2-human-approval-remediation-lab@1",
+  "scope": "local-lab-only",
+  "cloudMutationAllowed": false,
+  "proposedAction": {
+    "type": "set_local_containment_flag",
+    "description": "Activar flag local de contención ante alerta verificada de telemetría/acceso (sin kubectl/cloud)."
+  },
+  "allowedApprovers": [
+    "lab-approver-daniel",
+    "lab-approver-jarrison",
+    "lab-approver-samuel"
+  ],
+  "requirements": [
+    "alert.verified == true",
+    "decision in {approve, reject}",
+    "approverId in allowedApprovers",
+    "registrar timestamps UTC"
+  ]
+}

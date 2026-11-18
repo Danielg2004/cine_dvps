@@ -1,0 +1,23 @@
+{
+  "id": "pending-experiment-incorporation-template@1",
+  "purpose": "Plantilla para incorporar Exp.1 o Exp.4 cuando existan evidencias oficiales. No rellenar con inventos.",
+  "requiredFields": {
+    "experimentId": "exp1 | exp4",
+    "owner": "jarrison | samuel",
+    "sourceUrlOrPath": "URL o ruta oficial del paquete (obligatoria)",
+    "consultedAtUtc": "ISO-8601 UTC de la consulta",
+    "commitOrTag": "hash o tag si aplica",
+    "sanitizedEvidenceFiles": [
+      "evidencias/<exp>/… archivos sanitizados allowlisted"
+    ],
+    "allowlistUpdate": "Añadir rutas a config/evidence-allowlist.json y cambiar status a available_*",
+    "analyzerCommand": "node scripts/defensive-ai-analyzer.mjs --experiment <id> --ollama",
+    "humanAudit": "Completar sección correspondiente en AUDITORIA_CONCLUSIONES_IA.md",
+    "forbidden": [
+      "Inventar métricas R0/R1/RPO/RTO",
+      "Tratar borrador LLM como hecho sin contraste",
+      "Incluir secretos, kubeconfig o credenciales"
+    ]
+  },
+  "statusWhenEmpty": "pending — no ejecutar análisis narrativo como si hubiera evidencia"
+}

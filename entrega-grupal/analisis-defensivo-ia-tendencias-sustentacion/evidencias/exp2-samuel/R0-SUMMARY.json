@@ -1,0 +1,32 @@
+{
+    "run_id":  "r0-20261118T051339Z",
+    "scenario":  "r0",
+    "policy_id":  "seguridad-caos-exp2-r0-permissive",
+    "validity":  "VALID_R0_BASELINE",
+    "unauthorized":  {
+                         "mysql_greeting_received":  true,
+                         "tcp_connected":  true,
+                         "access_blocked":  false,
+                         "denied_event":  false,
+                         "allowed_event":  true
+                     },
+    "legitimate":  {
+                       "mysql_greeting_received":  true,
+                       "tcp_connected":  true
+                   },
+    "detection":  {
+                      "t2":  null,
+                      "t1":  null,
+                      "mttd_status":  "not_observed",
+                      "containment_reactive":  false,
+                      "detection_coverage":  false,
+                      "false_positives_legitimate_alerted":  false,
+                      "t0":  "2026-11-18T05:13:54.802Z",
+                      "mttc_ms":  null,
+                      "mttd_ms":  null,
+                      "mttc_status":  "not_observed",
+                      "containment_class":  "not_observed"
+                  },
+    "r1_executed":  false,
+    "evidence_path":  "evidencias-publicas/r0/r0-20261118T051339Z"
+}

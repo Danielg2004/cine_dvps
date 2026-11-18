@@ -1,0 +1,48 @@
+{
+  "analyzer": "group-defensive-ai-analyzer@2",
+  "stage": 2,
+  "startedAtUtc": "2026-11-18T18:15:36.345Z",
+  "endedAtUtc": "2026-11-18T18:15:36.345Z",
+  "experiment": "exp1",
+  "allowlistId": "group-defensive-ai-allowlist@2",
+  "evidenceBundleStatus": "pending_jarrison",
+  "analysisKind": "deterministic_only",
+  "filesLoaded": [],
+  "deterministicDraft": {
+    "experimentId": "exp1",
+    "mode": "deterministic-pending",
+    "llmEligible": false,
+    "summary": "PENDIENTE: no hay evidencias allowlisted para exp1.",
+    "chronology": [],
+    "severity": null,
+    "causeHypothesis": null,
+    "controls": [],
+    "metrics": {},
+    "residualRisks": [
+      "Dependencia de entrega del compañero responsable"
+    ],
+    "recommendations": [],
+    "claims": [
+      {
+        "claim": "Análisis completo de exp1 no disponible",
+        "classification": "no_verificable",
+        "reason": "fuente ausente en allowlist"
+      }
+    ]
+  },
+  "llm": {
+    "simulated": false,
+    "skipped": true,
+    "reason": "experiment_pending_no_evidence",
+    "model": "llama3.2:3b",
+    "createdAtUtc": "2026-11-18T18:15:36.345Z"
+  },
+  "llmClaimsAudit": [],
+  "claimCounts": {
+    "verificada": 0,
+    "incorrecta": 0,
+    "no_verificable": 1
+  },
+  "humanAuditRequired": true,
+  "note": "Las conclusiones oficiales viven en AUDITORIA_CONCLUSIONES_IA.md tras revisión humana. El LLM no es fuente de verdad."
+}

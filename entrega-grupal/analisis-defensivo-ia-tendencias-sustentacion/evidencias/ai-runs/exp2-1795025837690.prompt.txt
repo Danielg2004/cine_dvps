@@ -1,0 +1,91 @@
+Eres un analista defensivo. Tarea: emitir un JSON de análisis.
+REGLAS: no inventes cifras; copia métricas solo del borrador; no expliques archivos; no uses markdown.
+Salida: SOLO un objeto JSON con keys exactas:
+{"summary":string,"chronology":string[],"severity":string,"causeHypothesis":string,
+"controls":string[],"metrics":object,"residualRisks":string[],"recommendations":string[],
+"claims":[{"claim":string,"needsEvidence":string}]}
+Experimento: exp2
+BORRADOR_DETERMINISTA_JSON=
+{"summary":"Lab aislado Docker (no OKE prod): R0 proxy permisivo permite greeting MySQL a no autorizado; R1 política restrictiva bloquea path no autorizado y genera alerta (detección como código).","chronology":["R0 run r0-20261118T051339Z — baseline permisivo","R1 run r1-20261118T051805Z — política restrictiva + alerta"],"severity":"medium (acceso no autorizado en lab L4; producción OKE no modificada)","causeHypothesis":"Baseline L4 permisivo vs control de acceso L4 + regla unauthorized_deny (según summaries públicos)","controls":["Proxy TCP L4","Política versionada","Detector eventos gateway","Watchdog/ABORT"],"metrics":{"R0":{"t2":null,"t1":null,"mttd_status":"not_observed","containment_reactive":false,"detection_coverage":false,"false_positives_legitimate_alerted":false,"t0":"2026-11-18T05:13:54.802Z","mttc_ms":null,"mttd_ms":null,"mttc_status":"not_observed","containment_class":"not_observed"},"R1":{"mttd_ms":20,"containment_class":"preventive","detection_coverage":true,"false_positives":false,"g1_block":true,"g2_alert":true}},"residualRisks":["Lab no segmenta OKE producción","MTTC reactivo no aplica (bloqueo preventivo documentado por Samuel)"],"recommendations":["Conservar distinción lab Docker vs NetworkPolicy OKE","Documentar containment_class=preventive al citar MTTC"]}
+EVIDENCIA_COMPACTA=
+### evidencias/exp2-samuel/R0-SUMMARY.json
+{
+    "run_id":  "r0-20261118T051339Z",
+    "scenario":  "r0",
+    "policy_id":  "seguridad-caos-exp2-r0-permissive",
+    "validity":  "VALID_R0_BASELINE",
+    "unauthorized":  {
+                         "mysql_greeting_received":  true,
+                         "tcp_connected":  true,
+                         "access_blocked":  false,
+                         "denied_event":  false,
+                         "allowed_event":  true
+                     },
+    "legitimate":  {
+                       "mysql_greeting_received":  true,
+                       "tcp_connected":  true
+                   },
+    "detection":  {
+                      "t2":  null,
+                      "t1":  null,
+                      "mttd_status":  "not_observed",
+                      "containment_reactive":  false,
+                      "detection_coverage":  false,
+                      "false_positives_legitimate_alerted":  false,
+                      "t0":  "2026-11-18T05:13:54.802Z",
+                      "mttc_ms":  null,
+                      "mttd_ms":  null,
+                      "mttc_status":  "not_observed",
+                      "containment_class":  "not_observed"
+                  },
+    "r1_executed":  false,
+    "evidence_path":  "evidencias-publicas/r0/r0-20261118T051339Z"
+}
+
+
+### evidencias/exp2-samuel/R1-SUMMARY.json
+{
+    "run_id":  "r1-20261118T051805Z",
+    "scenario":  "r1",
+    "policy_id":  "seguridad-caos-exp2-r1-restrictive",
+    "validity":  "VALID_R1",
+    "g1_block":  true,
+    "g2_alert":  true,
+    "unauthorized":  {
+                         "mysql_greeting_received":  false,
+                         "tcp_connected":  true,
+                         "access_blocked":  true
+                     },
+    "legitimate":  {
+                       "mysql_greeting_received":  true,
+                       "tcp_connected":  true
+                   },
+    "timings":  {
+                    "mttd_ms":  20.0,
+                    "t2_before_t1":  true,
+                    "t1":  "2026-11-18T05:18:21.290Z",
+                    "preventive_block_ms_from_t0":  5.0,
+                    "t2":  "2026-11-18T05:18:21.275Z",
+                    "containment_reactive":  false,
+                    "t0":  "2026-11-18T05:18:21.270Z",
+                    "containment_class":  "preventive"
+                },
+    "detection_coverage":  true,
+    "false_positives":  false,
+    "attack_alert_id":  "alert-evt-1c56c6253b97-52264-deny",
+    "deny_event_id":  "evt-1c56c6253b97-52264-deny",
+    "evidence_path":  "evidencias-publicas/r1/r1-20261118T051805Z"
+}
+
+
+### evidencias/exp2-samuel/SOURCE.md
+﻿# Fuente Exp. 2 (Samuel)
+
+- Repo: https://github.com/sgiraldor/hotel-fastify
+- Rama: feat/defensa-profundidad-oci
+- Commit consultado: 742c575a647975b3039d713b5936a5169d50cd84
+- Fecha consulta UTC: 2026-11-18
+- Artefactos: R0-SUMMARY.json y R1-SUMMARY.json (paquete publico sanitizado)
+- Ruta remota: seguridad-caos-exp2/evidencias-publicas/
+
+JSON=

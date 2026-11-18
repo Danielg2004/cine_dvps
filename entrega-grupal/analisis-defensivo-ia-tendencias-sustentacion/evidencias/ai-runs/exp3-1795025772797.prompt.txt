@@ -1,0 +1,317 @@
+Eres un analista defensivo de ciberseguridad.
+NO inventes métricas, timestamps ni resultados ausentes.
+Usa SOLO el contexto y evidencias proporcionadas.
+Si algo no está en la evidencia, márcalo como no_verificable.
+IMPORTANTE: responde ÚNICAMENTE con un único objeto JSON válido (sin markdown, sin prosa fuera del JSON).
+Keys obligatorias del JSON:
+summary, chronology (array), severity, causeHypothesis, controls (array),
+metrics (solo valores ya presentes en el borrador), residualRisks (array),
+recommendations (array), claims (array de {claim, needsEvidence}).
+Experimento: exp3
+Borrador determinista (autoridad métrica — no alteres cifras):
+{"experimentId":"exp3","mode":"deterministic-from-evidence","llmEligible":true,"summary":"Pérdida parcial de telemetría OTEL (emitter-b silencioso, emitter-a OK) en lab GKE aislado; R0 agregado no alerta; R1 por instancia alerta partial; contención ABORT y restore verificados; lab eliminado.","chronology":["Baseline A/B heartbeats","Inject flags volumen B silent (sin restart)","Observación > umbral 60s","Detección R0/R1","ABORT + containment","Restore + teardown"],"severity":"medium-high (visibilidad parcial comprometida; DevOps intacto)","causeHypothesis":"Inyección controlada TELEMETRY_EMIT_ENABLED=false / OTEL_METRICS_EXPORTER=none en ConfigMap montado de emitter-b","controls":["Detector silencio agregado vs por instancia","NetworkPolicy lab","CONTAINMENT_ACTIVE volumen","Teardown namespace"],"metrics":{"R0":{"alert":false,"MTTD_sec":null,"MTTC_sec":182.696,"restore_sec":77.414,"detectionCoverage":0,"falsePositivesPreInject":0,"stableIdentityB":"cine-exp3-emitter-b-7db5b8946b-s9ndm"},"R1":{"alert":true,"lossKind":"partial","alertingInstanceIds":["cine-exp3-emitter-b-7db5b8946b-s9ndm"],"MTTD_sec":7.51,"MTTC_sec":148.071,"restore_sec":118.023,"detectionCoverage":1,"falsePositivesPreInject":0,"identityStable":true},"source":"FINAL-REPORT.extract.json"},"residualRisks":["Latencia sync ConfigMap→volumen afecta MTTC","Primera R1 histórica inválida por restart (no usar como mejora)"],"recommendations":["Mantener detección por instanceId además del agregado","No reiniciar pods para armar fallas de telemetría si la métrica depende de identidad estable","Separar MTTC de restore_sec en informes"],"claims":[{"claim":"R0 no generó ALERT ante pérdida parcial","classification":"verificada","evidence":"FINAL-REPORT.extract.json R0.alert=false"},{"claim":"R1 generó ALERT con lossKind=partial","classification":"verificada","evidence":"FINAL-REPORT.extract.json R1.alert/lossKind"},{"claim":"MTTD R1 = 7.51s","classification":"verificada","evidence":"FINAL-REPORT.extract.json R1.MTTD_sec"},{"claim":"MTTC R1 = 148.071s","classification":"verificada","evidence":"FINAL-REPORT.extract.json R1.MTTC_sec"},{"claim":"Cobertura R0=0 y R1=1 en pérdida parcial","classification":"verificada","evidence":"FINAL-REPORT.extract.json detectionCoverage"}]}
+Evidencias allowlisted (extractos; no inventes fuera de esto):
+### evidencias/exp3-daniel/FINAL-REPORT.extract.json
+{
+  "experiment": "cine-seguridad-exp3 GKE R0/R1 retest (volume inject, stable identity)",
+  "completedAtUtc": "2026-11-18T17:54:14.511Z",
+  "experiment3IndividualComplete": true,
+  "improvementConfirmedGke": true,
+  "evidenceDir": "seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest",
+  "priorInvalidEvidencePreserved": "seguridad-caos-exp3/evidencias-locales/gke-r0-r1",
+  "R0": {
+    "alert": false,
+    "MTTD_sec": null,
+    "MTTC_sec": 182.696,
+    "restore_sec": 77.414,
+    "detectionCoverage": 0,
+    "falsePositivesPreInject": 0,
+    "stableIdentityB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "R1": {
+    "alert": true,
+    "lossKind": "partial",
+    "alertingInstanceIds": ["cine-exp3-emitter-b-7db5b8946b-s9ndm"],
+    "MTTD_sec": 7.51,
+    "MTTC_sec": 148.071,
+    "restore_sec": 118.023,
+    "detectionCoverage": 1,
+    "falsePositivesPreInject": 0,
+    "identityStable": true
+  },
+  "teardown": {
+    "namespaceDeleted": true,
+    "devopsReady": "2/2",
+    "lbIp": "35.239.107.54"
+  }
+}
+
+
+### ../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/FINAL-REPORT.json
+{
+  "experiment": "cine-seguridad-exp3 GKE R0/R1 retest (volume inject, stable identity)",
+  "completedAtUtc": "2026-11-18T17:54:14.511Z",
+  "experiment3IndividualComplete": true,
+  "improvementConfirmedGke": true,
+  "evidenceDir": "seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest",
+  "priorInvalidEvidencePreserved": "seguridad-caos-exp3/evidencias-locales/gke-r0-r1",
+  "R0": {
+    "alert": false,
+    "MTTD_sec": null,
+    "MTTC_sec": 182.696,
+    "restore_sec": 77.414,
+    "detectionCoverage": 0,
+    "falsePositivesPreInject": 0,
+    "stableIdentityB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "R1": {
+    "alert": true,
+    "lossKind": "partial",
+    "alertingInstanceIds": ["cine-exp3-emitter-b-7db5b8946b-s9ndm"],
+    "MTTD_sec": 7.51,
+    "MTTC_sec": 148.071,
+    "restore_sec": 118.023,
+    "detectionCoverage": 1,
+    "falsePositivesPreInject": 0,
+    "identityStable": true
+  },
+  "teardown": {
+    "namespaceDeleted": true,
+    "devopsReady": "2/2",
+    "lbIp": "35.239.107.54"
+  }
+}
+
+
+### ../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/R0-report.json
+{
+  "round": "R0",
+  "mode": "aggregate",
+  "injection": "partial-b-silent-a-ok",
+  "namespace": "cine-seguridad-exp3",
+  "policyId": "cine-telemetry-silence-policy-exp3-lab@1",
+  "silenceThresholdSec": 60,
+  "timestamps": {
+    "injectRequestedAtUtc": "2026-11-18T17:41:30.216Z",
+    "emitGateSilentAtUtc": "2026-11-18T17:42:03.293Z",
+    "faultInjectedAtUtc": "2026-11-18T17:42:32.683Z",
+    "lastBHeartbeatBeforeFaultUtc": "2026-11-18T17:41:38.347Z",
+    "detectionEvaluatedAtUtc": "2026-11-18T17:44:07.604Z",
+    "detectedAtUtc": null,
+    "abortRequestedAtUtc": "2026-11-18T17:44:07.605Z",
+    "containAppliedAtUtc": "2026-11-18T17:44:07.605Z",
+    "containedAtUtc": "2026-11-18T17:45:35.379Z",
+    "restoreAppliedAtUtc": "2026-11-18T17:45:35.380Z",
+    "telemetryRestoredAtUtc": "2026-11-18T17:46:52.793Z"
+  },
+  "detection": {
+    "detector": "cine-telemetry-silence-detector@1",
+    "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+    "serviceName": "cine-exp3-telemetry",
+    "signal": "cine.telemetry.heartbeat",
+    "evaluatedAtUtc": "2026-11-18T17:44:07.604Z",
+    "armed": true,
+    "armedAtUtc": "2026-11-18T17:38:38.322Z",
+    "lastHeartbeatOkAtUtc": "2026-11-18T17:44:05.816Z",
+    "successfulHeartbeats": 36,
+    "silenceSec": 1.788,
+    "silenceThresholdSec": 60,
+    "status": "OK",
+    "alert": false,
+    "detectedAtUtc": null,
+    "relevantSampleCount": 36,
+    "rationale": "Heartbeat dentro de umbral (silencio 1.8s ≤ 60s)."
+  },
+  "metrics": {
+    "MTTD_sec": null,
+    "detectionCoverage": 0,
+    "MTTC_sec": 182.696,
+    "restore_sec": 77.414
+  },
+  "notes": [
+    "R0 expected: aggregate no ALERT (partial blindness)"
+  ],
+  "devopsPre": {
+    "label": "R0-pre",
+    "utc": "2026-11-18T17:41:13.737Z",
+    "ready": "2/2",
+    "lb": "35.239.107.54"
+  },
+  "falsePositivesPreInject": 0,
+  "preInject": {
+    "alert": false,
+    "status": "OK"
+  },
+  "stableIdentity": {
+    "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+    "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm",
+    "note": "instanceId must remain identical through inject/contain/restore (no rollout)"
+  },
+  "identityAfterInject": {
+    "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+    "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "alert": false,
+  "mttd": null,
+  "containmentVerified": {
+    "emitterA": {
+      "exists": true,
+      "value": "true"
+    },
+    "emitterB": {
+      "exists": true,
+      "value": "true"
+    },
+    "recent": {
+      "windowSec": 45,
+      "aCount": 3,
+      "bCount": 1,
+      "aLast": "2026-11-18T17:45:20.776Z",
+      "bLast": "2026-11-18T17:45:23.509Z",
+      "instanceIds": [
+        "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+        "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+      ]
+    }
+  },
+  "identityAfterRestore": {
+    "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+    "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "postRestore": {
+    "alert": false,
+    "status": "OK",
+    "recent": {
+      "windowSec": 60,
+      "aCount": 4,
+      "bCount": 4,
+      "aLast": "2026-11-18T17:46:50.783Z",
+      "bLast": "2026-11-18T17:46:38.517Z",
+      "instanceIds": [
+        "cine-exp3-emitter-b-7db5b8946b-s9ndm",
+        "cine-exp3-emitter-a-78c65b7cbd-5g6ss"
+      ]
+    }
+  },
+  "devopsPost": {
+    "label": "R0-post",
+    "utc": "2026-11-18T17:47:01.038Z",
+    "ready": "2/2",
+    "lb": "35.239.107.54"
+  },
+  "endedAtUtc": "2026-11-18T17:47:01.038Z"
+}
+
+### ../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/R1-report.json
+{
+  "round": "R1",
+  "mode": "by-instance",
+  "injection": "partial-b-silent-a-ok-volume-flags",
+  "namespace": "cine-seguridad-exp3",
+  "note": "Restore verification completed manually after transient kubectl disconnect; detection/contain artifacts from runner are authoritative.",
+  "alert": true,
+  "lossKind": "partial",
+  "alertingInstanceIds": [
+    "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  ],
+  "falsePositivesPreInject": 0,
+  "stableIdentity": {
+    "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+    "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "identityAfterInject": {
+    "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+    "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "identityAfterRestore": {
+    "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+    "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "identityStable": true,
+  "timestamps": {
+    "faultInjectedAtUtc": "2026-11-18T17:48:31.007Z",
+    "detectedAtUtc": "2026-11-18T17:48:38.517Z",
+    "detectionEvaluatedAtUtc": "2026-11-18T17:50:04.632Z",
+    "abortRequestedAtUtc": "2026-11-18T17:50:04.632Z",
+    "containAppliedAtUtc": "2026-11-18T17:50:04.632Z",
+    "containedAtUtc": "2026-11-18T17:50:59.078Z",
+    "restoreAppliedAtUtc": "2026-11-18T17:52:42.896Z",
+    "telemetryRestoredAtUtc": "2026-11-18T17:52:57.101Z"
+  },
+  "detection": {
+    "detector": "cine-telemetry-silence-detector@1",
+    "mode": "by-instance",
+    "evaluatedAtUtc": "2026-11-18T17:50:04.632Z",
+    "aggregate": {
+      "detector": "cine-telemetry-silence-detector@1",
+      "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "evaluatedAtUtc": "2026-11-18T17:50:04.632Z",
+      "armed": true,
+      "armedAtUtc": "2026-11-18T17:38:38.322Z",
+      "lastHeartbeatOkAtUtc": "2026-11-18T17:49:50.820Z",
+      "successfulHeartbeats": 69,
+      "silenceSec": 13.812,
+      "silenceThresholdSec": 60,
+      "status": "OK",
+      "alert": false,
+      "detectedAtUtc": null,
+      "relevantSampleCount": 69,
+      "rationale": "Heartbeat dentro de umbral (silencio 13.8s ≤ 60s)."
+    },
+    "instances": [
+      {
+        "instanceId": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+        "detector": "cine-telemetry-silence-detector@1",
+        "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+        "serviceName": "cine-exp3-telemetry",
+        "signal": "cine.telemetry.heartbeat",
+        "evaluatedAtUtc": "2026-11-18T17:50:04.632Z",
+        "armed": true,
+        "armedAtUtc": "2026-11-18T17:38:50.556Z",
+        "lastHeartbeatOkAtUtc": "2026-11-18T17:49:50.820Z",
+        "successfulHeartbeats": 46,
+        "silenceSec": 13.812,
+        "silenceThresholdSec": 60,
+        "status": "OK",
+        "alert": false,
+        "detectedAtUtc": null,
+        "relevantSampleCount": 46,
+        "rationale": "Heartbeat dentro de umbral (silencio 13.8s ≤ 60s)."
+      },
+      {
+        "instanceId": "cine-exp3-emitter-b-7db5b8946b-s9ndm",
+        "detector": "cine-telemetry-silence-detector@1",
+        "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+        "serviceName": "cine-exp3-telemetry",
+        "signal": "cine.telemetry.heartbeat",
+        "evaluatedAtUtc": "2026-11-18T17:50:04.632Z",
+        "armed": true,
+        "armedAtUtc": "2026-11-18T17:38:53.318Z",
+        "lastHeartbeatOkAtUtc": "2026-11-18T17:47:38.517Z",
+        "successfulHeartbeats": 23,
+        "silenceSec": 146.115,
+        "silenceThresholdSec": 60,
+        "status": "ALERT",
+        "alert": true,
+        "detectedAtUtc": "2026-11-18T17:48:38.517Z",
+        "relevantSampleCount": 23,
+        "rationale": "Silencio de heartbeat 146.1s > umbral 60s tras detector armado."
+      }
+    ],
+    "alertingInstanceIds": [
+      "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+    ],
+    "lossKind": "partial",
+    "alert": true
+  },
+  "containmentVerified": {
+    "fromRunnerConsole": true,
+    "containedAtUtc": "2026-11-18T17:50:59.078Z"
+
+### ../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/comparison-R0-R1.json
+{
+  "generatedAtUtc": "2026-11-18T17:53:18.216Z",
+  "hypothesis": {
+    "R0": "aggrega

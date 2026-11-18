@@ -1,0 +1,46 @@
+Eres un analista defensivo. Tarea: emitir un JSON de análisis.
+REGLAS: no inventes cifras; copia métricas solo del borrador; no expliques archivos; no uses markdown.
+Salida: SOLO un objeto JSON con keys exactas:
+{"summary":string,"chronology":string[],"severity":string,"causeHypothesis":string,
+"controls":string[],"metrics":object,"residualRisks":string[],"recommendations":string[],
+"claims":[{"claim":string,"needsEvidence":string}]}
+Experimento: exp3
+BORRADOR_DETERMINISTA_JSON=
+{"summary":"Pérdida parcial de telemetría OTEL (emitter-b silencioso, emitter-a OK) en lab GKE aislado; R0 agregado no alerta; R1 por instancia alerta partial; contención ABORT y restore verificados; lab eliminado.","chronology":["Baseline A/B heartbeats","Inject flags volumen B silent (sin restart)","Observación > umbral 60s","Detección R0/R1","ABORT + containment","Restore + teardown"],"severity":"medium-high (visibilidad parcial comprometida; DevOps intacto)","causeHypothesis":"Inyección controlada TELEMETRY_EMIT_ENABLED=false / OTEL_METRICS_EXPORTER=none en ConfigMap montado de emitter-b","controls":["Detector silencio agregado vs por instancia","NetworkPolicy lab","CONTAINMENT_ACTIVE volumen","Teardown namespace"],"metrics":{"R0":{"alert":false,"MTTD_sec":null,"MTTC_sec":182.696,"restore_sec":77.414,"detectionCoverage":0,"falsePositivesPreInject":0,"stableIdentityB":"cine-exp3-emitter-b-7db5b8946b-s9ndm"},"R1":{"alert":true,"lossKind":"partial","alertingInstanceIds":["cine-exp3-emitter-b-7db5b8946b-s9ndm"],"MTTD_sec":7.51,"MTTC_sec":148.071,"restore_sec":118.023,"detectionCoverage":1,"falsePositivesPreInject":0,"identityStable":true},"source":"FINAL-REPORT.extract.json"},"residualRisks":["Latencia sync ConfigMap→volumen afecta MTTC","Primera R1 histórica inválida por restart (no usar como mejora)"],"recommendations":["Mantener detección por instanceId además del agregado","No reiniciar pods para armar fallas de telemetría si la métrica depende de identidad estable","Separar MTTC de restore_sec en informes"]}
+EVIDENCIA_COMPACTA=
+### evidencias/exp3-daniel/FINAL-REPORT.extract.json
+{
+  "experiment": "cine-seguridad-exp3 GKE R0/R1 retest (volume inject, stable identity)",
+  "completedAtUtc": "2026-11-18T17:54:14.511Z",
+  "experiment3IndividualComplete": true,
+  "improvementConfirmedGke": true,
+  "evidenceDir": "seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest",
+  "priorInvalidEvidencePreserved": "seguridad-caos-exp3/evidencias-locales/gke-r0-r1",
+  "R0": {
+    "alert": false,
+    "MTTD_sec": null,
+    "MTTC_sec": 182.696,
+    "restore_sec": 77.414,
+    "detectionCoverage": 0,
+    "falsePositivesPreInject": 0,
+    "stableIdentityB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "R1": {
+    "alert": true,
+    "lossKind": "partial",
+    "alertingInstanceIds": ["cine-exp3-emitter-b-7db5b8946b-s9ndm"],
+    "MTTD_sec": 7.51,
+    "MTTC_sec": 148.071,
+    "restore_sec": 118.023,
+    "detectionCoverage": 1,
+    "falsePositivesPreInject": 0,
+    "identityStable": true
+  },
+  "teardown": {
+    "namespaceDeleted": true,
+    "devopsReady": "2/2",
+    "lbIp": "35.239.107.54"
+  }
+}
+
+JSON=

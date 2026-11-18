@@ -1,0 +1,100 @@
+{
+  "demoId": "t2-demo-1795026232433",
+  "scope": "local-lab-only",
+  "notCloudRemediation": true,
+  "timeline": [
+    {
+      "step": "detection",
+      "atUtc": "2026-11-18T18:23:52.430Z",
+      "alert": {
+        "id": "lab-alert-telemetry-partial-demo",
+        "verified": true,
+        "severity": "high",
+        "signal": "cine.telemetry.heartbeat silence partial",
+        "evidenceRef": "evidencias/exp3-daniel/FINAL-REPORT.extract.json#R1.alert=true",
+        "detectedAtUtc": "2026-11-18T18:23:52.430Z"
+      }
+    },
+    {
+      "step": "proposal_pending",
+      "atUtc": "2026-11-18T18:23:52.430Z",
+      "executed": false
+    },
+    {
+      "step": "human_decision",
+      "atUtc": "2026-11-18T18:23:52.431Z",
+      "decision": "approve",
+      "approverId": "lab-approver-daniel",
+      "executed": true
+    },
+    {
+      "step": "verify",
+      "atUtc": "2026-11-18T18:23:52.432Z",
+      "result": {
+        "flagExists": true,
+        "approverMatches": true,
+        "cloudTouched": false,
+        "verifiedAtUtc": "2026-11-18T18:23:52.432Z"
+      }
+    },
+    {
+      "step": "revert",
+      "atUtc": "2026-11-18T18:23:52.432Z",
+      "result": {
+        "trendId": "T2-human-approval-remediation",
+        "stage": "revert",
+        "approverId": "lab-approver-daniel",
+        "revertedAtUtc": "2026-11-18T18:23:52.432Z",
+        "cloudTouched": false,
+        "ok": true,
+        "flagRemoved": true
+      }
+    }
+  ],
+  "finalRecord": {
+    "trendId": "T2-human-approval-remediation",
+    "policyId": "t2-human-approval-remediation-lab@1",
+    "stage": "applied_local_lab",
+    "alert": {
+      "id": "lab-alert-telemetry-partial-demo",
+      "verified": true,
+      "severity": "high",
+      "signal": "cine.telemetry.heartbeat silence partial",
+      "evidenceRef": "evidencias/exp3-daniel/FINAL-REPORT.extract.json#R1.alert=true",
+      "detectedAtUtc": "2026-11-18T18:23:52.430Z"
+    },
+    "proposedAction": {
+      "type": "set_local_containment_flag",
+      "description": "Activar flag local de contención ante alerta verificada de telemetría/acceso (sin kubectl/cloud)."
+    },
+    "decision": "approve",
+    "approverId": "lab-approver-daniel",
+    "decidedAtUtc": "2026-11-18T18:23:52.431Z",
+    "executed": true,
+    "executionResult": {
+      "status": "applied_local_lab",
+      "flagPath": "evidencias/tendencia-2-human-approval/CONTAINMENT_PROPOSED_APPLIED",
+      "sha256": "6ecf3ba63611c5bd56791c9a69477e940e60c0aa8a9306963267db264edd5896"
+    },
+    "verifiedAfter": {
+      "flagExists": true,
+      "approverMatches": true,
+      "cloudTouched": false,
+      "verifiedAtUtc": "2026-11-18T18:23:52.432Z"
+    },
+    "reverted": true,
+    "revertResult": {
+      "trendId": "T2-human-approval-remediation",
+      "stage": "revert",
+      "approverId": "lab-approver-daniel",
+      "revertedAtUtc": "2026-11-18T18:23:52.432Z",
+      "cloudTouched": false,
+      "ok": true,
+      "flagRemoved": true
+    },
+    "cloudTouched": false,
+    "cloudCheck": {
+      "ok": true
+    }
+  }
+}

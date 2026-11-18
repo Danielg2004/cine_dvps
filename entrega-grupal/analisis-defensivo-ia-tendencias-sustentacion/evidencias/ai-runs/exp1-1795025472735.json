@@ -1,0 +1,31 @@
+{
+  "analyzer": "group-defensive-ai-analyzer@1",
+  "startedAtUtc": "2026-11-18T18:11:12.734Z",
+  "endedAtUtc": "2026-11-18T18:11:12.735Z",
+  "experiment": "exp1",
+  "allowlistId": "group-defensive-ai-allowlist@1",
+  "evidenceBundleStatus": "pending_jarrison",
+  "filesLoaded": [],
+  "deterministicDraft": {
+    "experimentId": "exp1",
+    "mode": "deterministic-pending",
+    "summary": "PENDIENTE: no hay evidencias allowlisted para exp1.",
+    "chronology": [],
+    "causeHypothesis": null,
+    "controls": [],
+    "metrics": {},
+    "residualRisks": [
+      "Dependencia de entrega del compañero responsable"
+    ],
+    "claims": [
+      {
+        "claim": "Análisis completo de exp1 no disponible",
+        "classification": "no_verificable",
+        "reason": "fuente ausente en allowlist"
+      }
+    ]
+  },
+  "llm": null,
+  "humanAuditRequired": true,
+  "note": "Las conclusiones oficiales viven en AUDITORIA_CONCLUSIONES_IA.md tras revisión humana."
+}

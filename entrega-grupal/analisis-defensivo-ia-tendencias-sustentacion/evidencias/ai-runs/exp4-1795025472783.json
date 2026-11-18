@@ -1,0 +1,31 @@
+{
+  "analyzer": "group-defensive-ai-analyzer@1",
+  "startedAtUtc": "2026-11-18T18:11:12.782Z",
+  "endedAtUtc": "2026-11-18T18:11:12.783Z",
+  "experiment": "exp4",
+  "allowlistId": "group-defensive-ai-allowlist@1",
+  "evidenceBundleStatus": "pending_samuel_in_progress",
+  "filesLoaded": [],
+  "deterministicDraft": {
+    "experimentId": "exp4",
+    "mode": "deterministic-pending",
+    "summary": "PENDIENTE: no hay evidencias allowlisted para exp4.",
+    "chronology": [],
+    "causeHypothesis": null,
+    "controls": [],
+    "metrics": {},
+    "residualRisks": [
+      "Dependencia de entrega del compañero responsable"
+    ],
+    "claims": [
+      {
+        "claim": "Análisis completo de exp4 no disponible",
+        "classification": "no_verificable",
+        "reason": "fuente ausente en allowlist"
+      }
+    ]
+  },
+  "llm": null,
+  "humanAuditRequired": true,
+  "note": "Las conclusiones oficiales viven en AUDITORIA_CONCLUSIONES_IA.md tras revisión humana."
+}

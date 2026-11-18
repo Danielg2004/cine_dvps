@@ -1,0 +1,47 @@
+{
+  "id": "group-defensive-ai-allowlist@2",
+  "updatedAtUtc": "2026-11-18T18:20:00.000Z",
+  "notes": [
+    "El analizador SOLO puede leer rutas listadas aquí.",
+    "Rutas relativas al root del paquete entrega-grupal/analisis-defensivo-ia-tendencias-sustentacion/.",
+    "Exp1 y Exp4 ausentes a propósito hasta recibir fuentes oficiales."
+  ],
+  "experiments": {
+    "exp3": {
+      "status": "available",
+      "files": [
+        "evidencias/exp3-daniel/FINAL-REPORT.extract.json",
+        "../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/FINAL-REPORT.json",
+        "../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/R0-report.json",
+        "../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/R1-report.json",
+        "../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/comparison-R0-R1.json",
+        "../../seguridad-caos-exp3/INFORME_EXPERIMENTO_3.md"
+      ]
+    },
+    "exp2": {
+      "status": "available_public_extracts",
+      "files": [
+        "evidencias/exp2-samuel/R0-SUMMARY.json",
+        "evidencias/exp2-samuel/R1-SUMMARY.json",
+        "evidencias/exp2-samuel/SOURCE.md"
+      ]
+    },
+    "exp1": {
+      "status": "pending_jarrison",
+      "files": [],
+      "incorporationTemplate": "templates/pending-experiment-slot.json"
+    },
+    "exp4": {
+      "status": "pending_samuel_in_progress",
+      "files": [],
+      "incorporationTemplate": "templates/pending-experiment-slot.json"
+    }
+  },
+  "forbiddenPathPatterns": [
+    "**/.env",
+    "**/credentials*",
+    "**/kubeconfig*",
+    "**/*secret*",
+    "**/ABORT"
+  ]
+}

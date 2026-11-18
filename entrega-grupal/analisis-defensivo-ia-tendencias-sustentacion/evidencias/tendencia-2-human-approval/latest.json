@@ -1,0 +1,38 @@
+{
+  "trendId": "T2-human-approval-remediation",
+  "policyId": "t2-human-approval-remediation-lab@1",
+  "stage": "applied_local_lab",
+  "alert": {
+    "id": "lab-alert-telemetry-partial-demo",
+    "verified": true,
+    "severity": "high",
+    "signal": "cine.telemetry.heartbeat silence partial",
+    "evidenceRef": "evidencias/exp3-daniel/FINAL-REPORT.extract.json#R1.alert",
+    "detectedAtUtc": "2026-11-18T18:19:15.628Z"
+  },
+  "proposedAction": {
+    "type": "set_local_containment_flag",
+    "description": "Activar flag local de contención ante alerta verificada de telemetría/acceso (sin kubectl/cloud)."
+  },
+  "decision": "approve",
+  "approverId": "lab-approver-daniel",
+  "decidedAtUtc": "2026-11-18T18:19:15.628Z",
+  "executed": true,
+  "executionResult": {
+    "status": "applied_local_lab",
+    "flagPath": "evidencias/tendencia-2-human-approval/CONTAINMENT_PROPOSED_APPLIED",
+    "sha256": "18394f8d9de67debe9f8b4b73e31a7ff15f2d63e76cfa952af9b36bc4affc707"
+  },
+  "verifiedAfter": {
+    "flagExists": true,
+    "approverMatches": true,
+    "cloudTouched": false,
+    "verifiedAtUtc": "2026-11-18T18:19:15.630Z"
+  },
+  "reverted": false,
+  "revertResult": null,
+  "cloudTouched": false,
+  "cloudCheck": {
+    "ok": true
+  }
+}

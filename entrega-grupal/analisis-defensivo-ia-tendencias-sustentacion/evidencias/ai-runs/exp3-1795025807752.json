@@ -1,0 +1,255 @@
+{
+  "analyzer": "group-defensive-ai-analyzer@2",
+  "stage": 2,
+  "startedAtUtc": "2026-11-18T18:16:41.827Z",
+  "endedAtUtc": "2026-11-18T18:16:47.752Z",
+  "experiment": "exp3",
+  "allowlistId": "group-defensive-ai-allowlist@2",
+  "evidenceBundleStatus": "available",
+  "analysisKind": "llm_real_ollama",
+  "filesLoaded": [
+    {
+      "path": "evidencias/exp3-daniel/FINAL-REPORT.extract.json",
+      "missing": false,
+      "bytes": 1044
+    },
+    {
+      "path": "../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/FINAL-REPORT.json",
+      "missing": false,
+      "bytes": 1044
+    },
+    {
+      "path": "../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/R0-report.json",
+      "missing": false,
+      "bytes": 3433
+    },
+    {
+      "path": "../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/R1-report.json",
+      "missing": false,
+      "bytes": 4469
+    },
+    {
+      "path": "../../seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest/comparison-R0-R1.json",
+      "missing": false,
+      "bytes": 2519
+    },
+    {
+      "path": "../../seguridad-caos-exp3/INFORME_EXPERIMENTO_3.md",
+      "missing": false,
+      "bytes": 4936
+    }
+  ],
+  "deterministicDraft": {
+    "experimentId": "exp3",
+    "mode": "deterministic-from-evidence",
+    "llmEligible": true,
+    "summary": "Pérdida parcial de telemetría OTEL (emitter-b silencioso, emitter-a OK) en lab GKE aislado; R0 agregado no alerta; R1 por instancia alerta partial; contención ABORT y restore verificados; lab eliminado.",
+    "chronology": [
+      "Baseline A/B heartbeats",
+      "Inject flags volumen B silent (sin restart)",
+      "Observación > umbral 60s",
+      "Detección R0/R1",
+      "ABORT + containment",
+      "Restore + teardown"
+    ],
+    "severity": "medium-high (visibilidad parcial comprometida; DevOps intacto)",
+    "causeHypothesis": "Inyección controlada TELEMETRY_EMIT_ENABLED=false / OTEL_METRICS_EXPORTER=none en ConfigMap montado de emitter-b",
+    "controls": [
+      "Detector silencio agregado vs por instancia",
+      "NetworkPolicy lab",
+      "CONTAINMENT_ACTIVE volumen",
+      "Teardown namespace"
+    ],
+    "metrics": {
+      "R0": {
+        "alert": false,
+        "MTTD_sec": null,
+        "MTTC_sec": 182.696,
+        "restore_sec": 77.414,
+        "detectionCoverage": 0,
+        "falsePositivesPreInject": 0,
+        "stableIdentityB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+      },
+      "R1": {
+        "alert": true,
+        "lossKind": "partial",
+        "alertingInstanceIds": [
+          "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+        ],
+        "MTTD_sec": 7.51,
+        "MTTC_sec": 148.071,
+        "restore_sec": 118.023,
+        "detectionCoverage": 1,
+        "falsePositivesPreInject": 0,
+        "identityStable": true
+      },
+      "source": "FINAL-REPORT.extract.json"
+    },
+    "residualRisks": [
+      "Latencia sync ConfigMap→volumen afecta MTTC",
+      "Primera R1 histórica inválida por restart (no usar como mejora)"
+    ],
+    "recommendations": [
+      "Mantener detección por instanceId además del agregado",
+      "No reiniciar pods para armar fallas de telemetría si la métrica depende de identidad estable",
+      "Separar MTTC de restore_sec en informes"
+    ],
+    "claims": [
+      {
+        "claim": "R0 no generó ALERT ante pérdida parcial",
+        "classification": "verificada",
+        "evidence": "FINAL-REPORT.extract.json R0.alert=false"
+      },
+      {
+        "claim": "R1 generó ALERT con lossKind=partial",
+        "classification": "verificada",
+        "evidence": "FINAL-REPORT.extract.json R1.alert/lossKind"
+      },
+      {
+        "claim": "MTTD R1 = 7.51s",
+        "classification": "verificada",
+        "evidence": "FINAL-REPORT.extract.json R1.MTTD_sec"
+      },
+      {
+        "claim": "MTTC R1 = 148.071s",
+        "classification": "verificada",
+        "evidence": "FINAL-REPORT.extract.json R1.MTTC_sec"
+      },
+      {
+        "claim": "Cobertura R0=0 y R1=1 en pérdida parcial",
+        "classification": "verificada",
+        "evidence": "FINAL-REPORT.extract.json detectionCoverage"
+      }
+    ]
+  },
+  "llm": {
+    "simulated": false,
+    "model": "llama3.2:3b",
+    "endpoint": "http://127.0.0.1:11434/api/generate",
+    "requestParams": {
+      "model": "llama3.2:3b",
+      "stream": false,
+      "options": {
+        "temperature": 0,
+        "num_predict": 1024
+      }
+    },
+    "promptChars": 3146,
+    "promptShaPreview": "Eres un analista defensivo. Tarea: emitir un JSON de análisis.\nREGLAS: no inventes cifras; copia métricas solo del borrador; no expliques archivos; no uses markdown.\nSalida: SOLO un objeto JSON con keys exactas:\n{\"summary\":string,\"chronolog",
+    "promptFull": "Eres un analista defensivo. Tarea: emitir un JSON de análisis.\nREGLAS: no inventes cifras; copia métricas solo del borrador; no expliques archivos; no uses markdown.\nSalida: SOLO un objeto JSON con keys exactas:\n{\"summary\":string,\"chronology\":string[],\"severity\":string,\"causeHypothesis\":string,\n\"controls\":string[],\"metrics\":object,\"residualRisks\":string[],\"recommendations\":string[],\n\"claims\":[{\"claim\":string,\"needsEvidence\":string}]}\nExperimento: exp3\nBORRADOR_DETERMINISTA_JSON=\n{\"summary\":\"Pérdida parcial de telemetría OTEL (emitter-b silencioso, emitter-a OK) en lab GKE aislado; R0 agregado no alerta; R1 por instancia alerta partial; contención ABORT y restore verificados; lab eliminado.\",\"chronology\":[\"Baseline A/B heartbeats\",\"Inject flags volumen B silent (sin restart)\",\"Observación > umbral 60s\",\"Detección R0/R1\",\"ABORT + containment\",\"Restore + teardown\"],\"severity\":\"medium-high (visibilidad parcial comprometida; DevOps intacto)\",\"causeHypothesis\":\"Inyección controlada TELEMETRY_EMIT_ENABLED=false / OTEL_METRICS_EXPORTER=none en ConfigMap montado de emitter-b\",\"controls\":[\"Detector silencio agregado vs por instancia\",\"NetworkPolicy lab\",\"CONTAINMENT_ACTIVE volumen\",\"Teardown namespace\"],\"metrics\":{\"R0\":{\"alert\":false,\"MTTD_sec\":null,\"MTTC_sec\":182.696,\"restore_sec\":77.414,\"detectionCoverage\":0,\"falsePositivesPreInject\":0,\"stableIdentityB\":\"cine-exp3-emitter-b-7db5b8946b-s9ndm\"},\"R1\":{\"alert\":true,\"lossKind\":\"partial\",\"alertingInstanceIds\":[\"cine-exp3-emitter-b-7db5b8946b-s9ndm\"],\"MTTD_sec\":7.51,\"MTTC_sec\":148.071,\"restore_sec\":118.023,\"detectionCoverage\":1,\"falsePositivesPreInject\":0,\"identityStable\":true},\"source\":\"FINAL-REPORT.extract.json\"},\"residualRisks\":[\"Latencia sync ConfigMap→volumen afecta MTTC\",\"Primera R1 histórica inválida por restart (no usar como mejora)\"],\"recommendations\":[\"Mantener detección por instanceId además del agregado\",\"No reiniciar pods para armar fallas de telemetría si la métrica depende de identidad estable\",\"Separar MTTC de restore_sec en informes\"]}\nEVIDENCIA_COMPACTA=\n### evidencias/exp3-daniel/FINAL-REPORT.extract.json\n{\r\n  \"experiment\": \"cine-seguridad-exp3 GKE R0/R1 retest (volume inject, stable identity)\",\r\n  \"completedAtUtc\": \"2026-11-18T17:54:14.511Z\",\r\n  \"experiment3IndividualComplete\": true,\r\n  \"improvementConfirmedGke\": true,\r\n  \"evidenceDir\": \"seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest\",\r\n  \"priorInvalidEvidencePreserved\": \"seguridad-caos-exp3/evidencias-locales/gke-r0-r1\",\r\n  \"R0\": {\r\n    \"alert\": false,\r\n    \"MTTD_sec\": null,\r\n    \"MTTC_sec\": 182.696,\r\n    \"restore_sec\": 77.414,\r\n    \"detectionCoverage\": 0,\r\n    \"falsePositivesPreInject\": 0,\r\n    \"stableIdentityB\": \"cine-exp3-emitter-b-7db5b8946b-s9ndm\"\r\n  },\r\n  \"R1\": {\r\n    \"alert\": true,\r\n    \"lossKind\": \"partial\",\r\n    \"alertingInstanceIds\": [\"cine-exp3-emitter-b-7db5b8946b-s9ndm\"],\r\n    \"MTTD_sec\": 7.51,\r\n    \"MTTC_sec\": 148.071,\r\n    \"restore_sec\": 118.023,\r\n    \"detectionCoverage\": 1,\r\n    \"falsePositivesPreInject\": 0,\r\n    \"identityStable\": true\r\n  },\r\n  \"teardown\": {\r\n    \"namespaceDeleted\": true,\r\n    \"devopsReady\": \"2/2\",\r\n    \"lbIp\": \"35.239.107.54\"\r\n  }\r\n}\r\n\nJSON=",
+    "response": "{\"summary\":\"Pérdida parcial de telemetría OTEL en lab GKE aislado; R0 agregado no alerta; R1 por instancia alerta partial; contención ABORT y restore verificados; lab eliminado.\",\"chronology\":[\"Baseline A/B heartbeats\",\"Inject flags volumen B silent (sin restart)\",\"Observación > umbral 60s\",\"Detección R0/R1\",\"ABORT + containment\",\"Restore + teardown\"],\"severity\":\"medium-high (visibilidad parcial comprometida; DevOps intacto)\",\"causeHypothesis\":\"Inyección controlada TELEMETRY_EMIT_ENABLED=false / OTEL_METRICS_EXPORTER=none en ConfigMap montado de emitter-b\",\"controls\":[\"Detector silencio agregado vs por instancia\",\"NetworkPolicy lab\",\"CONTAINMENT_ACTIVE volumen\",\"Teardown namespace\"],\"metrics\":{\"R0\":{\"alert\":false,\"MTTD_sec\":null,\"MTTC_sec\":182.696,\"restore_sec\":77.414,\"detectionCoverage\":0,\"falsePositivesPreInject\":0,\"stableIdentityB\":\"cine-exp3-emitter-b-7db5b8946b-s9ndm\"},\"R1\":{\"alert\":true,\"lossKind\":\"partial\",\"alertingInstanceIds\":[\"cine-exp3-emitter-b-7db5b8946b-s9ndm\"],\"MTTD_sec\":7.51,\"MTTC_sec\":148.071,\"restore_sec\":118.023,\"detectionCoverage\":1,\"falsePositivesPreInject\":0,\"identityStable\":true},\"source\":\"FINAL-REPORT.extract.json\"},\"residualRisks\":[\"Latencia sync ConfigMap→volumen afecta MTTC\",\"Primera R1 histórica inválida por restart (no usar como mejora)\"],\"recommendations\":[\"Mantener detección por instanceId además del agregado\",\"No reiniciar pods para armar fallas de telemetría si la métrica depende de identidad estable\",\"Separar MTTC de restore_sec en informes\"],\"claims\":[{\"claim\":\"Pérdida parcial de telemetría OTEL en lab GKE aislado\",\"needsEvidence\":\"Evidencia de la pérdida de telemetría y su impacto en la contención\"}]}",
+    "parsedJson": {
+      "summary": "Pérdida parcial de telemetría OTEL en lab GKE aislado; R0 agregado no alerta; R1 por instancia alerta partial; contención ABORT y restore verificados; lab eliminado.",
+      "chronology": [
+        "Baseline A/B heartbeats",
+        "Inject flags volumen B silent (sin restart)",
+        "Observación > umbral 60s",
+        "Detección R0/R1",
+        "ABORT + containment",
+        "Restore + teardown"
+      ],
+      "severity": "medium-high (visibilidad parcial comprometida; DevOps intacto)",
+      "causeHypothesis": "Inyección controlada TELEMETRY_EMIT_ENABLED=false / OTEL_METRICS_EXPORTER=none en ConfigMap montado de emitter-b",
+      "controls": [
+        "Detector silencio agregado vs por instancia",
+        "NetworkPolicy lab",
+        "CONTAINMENT_ACTIVE volumen",
+        "Teardown namespace"
+      ],
+      "metrics": {
+        "R0": {
+          "alert": false,
+          "MTTD_sec": null,
+          "MTTC_sec": 182.696,
+          "restore_sec": 77.414,
+          "detectionCoverage": 0,
+          "falsePositivesPreInject": 0,
+          "stableIdentityB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+        },
+        "R1": {
+          "alert": true,
+          "lossKind": "partial",
+          "alertingInstanceIds": [
+            "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+          ],
+          "MTTD_sec": 7.51,
+          "MTTC_sec": 148.071,
+          "restore_sec": 118.023,
+          "detectionCoverage": 1,
+          "falsePositivesPreInject": 0,
+          "identityStable": true
+        },
+        "source": "FINAL-REPORT.extract.json"
+      },
+      "residualRisks": [
+        "Latencia sync ConfigMap→volumen afecta MTTC",
+        "Primera R1 histórica inválida por restart (no usar como mejora)"
+      ],
+      "recommendations": [
+        "Mantener detección por instanceId además del agregado",
+        "No reiniciar pods para armar fallas de telemetría si la métrica depende de identidad estable",
+        "Separar MTTC de restore_sec en informes"
+      ],
+      "claims": [
+        {
+          "claim": "Pérdida parcial de telemetría OTEL en lab GKE aislado",
+          "needsEvidence": "Evidencia de la pérdida de telemetría y su impacto en la contención"
+        }
+      ]
+    },
+    "totalDurationNs": 5889938100,
+    "evalCount": 478,
+    "createdAtUtc": "2026-11-18T18:16:47.752Z"
+  },
+  "llmClaimsAudit": [
+    {
+      "claim": "Pérdida parcial de telemetría OTEL en lab GKE aislado",
+      "classification": "verificada",
+      "reason": "coherente con métricas/evidencias allowlisted (revisión humana requerida)",
+      "source": "llm"
+    },
+    {
+      "claim": "Inyección controlada TELEMETRY_EMIT_ENABLED=false / OTEL_METRICS_EXPORTER=none en ConfigMap montado de emitter-b",
+      "classification": "verificada",
+      "reason": "coherente con métricas/evidencias allowlisted (revisión humana requerida)",
+      "source": "llm"
+    },
+    {
+      "claim": "R0 no generó ALERT ante pérdida parcial",
+      "classification": "verificada",
+      "evidence": "FINAL-REPORT.extract.json R0.alert=false",
+      "source": "deterministic"
+    },
+    {
+      "claim": "R1 generó ALERT con lossKind=partial",
+      "classification": "verificada",
+      "evidence": "FINAL-REPORT.extract.json R1.alert/lossKind",
+      "source": "deterministic"
+    },
+    {
+      "claim": "MTTD R1 = 7.51s",
+      "classification": "verificada",
+      "evidence": "FINAL-REPORT.extract.json R1.MTTD_sec",
+      "source": "deterministic"
+    },
+    {
+      "claim": "MTTC R1 = 148.071s",
+      "classification": "verificada",
+      "evidence": "FINAL-REPORT.extract.json R1.MTTC_sec",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Cobertura R0=0 y R1=1 en pérdida parcial",
+      "classification": "verificada",
+      "evidence": "FINAL-REPORT.extract.json detectionCoverage",
+      "source": "deterministic"
+    }
+  ],
+  "claimCounts": {
+    "verificada": 7,
+    "incorrecta": 0,
+    "no_verificable": 0
+  },
+  "humanAuditRequired": true,
+  "note": "Las conclusiones oficiales viven en AUDITORIA_CONCLUSIONES_IA.md tras revisión humana. El LLM no es fuente de verdad."
+}
