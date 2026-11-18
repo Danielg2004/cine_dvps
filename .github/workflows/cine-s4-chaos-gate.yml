@@ -45,8 +45,11 @@ jobs:
           node-version: "24"
           cache: npm
 
-      - name: Instalar dependencias
+      - name: Instalar dependencias API
         run: npm ci
+
+      - name: Instalar dependencias Cache
+        run: npm ci --prefix cache-service
 
       - name: Iniciar MySQL de pruebas
         run: |
