@@ -4,11 +4,24 @@
 **Herramienta:** Chaos Toolkit `1.21.4` + `chaostoolkit-lib 1.45.1`  
 **Experimento:** `chaos/experiments/cine-resource-exhaustion.json`
 
+## Intensidad alineada a R0/R1 (manifiesto)
+
+Defaults del JSON / `experiment.yaml` (serie GKE v2 y multicloud 75s):
+
+| Parámetro | Valor |
+|-----------|-------|
+| holdMs | 250 |
+| maxInflight | 8 |
+| maxQueueWaitMs | 200 |
+| durationSec | 90 |
+
+`experiment.yaml` distingue **métricas observadas** (`observed_gke_v2`) de **umbrales de aceptación** (`acceptance_thresholds`). No se reescribieron JSON históricos k6/sondas.
+
 ## Resultado
 
 | Paso | Estado |
 |------|--------|
-| `chaos validate` | OK (tras corrección de probe inválida) |
+| `chaos validate` | OK (tras corrección de probe inválida + alineación R0/R1) |
 | `chaos run --dry activities` | OK — journal: `chaos-toolkit-dry-run-journal.json` |
 | `chaos run` real contra GKE | **NO ejecutado** — falta ventana coordinada Sports/Hotel |
 
@@ -48,9 +61,10 @@ Rollback: stop + `active=false` + healthz 200.
 # Tras confirmar que Sports/Hotel no usan Cine:
 $env:CINE_BASE_URL = 'http://35.239.107.54'
 $env:CHAOS_FAULT_TOKEN = '***'   # no commitear
-$env:CHAOS_HOLD_MS = '200'
-$env:CHAOS_MAX_INFLIGHT = '4'
-$env:CHAOS_DURATION_SEC = '20'
+$env:CHAOS_HOLD_MS = '250'
+$env:CHAOS_MAX_INFLIGHT = '8'
+$env:CHAOS_MAX_QUEUE_WAIT_MS = '200'
+$env:CHAOS_DURATION_SEC = '90'
 .\scripts\chaos\run-chaos-toolkit.ps1 -RealRun -ConfirmSharedWindow
 ```
 

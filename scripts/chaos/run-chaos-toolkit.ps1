@@ -80,10 +80,11 @@ if (-not $env:CHAOS_FAULT_TOKEN -or $env:CHAOS_FAULT_TOKEN.Length -lt 16) {
     throw "CHAOS_FAULT_TOKEN requerido (>=16)"
 }
 
-# Intensidad corta por defecto si no viene del entorno
-if (-not $env:CHAOS_DURATION_SEC) { $env:CHAOS_DURATION_SEC = "20" }
-if (-not $env:CHAOS_HOLD_MS) { $env:CHAOS_HOLD_MS = "200" }
-if (-not $env:CHAOS_MAX_INFLIGHT) { $env:CHAOS_MAX_INFLIGHT = "4" }
+# Intensidad alineada a R0/R1 GKE v2 si no viene del entorno
+if (-not $env:CHAOS_DURATION_SEC) { $env:CHAOS_DURATION_SEC = "90" }
+if (-not $env:CHAOS_HOLD_MS) { $env:CHAOS_HOLD_MS = "250" }
+if (-not $env:CHAOS_MAX_INFLIGHT) { $env:CHAOS_MAX_INFLIGHT = "8" }
+if (-not $env:CHAOS_MAX_QUEUE_WAIT_MS) { $env:CHAOS_MAX_QUEUE_WAIT_MS = "200" }
 
 New-Item -ItemType Directory -Force -Path (Split-Path $JournalPath) | Out-Null
 $started = (Get-Date).ToUniversalTime().ToString("o")

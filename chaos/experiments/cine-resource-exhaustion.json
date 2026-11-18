@@ -23,22 +23,22 @@
     "hold_ms": {
       "type": "env",
       "key": "CHAOS_HOLD_MS",
-      "default": "200"
+      "default": "250"
     },
     "max_inflight": {
       "type": "env",
       "key": "CHAOS_MAX_INFLIGHT",
-      "default": "4"
+      "default": "8"
     },
     "duration_sec": {
       "type": "env",
       "key": "CHAOS_DURATION_SEC",
-      "default": "20"
+      "default": "90"
     },
     "max_queue_wait_ms": {
       "type": "env",
       "key": "CHAOS_MAX_QUEUE_WAIT_MS",
-      "default": "500"
+      "default": "200"
     }
   },
   "steady-state-hypothesis": {
