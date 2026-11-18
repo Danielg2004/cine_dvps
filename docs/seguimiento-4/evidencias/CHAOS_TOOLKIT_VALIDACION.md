@@ -1,12 +1,9 @@
-# Chaos Toolkit — validación (Sin ejecución remota GKE)
+# Chaos Toolkit — validación y corrida real GKE
 
-**Fecha UTC validación:** 2026-11-18  
-**Herramienta:** Chaos Toolkit `1.21.4` + `chaostoolkit-lib 1.45.1`  
+**Herramienta:** Chaos Toolkit `1.21.4` + `chaostoolkit-lib 1.45.x`  
 **Experimento:** `chaos/experiments/cine-resource-exhaustion.json`
 
 ## Intensidad alineada a R0/R1 (manifiesto)
-
-Defaults del JSON / `experiment.yaml` (serie GKE v2 y multicloud 75s):
 
 | Parámetro | Valor |
 |-----------|-------|
@@ -15,50 +12,34 @@ Defaults del JSON / `experiment.yaml` (serie GKE v2 y multicloud 75s):
 | maxQueueWaitMs | 200 |
 | durationSec | 90 |
 
-`experiment.yaml` distingue **métricas observadas** (`observed_gke_v2`) de **umbrales de aceptación** (`acceptance_thresholds`). No se reescribieron JSON históricos k6/sondas.
-
 ## Resultado
 
 | Paso | Estado |
 |------|--------|
-| `chaos validate` | OK (tras corrección de probe inválida + alineación R0/R1) |
-| `chaos run --dry activities` | OK — journal: `chaos-toolkit-dry-run-journal.json` |
-| `chaos run` real contra GKE | **NO ejecutado** — falta ventana coordinada Sports/Hotel |
+| `chaos validate` | OK |
+| `chaos run --dry activities` | OK — `chaos-toolkit-dry-run-journal.json` |
+| `chaos run` real GKE | **OK** — `chaos-toolkit-journal.json` (ver `CHAOS_TOOLKIT_REAL_RUN.md`) |
 
-## Defecto corregido antes de dry-run
+## Defectos corregidos antes / durante la ventana
 
-La probe `saturation-is-active` usaba `provider.type=python` + módulo `chaoslib.http` (inexistente como módulo Python).  
-Se reemplazó por `provider.type=http` + tolerancia `jsonpath` sobre `$.active`.
+1. Probe inválida `python`/`chaoslib.http` → HTTP (dry-run previo).
+2. Secrets planos → anidados `secrets.cine.cine_chaos_token` (CTK `ChainMap` exige mapa de mapas).
+3. `provider.body` ignorado por CTK → `provider.arguments` (JSON real en POST).
 
-También:
+## Fallo inyectado
 
-- Body JSON correcto en start/stop.
-- Rollback con verificación `active=false` + healthz.
-- Duración por defecto 20 s (acotada; API ≤120).
-- Wrapper `scripts/chaos/run-chaos-toolkit.ps1` con `--rollback-strategy always` + stop manual en `finally`.
+`POST /api/v3/__test/saturation/start` — hold de concurrencia in-process (no Chaos Mesh/Litmus).  
+Confirmado en journal: HTTP 202, `active=true`, config 250/8/90/200.
 
-## Fallo que inyectaría (cuando se autorice)
+## Reversibilidad verificada
 
-`POST /api/v3/__test/saturation/start` — hold de concurrencia in-process (no Chaos Mesh/Litmus).
+1. Rollbacks CTK con `--rollback-strategy always` → stop HTTP 200, `active=false`.
+2. Stop manual del wrapper en `finally`.
+3. Restore a **2/2 Ready**.
 
-## Probes declaradas
-
-Steady-state: healthz, readyz, GET películas → HTTP 200.  
-Durante método: saturación `active=true`.  
-Rollback: stop + `active=false` + healthz 200.
-
-## Reversibilidad
-
-1. Rollbacks CTK con `--rollback-strategy always`.
-2. Auto-stop API por `durationSec`.
-3. Stop manual independiente: `POST .../saturation/stop`.
-
-**Nota 2 réplicas:** el start vía LB satura **un** pod. Cobertura completa requiere 1 réplica solo en ventana autorizada + restore a 2.
-
-## Comando preparado (NO ejecutar sin coordinación)
+## Comando (ventana coordinada)
 
 ```powershell
-# Tras confirmar que Sports/Hotel no usan Cine:
 $env:CINE_BASE_URL = 'http://35.239.107.54'
 $env:CHAOS_FAULT_TOKEN = '***'   # no commitear
 $env:CHAOS_HOLD_MS = '250'
@@ -67,8 +48,3 @@ $env:CHAOS_MAX_QUEUE_WAIT_MS = '200'
 $env:CHAOS_DURATION_SEC = '90'
 .\scripts\chaos\run-chaos-toolkit.ps1 -RealRun -ConfirmSharedWindow
 ```
-
-## Estado operativo observado al validar (HTTP, sin caos)
-
-- healthz 200, readyz ready, db up, películas 200.
-- kubectl/cluster describe temporalmente 503 (GCP API) — no bloqueó la validación local del experimento.

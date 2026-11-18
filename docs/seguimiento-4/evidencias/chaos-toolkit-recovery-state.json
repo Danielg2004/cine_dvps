@@ -1,0 +1,25 @@
+{
+  "capturedAtUtc": "2026-11-18T01:35:30Z",
+  "project": "cine-devops-canary",
+  "cluster": "cine-caos-autopilot",
+  "namespace": "cine-caos",
+  "replicas": 2,
+  "readyReplicas": 2,
+  "saturationActive": false,
+  "healthz": 200,
+  "readyz": "ready",
+  "database": "up",
+  "peliculas": 200,
+  "otel": "otelTraceId present in pod logs",
+  "flujoSportsHotelCine": {
+    "url": "http://3.21.120.51:30080/api/v2/flujo/1/1/1",
+    "http": 200,
+    "status": "success",
+    "degraded": false,
+    "cineOrigen": "database",
+    "hotelVia": "upstream"
+  },
+  "journal": "docs/seguimiento-4/evidencias/chaos-toolkit-journal.json",
+  "ctkStatus": "completed",
+  "injectionVerified": true
+}

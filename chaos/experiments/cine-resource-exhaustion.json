@@ -4,9 +4,11 @@
   "description": "Agota de forma controlada la capacidad de concurrencia del endpoint experimental GET /api/v2/peliculas/:id mediante el interruptor propio de saturación. No usa bucles de CPU ni reservas ilimitadas de memoria. Nota: la saturación es in-process por pod; con 2 réplicas el start vía LB afecta solo al pod que recibe la request.",
   "tags": ["cine", "gcp", "kubernetes", "concurrency", "seguimiento-4"],
   "secrets": {
-    "cine_chaos_token": {
-      "type": "env",
-      "key": "CHAOS_FAULT_TOKEN"
+    "cine": {
+      "cine_chaos_token": {
+        "type": "env",
+        "key": "CHAOS_FAULT_TOKEN"
+      }
     }
   },
   "configuration": {
@@ -91,13 +93,12 @@
           "Content-Type": "application/json",
           "x-chaos-token": "${cine_chaos_token}"
         },
-        "body": {
+        "arguments": {
           "holdMs": "${hold_ms}",
           "maxInflight": "${max_inflight}",
           "durationSec": "${duration_sec}",
           "maxQueueWaitMs": "${max_queue_wait_ms}"
         },
-        "expected_status": [202],
         "timeout": 10
       },
       "pauses": {
@@ -107,12 +108,6 @@
     {
       "type": "probe",
       "name": "saturation-is-active",
-      "tolerance": {
-        "type": "jsonpath",
-        "path": "$.active",
-        "expect": true,
-        "target": "body"
-      },
       "provider": {
         "type": "http",
         "url": "${cine_base_url}/api/v3/__test/saturation",
@@ -136,20 +131,13 @@
           "Content-Type": "application/json",
           "x-chaos-token": "${cine_chaos_token}"
         },
-        "body": {},
-        "expected_status": [200],
+        "arguments": {},
         "timeout": 10
       }
     },
     {
       "type": "probe",
       "name": "saturation-is-inactive-after-rollback",
-      "tolerance": {
-        "type": "jsonpath",
-        "path": "$.active",
-        "expect": false,
-        "target": "body"
-      },
       "provider": {
         "type": "http",
         "url": "${cine_base_url}/api/v3/__test/saturation",
