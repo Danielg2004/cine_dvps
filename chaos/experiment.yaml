@@ -52,8 +52,12 @@ abort:
 
 rollback:
   automatic: true
+  # CTK 1.21 default no ejecuta rollbacks en fallo/interrupción; usar --rollback-strategy always
   action: POST /api/v3/__test/saturation/stop
-  verify: GET /healthz == 200
+  verify:
+    - GET /api/v3/__test/saturation active=false
+    - GET /healthz == 200
+  wrapper: scripts/chaos/run-chaos-toolkit.ps1 (finally stop manual)
 
 rounds:
   baseline: { resilience: false, saturation: false }
