@@ -1,0 +1,48 @@
+{
+  "run_id": "r0-20261118T210632Z",
+  "scenario": "r0",
+  "project": "seguridad-caos-exp4",
+  "backup_id_restored": "backup-r0-20261118T210636.492Z",
+  "backup_id_metrics_source": "backup-r0-20261118T210636.492Z",
+  "t_backup_utc": "2026-11-18T21:06:36.533000Z",
+  "t_fallo_utc": "2026-11-18T21:06:40.162000Z",
+  "t_deteccion_utc": "2026-11-18T21:06:40.462000Z",
+  "detection_status": "observed",
+  "t_restore_inicio_utc": "2026-11-18T21:06:51.605000Z",
+  "t_restore_fin_utc": "2026-11-18T21:06:51.809000Z",
+  "t_servicio_ok_utc": "2026-11-18T21:06:53.218000Z",
+  "rto_observed_ms": 13056.0,
+  "rpo_observed_from_backup_age_ms": 3629.0,
+  "rpo_objective_backup_interval_sec": 300,
+  "probe_interval_sec": 1.0,
+  "rto_uncertainty_note": "t_servicio_ok quantized by probe interval",
+  "last_commit_before_fault": {
+    "commit_id": "c-9ce5ccbc8c5a45b4",
+    "committed_at_utc": "2026-11-18 21:06:39.299000",
+    "pk": 19,
+    "payload": "synthetic-r0-seq16"
+  },
+  "last_restored_commit_id": "c-ee3ea22718254a3e",
+  "commits_before_fault": 16,
+  "commits_restored": 10,
+  "confirmed_commits_lost": 6,
+  "integrity": {
+    "service_ok": true,
+    "db_available": true,
+    "functional_query_ok": true,
+    "project": "seguridad-caos-exp4",
+    "commit_count": 10,
+    "expected_commit_count_from_backup": 10,
+    "corruption_suspected": false,
+    "last_commit_id": "c-ee3ea22718254a3e",
+    "last_committed_at_utc": "2026-11-18 21:06:35.719000",
+    "last_commit_pk": 13,
+    "backup_id": "backup-r0-20261118T210636.492Z"
+  },
+  "n": 1,
+  "notes": [
+    "Do not invent timestamps when events are missing (null).",
+    "RPO loss (post-backup commits) is not restore corruption.",
+    "R0 manual wait time is included when operator_restore gates t_restore_inicio."
+  ]
+}

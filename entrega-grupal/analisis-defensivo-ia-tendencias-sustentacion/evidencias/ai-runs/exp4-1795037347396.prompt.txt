@@ -1,0 +1,143 @@
+Eres un analista defensivo. Emite UN objeto JSON compacto.
+REGLAS: no inventes cifras; copia metrics del borrador; no uses markdown; cierra todas las llaves.
+Keys exactas (todas al nivel raíz, no anides residualRisks dentro de metrics):
+summary,chronology,severity,causeHypothesis,controls,metrics,residualRisks,recommendations,claims
+GUARDRAIL_EXP4: RPO observado = antigüedad del backup restaurado (ms); NO confundir con intervalo objetivo.
+Integridad PASS ≠ cero pérdida de datos. R0 es restore MANUAL; R1 es automatizado (G2). n=1.
+Unidades: 3629 ms = 3.629 s (coma decimal ES). NO digas 16/16 commits ni garantía estadística.
+Experimento: exp4
+BORRADOR_DETERMINISTA_JSON=
+{"summary":"Exp.4 resiliencia de datos (OCI VM lab, n=1): fallo controlado tras escritura sintética; R0 restore manual; R1 con G1 backup mid + G2 restore automatizado. RPO/RTO/MTTD mejoran; integrity PASS ≠ cero pérdida (commits post-backup).","chronology":["R0 r0-20261118T210632Z — backup → fallo → detección → restore manual → servicio OK","R1 r1-20261118T210734Z — backup mid (G1) → fallo → detección → restore auto (G2) → servicio OK"],"severity":"medium (pérdida de commits post-backup; integridad del restore OK)","causeHypothesis":"Pérdida lógica controlada tras último backup; RPO=antigüedad del backup restaurado; RTO=fallo→servicio_ok (R0 incluye espera humana).","controls":["mysqldump+SHA256","G1 backup adicional","G2 restore automatizado+integridad","watchdog/STOP"],"metrics":{"R0":{"run_id":"r0-20261118T210632Z","scenario":"r0_manual_restore","rpo_observed_ms":3629,"rpo_observed_sec":3.629,"rto_observed_ms":13056,"rto_observed_sec":13.056,"mttd_sec":0.3,"commits_before_fault":16,"commits_restored":10,"confirmed_commits_lost":6,"integrity_pass":true,"recovery_pass":true,"rpo_objective_backup_interval_sec":300},"R1":{"run_id":"r1-20261118T210734Z","scenario":"r1_g1_extra_backup_g2_automated_restore","rpo_observed_ms":2209,"rpo_observed_sec":2.209,"rto_observed_ms":1792,"rto_observed_sec":1.792,"mttd_sec":0.109,"commits_before_fault":16,"commits_restored":13,"confirmed_commits_lost":3,"integrity_pass":true,"recovery_pass":true,"rpo_objective_backup_interval_sec":30},"deltas":{"rpo_reduction_pct":39.1,"rto_reduction_pct":86.3,"commits_lost_reduction_pct":50,"single_pair_only":true},"methodology":{"rpo_observed":"t_fallo - t_backup of restored backup (ms) — NOT the objective backup interval","rto_observed":"t_servicio_ok - t_fallo (ms); R0 includes manual operator wait","mttd":"t_deteccion - t_fallo from alerts (lab_event_observed)","integrity":"post-restore functional checks; post-backup loss is RPO not corruption","note_decimal_comma":"Samuel docs use European decimal comma: 3,629 s = 3.629 s = 3629 ms (NOT 3629 seconds)"},"sourceCommit":"d5e72f6e4a5043008091fe80559f0f1952bcad43"},"residualRisks":["n=1 — sin garantía estadística","Commits perdidos residuales (6→3)","Originales no sanitizados no disponibles públicamente"],"recommendations":["Documentar siempre RPO observado vs intervalo objetivo","Separar tiempo de restore vs espera humana en RTO","Repetir pares R0/R1 para estadística (futuro; no ejecutado aquí)"]}
+EVIDENCIA_COMPACTA=
+### evidencias/exp4-samuel/FINAL-EXTRACT.sanitized.json
+{
+  "sourceRepo": "sgiraldor/hotel-fastify",
+  "sourceBranch": "feat/defensa-profundidad-oci",
+  "sourceCommit": "d5e72f6e4a5043008091fe80559f0f1952bcad43",
+  "packagePath": "entrega-grupal/experimento-4-resiliencia-datos/",
+  "evidenceClass": "public_sanitized_only",
+  "n": 1,
+  "methodology": {
+    "rpo_observed": "t_fallo - t_backup of restored backup (ms) — NOT the objective backup interval",
+    "rto_observed": "t_servicio_ok - t_fallo (ms); R0 includes manual operator wait",
+    "mttd": "t_deteccion - t_fallo from alerts (lab_event_observed)",
+    "integrity": "post-restore functional checks; post-backup loss is RPO not corruption",
+    "note_decimal_comma": "Samuel docs use European decimal comma: 3,629 s = 3.629 s = 3629 ms (NOT 3629 seconds)"
+  },
+  "R0": {
+    "run_id": "r0-20261118T210632Z",
+    "scenario": "r0_manual_restore",
+    "rpo_observed_ms": 3629,
+    "rpo_observed_sec": 3.629,
+    "rto_observed_ms": 13056,
+    "rto_observed_sec": 13.056,
+    "mttd_sec": 0.3,
+    "commits_before_fault": 16,
+    "commits_restored": 10,
+    "confirmed_commits_lost": 6,
+    "integrity_pass": true,
+    "recovery_pass": true,
+    "rpo_objective_backup_interval_sec": 300
+  },
+  "R1": {
+    "run_id": "r1-20261118T210734Z",
+    "scenario": "r1_g1_extra_backup_g2_automated_restore",
+    "rpo_observed_ms": 2209,
+    "rpo_observed_sec": 2.209,
+    "rto_observed_ms": 1792,
+    "rto_observed_sec": 1.792,
+    "mttd_sec": 0.109,
+    "commits_before_fault": 16,
+    "commits_restored": 13,
+    "confirmed_commits_lost": 3,
+    "integrity_pass": true,
+    "recovery_pass": true,
+    "rpo_objective_backup_interval_sec": 30
+  },
+  "improvements": {
+    "G1": "Additional mid-point backup (same mysqldump+SHA256 mechanics)",
+    "G2": "Automated restore + integrity + probe (eliminates manual
+
+### evidencias/exp4-samuel/r0/metrics.json
+{
+  "run_id": "r0-20261118T210632Z",
+  "scenario": "r0",
+  "project": "seguridad-caos-exp4",
+  "backup_id_restored": "backup-r0-20261118T210636.492Z",
+  "backup_id_metrics_source": "backup-r0-20261118T210636.492Z",
+  "t_backup_utc": "2026-11-18T21:06:36.533000Z",
+  "t_fallo_utc": "2026-11-18T21:06:40.162000Z",
+  "t_deteccion_utc": "2026-11-18T21:06:40.462000Z",
+  "detection_status": "observed",
+  "t_restore_inicio_utc": "2026-11-18T21:06:51.605000Z",
+  "t_restore_fin_utc": "2026-11-18T21:06:51.809000Z",
+  "t_servicio_ok_utc": "2026-11-18T21:06:53.218000Z",
+  "rto_observed_ms": 13056.0,
+  "rpo_observed_from_backup_age_ms": 3629.0,
+  "rpo_objective_backup_interval_sec": 300,
+  "probe_interval_sec": 1.0,
+  "rto_uncertainty_note": "t_servicio_ok quantized by probe interval",
+  "last_commit_before_fault": {
+    "commit_id": "c-9ce5ccbc8c5a45b4",
+    "committed_at_utc": "2026-11-18 21:06:39.299000",
+    "pk": 19,
+    "payload": "synthetic-r0-seq16"
+  },
+  "last_restored_commit_id": "c-ee3ea22718254a3e",
+  "commits_before_fault": 16,
+  "commits_restored": 10,
+  "confirmed_commits_lost": 6,
+  "integrity": {
+    "service_ok": true,
+    "db_available": true,
+    "functional_query_ok": true,
+    "project": "seguridad-caos-exp4",
+    "commit_count": 10,
+    "expected_commit_count_from_backup": 10,
+    "corruption_suspected": false,
+    "last_commit_id": "c-ee3ea22718254a3e",
+    "last_committed_at_utc": "2026-11-18 21:06:35.719000",
+    "last_commit_pk": 13,
+    "backup_id": "backup-r0-20261118T210636.492Z"
+  },
+  "n": 1,
+  "notes": [
+    "Do not invent timestamps when events are missing (null).",
+    "RPO loss (post-backup commits) is not restore corruption.",
+    "R0 manual wait time is included when operator_restore gates t_restore_in
+
+### evidencias/exp4-samuel/r1/metrics.json
+{
+  "run_id": "r1-20261118T210734Z",
+  "scenario": "r1",
+  "project": "seguridad-caos-exp4",
+  "backup_id_restored": "backup-r1-20261118T210745.919Z",
+  "backup_id_metrics_source": "backup-r1-20261118T210745.919Z",
+  "t_backup_utc": "2026-11-18T21:07:45.959000Z",
+  "t_fallo_utc": "2026-11-18T21:07:48.168000Z",
+  "t_deteccion_utc": "2026-11-18T21:07:48.277000Z",
+  "detection_status": "observed",
+  "t_restore_inicio_utc": "2026-11-18T21:07:48.999000Z",
+  "t_restore_fin_utc": "2026-11-18T21:07:49.160000Z",
+  "t_servicio_ok_utc": "2026-11-18T21:07:49.960000Z",
+  "rto_observed_ms": 1792.0,
+  "rpo_observed_from_backup_age_ms": 2209.0,
+  "rpo_objective_backup_interval_sec": 30,
+  "probe_interval_sec": 1.0,
+  "rto_uncertainty_note": "t_servicio_ok quantized by probe interval",
+  "last_commit_before_fault": {
+    "commit_id": "c-7ca5b2b06f144bb0",
+    "committed_at_utc": "2026-11-18 21:07:47.315000",
+    "pk": 29,
+    "payload": "synthetic-r1-seq16"
+  },
+  "last_restored_commit_id": "c-fed69c8b12b9479f",
+  "commits_before_fault": 16,
+  "commits_restored": 13,
+  "confirmed_commits_lost": 3,
+  "integrity": {
+    "service_ok": true,
+    "db_available": true,
+    "functional_query_ok": true,
+    "project": "segurida
+JSON=

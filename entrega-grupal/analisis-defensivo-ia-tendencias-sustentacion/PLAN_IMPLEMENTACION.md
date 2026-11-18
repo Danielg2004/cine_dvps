@@ -17,9 +17,11 @@ Ollama real Exp3+Exp2; T2 demo; guía; resumen.
 - Ollama real Exp1 + auditoría (honeytoken ≠ reuse; no SIEM)  
 - Ficha T1 cerrada en lab; docs/guía/resumen actualizados  
 
-## Etapa 5 — siguiente
-1. Incorporar Exp4 cuando Samuel entregue.  
-2. Autorización explícita para commit/push del delta Exp1.
+## Etapa 5 — hecha (Exp4)
+- Fuente `d5e72f6e` · métricas validadas · Ollama real · auditoría · guía definitiva  
+
+## Etapa 6 — siguiente
+Autorización explícita para commit/push del paquete actualizado (Exp4 + docs).
 
 ## Etapa 4 — integración grupal
 Jarrison incorpora carpeta + `RESUMEN_PARA_JARRISON.md` al informe ≤10 páginas.

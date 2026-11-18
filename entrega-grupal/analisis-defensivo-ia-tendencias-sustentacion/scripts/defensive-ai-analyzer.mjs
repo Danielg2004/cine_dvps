@@ -76,26 +76,120 @@ function stripBomJson(text) {
 
 function deterministicDraft(experimentId, bundle) {
   if (experimentId === 'exp4') {
-    return {
-      experimentId,
-      mode: 'deterministic-pending',
-      llmEligible: false,
-      summary: `PENDIENTE: no hay evidencias allowlisted para ${experimentId}.`,
-      chronology: [],
-      severity: null,
-      causeHypothesis: null,
-      controls: [],
-      metrics: {},
-      residualRisks: ['Dependencia de entrega del compañero responsable'],
-      recommendations: [],
-      claims: [
-        {
-          claim: `Análisis completo de ${experimentId} no disponible`,
-          classification: 'no_verificable',
-          reason: 'fuente ausente en allowlist',
-        },
+    const extractFile = bundle.files.find((f) => f.path.includes('FINAL-EXTRACT.sanitized.json'));
+    let extract = null;
+    try {
+      extract = extractFile && !extractFile.missing
+        ? stripBomJson(readFileSync(resolve(root, extractFile.path), 'utf8'))
+        : null;
+    } catch {
+      extract = null;
+    }
+    const R0 = extract?.R0 || {};
+    const R1 = extract?.R1 || {};
+    const draft = {
+      experimentId: 'exp4',
+      mode: 'deterministic-from-public-sanitized',
+      llmEligible: true,
+      summary:
+        'Exp.4 resiliencia de datos (OCI VM lab, n=1): fallo controlado tras escritura sintética; R0 restore manual; R1 con G1 backup mid + G2 restore automatizado. RPO/RTO/MTTD mejoran; integrity PASS ≠ cero pérdida (commits post-backup).',
+      chronology: [
+        `R0 ${R0.run_id || ''} — backup → fallo → detección → restore manual → servicio OK`,
+        `R1 ${R1.run_id || ''} — backup mid (G1) → fallo → detección → restore auto (G2) → servicio OK`,
       ],
+      severity: 'medium (pérdida de commits post-backup; integridad del restore OK)',
+      causeHypothesis:
+        'Pérdida lógica controlada tras último backup; RPO=antigüedad del backup restaurado; RTO=fallo→servicio_ok (R0 incluye espera humana).',
+      controls: ['mysqldump+SHA256', 'G1 backup adicional', 'G2 restore automatizado+integridad', 'watchdog/STOP'],
+      metrics: {
+        R0,
+        R1,
+        deltas: extract?.deltas,
+        methodology: extract?.methodology,
+        sourceCommit: extract?.sourceCommit,
+      },
+      residualRisks: [
+        'n=1 — sin garantía estadística',
+        'Commits perdidos residuales (6→3)',
+        'Originales no sanitizados no disponibles públicamente',
+      ],
+      recommendations: [
+        'Documentar siempre RPO observado vs intervalo objetivo',
+        'Separar tiempo de restore vs espera humana en RTO',
+        'Repetir pares R0/R1 para estadística (futuro; no ejecutado aquí)',
+      ],
+      claims: [],
     };
+    if (R0.rpo_observed_ms === 3629 && R1.rpo_observed_ms === 2209) {
+      draft.claims.push({
+        claim: 'RPO observado R0=3629 ms (3.629 s); R1=2209 ms (2.209 s)',
+        classification: 'verificada',
+        evidence: 'r0/r1 metrics.json rpo_observed_from_backup_age_ms',
+        kind: 'factual',
+      });
+    }
+    if (R0.rto_observed_ms === 13056 && R1.rto_observed_ms === 1792) {
+      draft.claims.push({
+        claim: 'RTO observado R0=13056 ms (13.056 s); R1=1792 ms (1.792 s)',
+        classification: 'verificada',
+        evidence: 'r0/r1 metrics.json rto_observed_ms',
+        kind: 'factual',
+      });
+    }
+    if (R0.mttd_sec === 0.3 && R1.mttd_sec === 0.109) {
+      draft.claims.push({
+        claim: 'MTTD R0=0.300 s; R1=0.109 s',
+        classification: 'verificada',
+        evidence: 't_deteccion - t_fallo en metrics',
+        kind: 'factual',
+      });
+    }
+    if (R0.commits_restored === 10 && R1.commits_restored === 13) {
+      draft.claims.push({
+        claim: 'Commits recuperados R0=10/16; R1=13/16',
+        classification: 'verificada',
+        evidence: 'commits_restored / commits_before_fault',
+        kind: 'factual',
+      });
+    }
+    if (R0.integrity_pass && R1.integrity_pass && R0.recovery_pass && R1.recovery_pass) {
+      draft.claims.push({
+        claim: 'Integridad PASS y recuperación PASS en R0 y R1',
+        classification: 'verificada',
+        evidence: 'integrity.* + t_servicio_ok_utc',
+        kind: 'factual',
+      });
+    }
+    if (extract?.deltas?.rpo_reduction_pct === 39.1 && extract?.deltas?.rto_reduction_pct === 86.3) {
+      draft.claims.push({
+        claim: 'Reducción RPO 39.1% y RTO 86.3% (n=1)',
+        classification: 'verificada',
+        evidence: 'recalc desde metrics; RESULTADOS-OCI',
+        kind: 'factual',
+      });
+    }
+    draft.claims.push({
+      claim: 'Se recuperaron 16/16 commits / pérdida de datos = 0',
+      classification: 'incorrecta',
+      evidence: 'confirmed_commits_lost R0=6 R1=3',
+      kind: 'factual',
+      note: 'Control negativo',
+    });
+    draft.claims.push({
+      claim: 'Integridad PASS implica RPO=0',
+      classification: 'incorrecta',
+      evidence: 'docs/06: pérdida post-backup = RPO, no corrupción',
+      kind: 'factual',
+      note: 'Control negativo',
+    });
+    draft.claims.push({
+      claim: 'Resultados estadísticamente garantizados / n>1',
+      classification: 'incorrecta',
+      evidence: 'n=1 documentado',
+      kind: 'factual',
+      note: 'Control negativo',
+    });
+    return draft;
   }
 
   if (experimentId === 'exp1') {
@@ -397,6 +491,14 @@ function buildPrompt(experimentId, draft, bundle) {
           'mttdMs de R1 es de reuse, NO del honeytoken. Lab AWS aislado ≠ producción.',
         ]
       : [];
+  const exp4Guard =
+    experimentId === 'exp4'
+      ? [
+          'GUARDRAIL_EXP4: RPO observado = antigüedad del backup restaurado (ms); NO confundir con intervalo objetivo.',
+          'Integridad PASS ≠ cero pérdida de datos. R0 es restore MANUAL; R1 es automatizado (G2). n=1.',
+          'Unidades: 3629 ms = 3.629 s (coma decimal ES). NO digas 16/16 commits ni garantía estadística.',
+        ]
+      : [];
   return [
     'Eres un analista defensivo. Emite UN objeto JSON compacto.',
     'REGLAS: no inventes cifras; copia metrics del borrador; no uses markdown; cierra todas las llaves.',
@@ -404,6 +506,7 @@ function buildPrompt(experimentId, draft, bundle) {
     'summary,chronology,severity,causeHypothesis,controls,metrics,residualRisks,recommendations,claims',
     ...exp2Guard,
     ...exp1Guard,
+    ...exp4Guard,
     `Experimento: ${experimentId}`,
     'BORRADOR_DETERMINISTA_JSON=',
     JSON.stringify({

@@ -1,0 +1,6 @@
+# Mantener fuera del índice cualquier dump/credencial si apareciera localmente
+*.sql
+*.pem
+*.key
+.env
+DOWNLOAD-MANIFEST.json

@@ -1,21 +1,16 @@
-# Matriz de fuentes — con Exp.1 AWS
+# Matriz de fuentes — cuatro experimentos
 
-**Actualización UTC:** 2026-11-18T19:03:00Z  
-**Regla:** sin métricas inventadas; Exp4 pendiente.
+**Actualización UTC:** 2026-11-18T21:29:00Z
 
-| ID | Experimento | Responsable | Disponibilidad | Identificador / ruta | Fecha | Notas |
-|----|-------------|-------------|----------------|----------------------|-------|-------|
-| EXP1-GRP | Repo grupal | Jarrison | **DISPONIBLE (privado)** | `JarrisonLopez/defensa-profundidad-caos-2026` @ `1cad076ffed34e70774c3a7dceba941b83660da7` | 2026-11-18T18:42:34Z | Lectura Danielg2004 |
-| EXP1-DOC | Doc honeytoken | Jarrison | **DISPONIBLE** | `docs/EVIDENCIAS_HONEYTOKEN_PARA_DANIEL.md` | mismo commit | |
-| EXP1-PKG | Paquete honeytoken | Jarrison | **DISPONIBLE** | `experimentos/01-identidad-aws/paquete-honeytoken-daniel/` | mismo | |
-| EXP1-LOCAL | Copia sanitizada | Daniel | **DISPONIBLE** | `evidencias/exp1-aws-jarrison/` + `SOURCE.md` / hashes | 2026-11-18 | Allowlist LLM |
-| EXP1-AI | Run Ollama Exp1 | Daniel | **DISPONIBLE** | `evidencias/ai-runs/exp1-latest.json` | 2026-11-18T19:03:34Z | `llm_real_ollama` |
-| EXP1-HONEY | Tendencia T1 | Jarrison+Daniel | **CERRADA (lab)** | `tendencias/honeytoken/FICHA_TECNICA.md` | 2026-11-18 | No SIEM |
-| EXP2-* | Exp.2 OCI | Samuel | **DISPONIBLE** | summaries `742c575a` / ai-runs | 2026-11-18 | |
-| EXP3-* | Exp.3 Cine | Daniel | **DISPONIBLE** | gke-r0-r1-retest + ai-runs | 2026-11-18 | |
-| EXP4-DATA | Exp.4 | Samuel | **EN CURSO** | — | — | |
-| T2-LAB | Remediación HITL | Daniel | **DISPONIBLE** | `evidencias/tendencia-2-human-approval/` | 2026-11-18 | Local only |
+| ID | Exp | Responsable | Disponibilidad | Ruta / commit | Notas |
+|----|-----|-------------|----------------|---------------|-------|
+| EXP1-* | 1 AWS | Jarrison | Extractos publishable | `evidencias/exp1-aws-jarrison/` · origen `1cad076…` | Originales privados excluidos de Git |
+| EXP2-* | 2 OCI red | Samuel | Summaries públicos | `evidencias/exp2-samuel/` · `742c575a` | |
+| EXP3-* | 3 GCP | Daniel | Completo | `exp3-daniel/` + `gke-r0-r1-retest` | |
+| EXP4-COMMIT | 4 OCI datos | Samuel | **DISPONIBLE** | `sgiraldor/hotel-fastify` @ `d5e72f6e4a5043008091fe80559f0f1952bcad43` | |
+| EXP4-MET | 4 métricas | Samuel | Públicas | `evidencias/exp4-samuel/r0|r1/metrics.json` | Sanitizadas |
+| EXP4-RES | 4 resultados | Samuel | Público | `RESULTADOS-OCI-20261118.md` | |
+| EXP4-AI | 4 Ollama | Daniel | Local paquete | `evidencias/ai-runs/exp4-latest.json` | `llm_real_ollama` |
+| T1/T2 | Tendencias | — | Documentadas | `tendencias/` | |
 
-## Dependencia abierta
-
-1. **Samuel:** Exp.4 RPO/RTO/ransomware.
+**No disponibles:** dumps SQL / originales no sanitizados de Samuel (solo en su entorno).

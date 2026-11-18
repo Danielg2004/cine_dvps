@@ -1,0 +1,14 @@
+﻿{
+  "backup_id": "backup-r1-20261118T210745.919Z",
+  "run_id": "r1-20261118T210734Z",
+  "scenario": "r1",
+  "project": "seguridad-caos-exp4",
+  "database": "lab_resilience_db",
+  "dump_file": "backup-r1-20261118T210745.919Z.sql",
+  "sha256": "54f1740d4c355fa26dcdacc234bf212a1e8709d28073b37b4008ac4465706724",
+  "bytes": 7033,
+  "t_backup_start_utc": "2026-11-18T21:07:45.920Z",
+  "t_backup_end_utc": "2026-11-18T21:07:45.959Z",
+  "tool": "mysqldump --single-transaction",
+  "note": "Configured backup interval is NOT observed RPO."
+}

@@ -1,92 +1,116 @@
-# Guía de sustentación — cuatro experimentos (con Exp.1 AWS)
+# Guía definitiva de sustentación — cuatro experimentos
 
-Uso: defensa oral grupal. Donde falte evidencia: **PENDIENTE** (no inventar).  
-**[EVIDENCIA]** = archivo; **[CONCEPTO]** = sin necesitar Exp4.
-
-**Auditoría IA actual:** Exp1 = 7 verificadas + 2 incorrectas (controles) + 1 error formato; Exp2 = 4+1+formato; Exp3 = 7; Exp4 pendiente.
+Uso: defensa oral. Si falta evidencia → **PENDIENTE** (no inventar).  
+**Unidades Exp4:** coma decimal ES → `3,629 s` = **3.629 s**.
 
 ---
 
-## 1. Defensa en profundidad
+## A. Preguntas Exp. 4 (mínimo 15)
 
-**P:** ¿Qué es defensa en profundidad aquí?  
-**R:** Capas independientes (identidad, red, detección, contención, recuperación, análisis). Ej.: honeytoken + política reuse (Exp1); NetPol+detector+ABORT (Exp3); HITL local (T2).
+**1. ¿Qué es RPO en la metodología de Samuel?**  
+RPO **observado** = `t_fallo − t_backup` del backup **restaurado** (ms en `metrics.json`). No es el intervalo objetivo (300 s / 30 s).
 
-## 2. Zero Trust / NIST SP 800-207
+**2. ¿Qué es RTO?**  
+RTO **observado** = `t_servicio_ok − t_fallo`. En R0 incluye la espera del operador para el restore manual.
 
-**P:** ¿Cómo aplica Zero Trust?  
-**R:** Decisión continua sobre identidad/recurso. Exp1 evalúa cada invoke de machine-token; Exp2 deniega path L4 no autorizado; Exp3 niega tráfico fuera de allowlist lab.
+**3. ¿Qué es MTTD aquí?**  
+`t_deteccion − t_fallo` (alerta `lab_event_observed`). R0: 0.300 s; R1: 0.109 s.
 
-## 3. Identidad de máquina
+**4. ¿Qué hace el backup?**  
+`mysqldump` + manifiesto SHA256 (`backup.meta.json`). Intervalo objetivo distinto R0/R1; el RPO medido es la antigüedad al fallo.
 
-**P:** ¿Qué se midió en Exp1? **[EVIDENCIA]**  
-**R:** Emisión/invoke de tokens de máquina; R0_weak vs R1_strict ante **reuse**; honeytoken canary con deny. Fuente: r0/r1 @ `1cad076`.
+**5. ¿R0 vs R1 en restauración?**  
+R0: restore **manual** real (runner espera script). R1: restore **automatizado** (G2) + chequeos.
 
-**P:** ¿`service.instance.id` en Exp3? **[EVIDENCIA]**  
-**R:** Identidad estable necesaria para silencio por instancia; restart invalidó R1 histórica.
+**6. ¿Integridad PASS qué garantiza?**  
+Servicio/DB/consulta OK, conteo = esperado del backup, sin corrupción sospechada. **No** implica cero pérdida de datos.
 
-## 4. Segmentación
+**7. ¿Cuántos commits se perdieron?**  
+R0: 6 de 16. R1: 3 de 16. Pérdida post-backup = RPO, no corrupción del restore.
 
-**P:** ¿Exp2 = NetworkPolicy OKE? → **No.** Docker + gateway L4.
+**8. ¿Cómo comparar R0/R1?**  
+Misma carga (16 commits / mismos seq). R1 añade G1 (backup mid) y G2 (auto-restore). n=1 pareja.
 
-## 5. SOC / SIEM / detección como código
+**9. ¿Para qué G1?**  
+Backup adicional mid → backup restaurado más reciente → menor RPO observado (3.629→2.209 s).
 
-**P:** ¿El honeytoken generó alerta SIEM? **[EVIDENCIA]**  
-**R:** **No demostrado.** `alertingMechanism` = application securityEvent (**not CloudWatch**). Hay evento local `identity.honeytoken_use`.
+**10. ¿Para qué G2?**  
+Restore automático + integridad + sonda → elimina espera humana → menor RTO (13.056→1.792 s).
 
-## 6. ATT&CK / D3FEND / ATLAS
+**11. ¿Qué fallo se simuló?**  
+Pérdida/corrupción lógica controlada tras escrituras sintéticas en lab OCI VM (no afirmar ransomware “real” sin evidencia de ataque verdadero).
 
-Mapeos de telemetría/IA en Exp3; identidad/canary en Exp1 como detección por engaño. No forzar IDs no documentados.
+**12. ¿Riesgos residuales?**  
+Aún hay commits perdidos; n=1; incertidumbre de sonda (~1 s) en `t_servicio_ok`; evidencias públicas sin dumps privados.
 
-## 7. MTTD / MTTC / R0-R1
+**13. ¿Límites de la prueba?**  
+Una pareja R0/R1; lab aislado; no garantiza producción ni estadística; originales no sanitizados no están en GitHub.
 
-**P:** ¿MTTD 398 ms del Exp1 es del honeytoken? **[EVIDENCIA]**  
-**R:** **No.** Es de la ronda de **reuse** en R1. El honeytoken no tiene latencia individual persistida.
+**14. ¿Resultados numéricos a memorizar?**  
+RPO 3.629/2.209 s (−39.1%); RTO 13.056/1.792 s (−86.3%); MTTD 0.300/0.109 s; commits 10/16 vs 13/16; integrity/recovery PASS.
 
-**P:** R0 vs R1 Exp1?  
-**R:** R0 permite reuse (8 allowed, 0 detections); R1 deniega (8 denied, 8 detections). Honeytoken deny en ambas.
+**15. ¿Qué evidencias mostrar al profesor?**  
+`metrics.json` R0/R1, `RESULTADOS-OCI-20261118.md`, `06-metricas-rpo-rto.md`, `05-r0-r1-g1-g2.md`, commit `d5e72f6e`, y la auditoría IA si preguntan por el LLM.
 
-## 8. Cobertura / FP
+**16. (bonus) ¿RPO = RTO?** → **No.** Uno mide pérdida temporal de datos (antigüedad backup); el otro tiempo hasta servicio OK.
 
-Exp1 R1: coverage 100%, FP 0 (reuse). Exp3: R0 coverage 0 / R1 1; FP pre-inyección 0.
+---
 
-## 9–10. RPO/RTO / ransomware — **[CONCEPTO / PENDIENTE Exp4]**
+## B. Preguntas integradoras (≥15)
 
-Sin mediciones grupales aún.
+**1. ¿Cómo se articula defensa en profundidad en el grupo?**  
+Capas: identidad/honeytoken (AWS), segmentación L4 (OCI), telemetría (GCP), resiliencia datos (OCI), más HITL local (T2).
 
-## 11. IA defensiva
+**2. ¿Zero Trust en una frase?**  
+Nunca confiar solo por perímetro: evaluar cada invoke/token/path y decidir continuamente (SP 800-207).
 
-**P:** ¿Por qué puede fallar el LLM?  
-**R:** Formato JSON, confusión honeytoken↔reuse, inventar SIEM/ts. Por eso auditoría humana y `formatErrors` separados.
+**3. ¿Honeytoken vs reuse?**  
+`identity.honeytoken_use` (canary) ≠ `identity.reuse_detected` (token reutilizado). Ambos pueden coexistir.
 
-## 12. Honeytokens — preguntas difíciles
+**4. ¿Por qué Exp2 no “arregla” OKE?**  
+Lab Docker + gateway L4; README niega NetworkPolicy en producción OKE.
 
-**P:** ¿`identity.honeytoken_use` = `identity.reuse_detected`?  
-**R:** **No.** Canary vs reuse de token legítimo-firmado mal reutilizado.
+**5. ¿Por qué falló la primera R1 de telemetría en GKE?**  
+`rollout restart` cambió `instanceId`; métrica by-instance quedó inválida. Retest con flags en volumen.
 
-**P:** ¿Hubo acceso concedido con honeytoken?  
-**R:** **No.** HTTP 403, `allowed=false`, `honeytokenGrantsAccess=false`.
+**6. ¿MTTD vs MTTC vs restore (Exp3)?**  
+Detección − inyección; contención − inyección; restore es distinto (Exp3 R1: 7.51 / 148.1 / 118 s).
 
-**P:** ¿Podemos citar el timestamp exacto del invoke honey?  
-**R:** **No** está en `events[]`; no inventarlo. Solo ventanas `startedAt`/`endedAt` de la ronda.
+**7. ¿Integrity PASS y RPO pueden coexistir?**  
+Sí (Exp4): restore íntegro del backup, pero commits posteriores al backup se pierden.
 
-**P:** ¿Es producción AWS?  
-**R:** Lab aislado ClusterIP+túnel; regla SSH temporal revocada.
+**8. ¿Qué aporta la IA defensiva?**  
+Narrativa y contraste; **nunca** sustituye métricas. Auditoría humana clasifica claims.
 
-## 13. Tendencias / limitaciones
+**9. ¿Qué errores típicos del LLM evitamos?**  
+Confundir honey/reuse; afirmar SIEM; 16/16 commits; RPO=0 por integrity; NP OKE; inventar ts.
 
-T1 honeytoken: evidenciada en lab (no SIEM). T2 HITL: lab local. Limitaciones: labs≠prod; Exp4 pendiente; sin ts honeytoken.
+**10. ¿T1 honeytoken está “en SIEM”?**  
+No demostrado. Detección local `securityEvent` (not CloudWatch).
 
-## Por experimento
+**11. ¿T2 toca la nube?**  
+No. Flag local + aprobación humana; `cloudTouched=false`.
 
-### Exp.1 AWS — EVIDENCIA
-Honeytoken 403 + evento canary; reuse R0/R1 contrastados; sin SIEM.
+**12. ¿Cuál es la mejora RPO/RTO del grupo?**  
+Exp4: −39.1% RPO y −86.3% RTO en n=1 (Samuel).
 
-### Exp.2 OCI — EVIDENCIA pública
-R0 permisivo; R1 bloqueo+alerta 20 ms; no OKE NP.
+**13. ¿Qué evidencias priorizar en 10 páginas?**  
+Tabla de 4 experimentos + 2 tendencias + limitaciones + 1 figura/tabla de métricas Exp3/Exp4.
 
-### Exp.3 Cine — EVIDENCIA
-R1 partial 7.51 s / 148.1 s; identidad estable en retest.
+**14. ¿Qué no debe decir el estudiante?**  
+“Recuperamos todo”, “garantizado”, “SIEM alertó el honeytoken”, “NP en OKE”, “Exp3 rompió DevOps”.
 
-### Exp.4 — PENDIENTE Samuel
-RPO/RTO/ransomware.
+**15. ¿Cómo citar fuentes?**  
+Commit + ruta: Exp4 `d5e72f6e` `evidencias-publicas/.../metrics.json`; Exp3 FINAL-REPORT retest; Exp1 paquete honeytoken; Exp2 summaries públicos.
+
+**16. (bonus) ¿Por qué n=1 importa?**  
+Una pareja no es muestra estadística; se reporta como resultado experimental puntual.
+
+---
+
+## C. Recordatorios por experimento (corto)
+
+- **Exp1:** 403 honey; no SIEM; MTTD 398 ms = reuse.  
+- **Exp2:** R1 20 ms; Docker≠OKE NP.  
+- **Exp3:** R1 partial 7.51/148.1; identidad estable.  
+- **Exp4:** RPO/RTO/MTTD arriba; G1/G2; integrity≠cero pérdida.

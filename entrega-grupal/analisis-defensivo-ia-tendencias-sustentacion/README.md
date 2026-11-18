@@ -1,39 +1,23 @@
 # Análisis defensivo con IA · Tendencias · Guía de sustentación
 
 **Responsable:** Daniel (Cine GCP)  
-**Consumidor:** Jarrison (informe grupal ≤10 páginas)  
-**Rama:** `feature/seguridad-caos-cine` · repo `cine_dvps`  
-**Estado:** Exp1 AWS + T1 honeytoken cerrados en lab · Exp4 pendiente · **sin commit/push** hasta autorización
+**Para:** Jarrison (informe ≤10 páginas)  
+**Rama:** `feature/seguridad-caos-cine`  
+**Estado:** Exp1–4 + T1/T2 + guía definitiva · **sin commit/push** hasta autorización
 
-## Estructura
+## Contenido
 
-```
-analisis-defensivo-ia-tendencias-sustentacion/
-├── README.md / RESUMEN_PARA_JARRISON.md
-├── MATRIZ_FUENTES.md / ANALISIS_DEFENSIVO_IA.md / AUDITORIA_CONCLUSIONES_IA.md
-├── TENDENCIAS_SEGURIDAD.md / GUIA_SUSTENTACION.md / PLAN_IMPLEMENTACION.md
-├── config/evidence-allowlist.json
-├── scripts/ (analyzer, prepare-exp1-aws, human-approval)
-├── tendencias/honeytoken/          # T1 evidenciada (lab AWS)
-├── tendencias/human-approval-remediation/  # T2 local
-└── evidencias/
-    ├── exp1-aws-jarrison/          # sanitizado desde commit 1cad076…
-    ├── exp2-samuel/ / exp3-daniel/
-    ├── ai-runs/ / tendencia-2-human-approval/
-```
+| Doc | Uso |
+|-----|-----|
+| `RESUMEN_PARA_JARRISON.md` | Capítulo listo para el informe grupal |
+| `MATRIZ_FUENTES.md` | Trazabilidad commits/rutas |
+| `ANALISIS_DEFENSIVO_IA.md` | Tabla de 4 experimentos |
+| `AUDITORIA_CONCLUSIONES_IA.md` | Claims verificados/incorrectos/formato |
+| `TENDENCIAS_SEGURIDAD.md` | T1 honeytoken · T2 HITL |
+| `GUIA_SUSTENTACION.md` | Preguntas Exp4 + integradoras |
+| `evidencias/exp4-samuel/` | Métricas públicas Exp4 @ `d5e72f6e` |
+| `evidencias/ai-runs/exp4-latest.json` | Ollama real Exp4 |
 
 ## Principios
 
-1. LLM ≠ fuente de verdad; ver `AUDITORIA_CONCLUSIONES_IA.md`.  
-2. Exp1: solo extractos sanitizados en prompts.  
-3. T1 honeytoken: detección local evidenciada; **no** SIEM.  
-4. T2: lab local; no cloud.  
-5. Exp4: pendiente Samuel.
-
-## Comandos
-
-```bash
-node .../scripts/prepare-exp1-aws-evidence.mjs
-node .../scripts/defensive-ai-analyzer.mjs --experiment exp1 --ollama
-npx vitest run .../tests/human-approval-remediation.test.ts
-```
+1. LLM ≠ verdad · 2. Solo evidencias sanitizadas/allowlisted · 3. Exp4 n=1 · 4. No republicar privados de compañeros sin política clara · 5. No alterar Exp1–3 históricos.

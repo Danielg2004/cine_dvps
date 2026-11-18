@@ -1,0 +1,61 @@
+{
+  "sourceRepo": "sgiraldor/hotel-fastify",
+  "sourceBranch": "feat/defensa-profundidad-oci",
+  "sourceCommit": "d5e72f6e4a5043008091fe80559f0f1952bcad43",
+  "packagePath": "entrega-grupal/experimento-4-resiliencia-datos/",
+  "evidenceClass": "public_sanitized_only",
+  "n": 1,
+  "methodology": {
+    "rpo_observed": "t_fallo - t_backup of restored backup (ms) — NOT the objective backup interval",
+    "rto_observed": "t_servicio_ok - t_fallo (ms); R0 includes manual operator wait",
+    "mttd": "t_deteccion - t_fallo from alerts (lab_event_observed)",
+    "integrity": "post-restore functional checks; post-backup loss is RPO not corruption",
+    "note_decimal_comma": "Samuel docs use European decimal comma: 3,629 s = 3.629 s = 3629 ms (NOT 3629 seconds)"
+  },
+  "R0": {
+    "run_id": "r0-20261118T210632Z",
+    "scenario": "r0_manual_restore",
+    "rpo_observed_ms": 3629,
+    "rpo_observed_sec": 3.629,
+    "rto_observed_ms": 13056,
+    "rto_observed_sec": 13.056,
+    "mttd_sec": 0.3,
+    "commits_before_fault": 16,
+    "commits_restored": 10,
+    "confirmed_commits_lost": 6,
+    "integrity_pass": true,
+    "recovery_pass": true,
+    "rpo_objective_backup_interval_sec": 300
+  },
+  "R1": {
+    "run_id": "r1-20261118T210734Z",
+    "scenario": "r1_g1_extra_backup_g2_automated_restore",
+    "rpo_observed_ms": 2209,
+    "rpo_observed_sec": 2.209,
+    "rto_observed_ms": 1792,
+    "rto_observed_sec": 1.792,
+    "mttd_sec": 0.109,
+    "commits_before_fault": 16,
+    "commits_restored": 13,
+    "confirmed_commits_lost": 3,
+    "integrity_pass": true,
+    "recovery_pass": true,
+    "rpo_objective_backup_interval_sec": 30
+  },
+  "improvements": {
+    "G1": "Additional mid-point backup (same mysqldump+SHA256 mechanics)",
+    "G2": "Automated restore + integrity + probe (eliminates manual wait in RTO)"
+  },
+  "deltas": {
+    "rpo_reduction_pct": 39.1,
+    "rto_reduction_pct": 86.3,
+    "commits_lost_reduction_pct": 50,
+    "single_pair_only": true
+  },
+  "limitations": [
+    "n=1 pair — not statistical guarantee",
+    "Public sanitized evidences only; private originals not available",
+    "Integrity PASS ≠ zero data loss (RPO commits lost remain)",
+    "R0 RTO includes human wait; R1 does not"
+  ]
+}

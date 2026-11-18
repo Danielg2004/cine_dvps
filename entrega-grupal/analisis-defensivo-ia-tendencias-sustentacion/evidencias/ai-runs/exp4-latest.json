@@ -1,48 +1,454 @@
 {
-  "analyzer": "group-defensive-ai-analyzer@2",
-  "stage": 2,
-  "startedAtUtc": "2026-11-18T18:15:36.393Z",
-  "endedAtUtc": "2026-11-18T18:15:36.394Z",
+  "analyzer": "group-defensive-ai-analyzer@3",
+  "stage": 3,
+  "startedAtUtc": "2026-11-18T21:28:55.355Z",
+  "endedAtUtc": "2026-11-18T21:29:07.396Z",
   "experiment": "exp4",
-  "allowlistId": "group-defensive-ai-allowlist@2",
-  "evidenceBundleStatus": "pending_samuel_in_progress",
-  "analysisKind": "deterministic_only",
-  "filesLoaded": [],
+  "allowlistId": "group-defensive-ai-allowlist@3",
+  "evidenceBundleStatus": "available_public_sanitized",
+  "analysisKind": "llm_real_ollama",
+  "filesLoaded": [
+    {
+      "path": "evidencias/exp4-samuel/FINAL-EXTRACT.sanitized.json",
+      "missing": false,
+      "bytes": 2226
+    },
+    {
+      "path": "evidencias/exp4-samuel/r0/metrics.json",
+      "missing": false,
+      "bytes": 1816
+    },
+    {
+      "path": "evidencias/exp4-samuel/r1/metrics.json",
+      "missing": false,
+      "bytes": 1814
+    },
+    {
+      "path": "evidencias/exp4-samuel/SOURCE.md",
+      "missing": false,
+      "bytes": 1581
+    },
+    {
+      "path": "evidencias/exp4-samuel/RESULTADOS-OCI-20261118.md",
+      "missing": false,
+      "bytes": 1423
+    },
+    {
+      "path": "evidencias/exp4-samuel/docs/06-metricas-rpo-rto.md",
+      "missing": false,
+      "bytes": 1174
+    }
+  ],
   "deterministicDraft": {
     "experimentId": "exp4",
-    "mode": "deterministic-pending",
-    "llmEligible": false,
-    "summary": "PENDIENTE: no hay evidencias allowlisted para exp4.",
-    "chronology": [],
-    "severity": null,
-    "causeHypothesis": null,
-    "controls": [],
-    "metrics": {},
-    "residualRisks": [
-      "Dependencia de entrega del compañero responsable"
+    "mode": "deterministic-from-public-sanitized",
+    "llmEligible": true,
+    "summary": "Exp.4 resiliencia de datos (OCI VM lab, n=1): fallo controlado tras escritura sintética; R0 restore manual; R1 con G1 backup mid + G2 restore automatizado. RPO/RTO/MTTD mejoran; integrity PASS ≠ cero pérdida (commits post-backup).",
+    "chronology": [
+      "R0 r0-20261118T210632Z — backup → fallo → detección → restore manual → servicio OK",
+      "R1 r1-20261118T210734Z — backup mid (G1) → fallo → detección → restore auto (G2) → servicio OK"
     ],
-    "recommendations": [],
+    "severity": "medium (pérdida de commits post-backup; integridad del restore OK)",
+    "causeHypothesis": "Pérdida lógica controlada tras último backup; RPO=antigüedad del backup restaurado; RTO=fallo→servicio_ok (R0 incluye espera humana).",
+    "controls": [
+      "mysqldump+SHA256",
+      "G1 backup adicional",
+      "G2 restore automatizado+integridad",
+      "watchdog/STOP"
+    ],
+    "metrics": {
+      "R0": {
+        "run_id": "r0-20261118T210632Z",
+        "scenario": "r0_manual_restore",
+        "rpo_observed_ms": 3629,
+        "rpo_observed_sec": 3.629,
+        "rto_observed_ms": 13056,
+        "rto_observed_sec": 13.056,
+        "mttd_sec": 0.3,
+        "commits_before_fault": 16,
+        "commits_restored": 10,
+        "confirmed_commits_lost": 6,
+        "integrity_pass": true,
+        "recovery_pass": true,
+        "rpo_objective_backup_interval_sec": 300
+      },
+      "R1": {
+        "run_id": "r1-20261118T210734Z",
+        "scenario": "r1_g1_extra_backup_g2_automated_restore",
+        "rpo_observed_ms": 2209,
+        "rpo_observed_sec": 2.209,
+        "rto_observed_ms": 1792,
+        "rto_observed_sec": 1.792,
+        "mttd_sec": 0.109,
+        "commits_before_fault": 16,
+        "commits_restored": 13,
+        "confirmed_commits_lost": 3,
+        "integrity_pass": true,
+        "recovery_pass": true,
+        "rpo_objective_backup_interval_sec": 30
+      },
+      "deltas": {
+        "rpo_reduction_pct": 39.1,
+        "rto_reduction_pct": 86.3,
+        "commits_lost_reduction_pct": 50,
+        "single_pair_only": true
+      },
+      "methodology": {
+        "rpo_observed": "t_fallo - t_backup of restored backup (ms) — NOT the objective backup interval",
+        "rto_observed": "t_servicio_ok - t_fallo (ms); R0 includes manual operator wait",
+        "mttd": "t_deteccion - t_fallo from alerts (lab_event_observed)",
+        "integrity": "post-restore functional checks; post-backup loss is RPO not corruption",
+        "note_decimal_comma": "Samuel docs use European decimal comma: 3,629 s = 3.629 s = 3629 ms (NOT 3629 seconds)"
+      },
+      "sourceCommit": "d5e72f6e4a5043008091fe80559f0f1952bcad43"
+    },
+    "residualRisks": [
+      "n=1 — sin garantía estadística",
+      "Commits perdidos residuales (6→3)",
+      "Originales no sanitizados no disponibles públicamente"
+    ],
+    "recommendations": [
+      "Documentar siempre RPO observado vs intervalo objetivo",
+      "Separar tiempo de restore vs espera humana en RTO",
+      "Repetir pares R0/R1 para estadística (futuro; no ejecutado aquí)"
+    ],
     "claims": [
       {
-        "claim": "Análisis completo de exp4 no disponible",
-        "classification": "no_verificable",
-        "reason": "fuente ausente en allowlist"
+        "claim": "RPO observado R0=3629 ms (3.629 s); R1=2209 ms (2.209 s)",
+        "classification": "verificada",
+        "evidence": "r0/r1 metrics.json rpo_observed_from_backup_age_ms",
+        "kind": "factual"
+      },
+      {
+        "claim": "RTO observado R0=13056 ms (13.056 s); R1=1792 ms (1.792 s)",
+        "classification": "verificada",
+        "evidence": "r0/r1 metrics.json rto_observed_ms",
+        "kind": "factual"
+      },
+      {
+        "claim": "MTTD R0=0.300 s; R1=0.109 s",
+        "classification": "verificada",
+        "evidence": "t_deteccion - t_fallo en metrics",
+        "kind": "factual"
+      },
+      {
+        "claim": "Commits recuperados R0=10/16; R1=13/16",
+        "classification": "verificada",
+        "evidence": "commits_restored / commits_before_fault",
+        "kind": "factual"
+      },
+      {
+        "claim": "Integridad PASS y recuperación PASS en R0 y R1",
+        "classification": "verificada",
+        "evidence": "integrity.* + t_servicio_ok_utc",
+        "kind": "factual"
+      },
+      {
+        "claim": "Reducción RPO 39.1% y RTO 86.3% (n=1)",
+        "classification": "verificada",
+        "evidence": "recalc desde metrics; RESULTADOS-OCI",
+        "kind": "factual"
+      },
+      {
+        "claim": "Se recuperaron 16/16 commits / pérdida de datos = 0",
+        "classification": "incorrecta",
+        "evidence": "confirmed_commits_lost R0=6 R1=3",
+        "kind": "factual",
+        "note": "Control negativo"
+      },
+      {
+        "claim": "Integridad PASS implica RPO=0",
+        "classification": "incorrecta",
+        "evidence": "docs/06: pérdida post-backup = RPO, no corrupción",
+        "kind": "factual",
+        "note": "Control negativo"
+      },
+      {
+        "claim": "Resultados estadísticamente garantizados / n>1",
+        "classification": "incorrecta",
+        "evidence": "n=1 documentado",
+        "kind": "factual",
+        "note": "Control negativo"
       }
     ]
   },
   "llm": {
     "simulated": false,
-    "skipped": true,
-    "reason": "experiment_pending_no_evidence",
     "model": "llama3.2:3b",
-    "createdAtUtc": "2026-11-18T18:15:36.394Z"
+    "endpoint": "http://127.0.0.1:11434/api/generate",
+    "requestParams": {
+      "model": "llama3.2:3b",
+      "stream": false,
+      "options": {
+        "temperature": 0,
+        "num_predict": 2200
+      }
+    },
+    "promptChars": 8164,
+    "promptShaPreview": "Eres un analista defensivo. Emite UN objeto JSON compacto.\nREGLAS: no inventes cifras; copia metrics del borrador; no uses markdown; cierra todas las llaves.\nKeys exactas (todas al nivel raíz, no anides residualRisks dentro de metrics):\nsum",
+    "promptFull": "Eres un analista defensivo. Emite UN objeto JSON compacto.\nREGLAS: no inventes cifras; copia metrics del borrador; no uses markdown; cierra todas las llaves.\nKeys exactas (todas al nivel raíz, no anides residualRisks dentro de metrics):\nsummary,chronology,severity,causeHypothesis,controls,metrics,residualRisks,recommendations,claims\nGUARDRAIL_EXP4: RPO observado = antigüedad del backup restaurado (ms); NO confundir con intervalo objetivo.\nIntegridad PASS ≠ cero pérdida de datos. R0 es restore MANUAL; R1 es automatizado (G2). n=1.\nUnidades: 3629 ms = 3.629 s (coma decimal ES). NO digas 16/16 commits ni garantía estadística.\nExperimento: exp4\nBORRADOR_DETERMINISTA_JSON=\n{\"summary\":\"Exp.4 resiliencia de datos (OCI VM lab, n=1): fallo controlado tras escritura sintética; R0 restore manual; R1 con G1 backup mid + G2 restore automatizado. RPO/RTO/MTTD mejoran; integrity PASS ≠ cero pérdida (commits post-backup).\",\"chronology\":[\"R0 r0-20261118T210632Z — backup → fallo → detección → restore manual → servicio OK\",\"R1 r1-20261118T210734Z — backup mid (G1) → fallo → detección → restore auto (G2) → servicio OK\"],\"severity\":\"medium (pérdida de commits post-backup; integridad del restore OK)\",\"causeHypothesis\":\"Pérdida lógica controlada tras último backup; RPO=antigüedad del backup restaurado; RTO=fallo→servicio_ok (R0 incluye espera humana).\",\"controls\":[\"mysqldump+SHA256\",\"G1 backup adicional\",\"G2 restore automatizado+integridad\",\"watchdog/STOP\"],\"metrics\":{\"R0\":{\"run_id\":\"r0-20261118T210632Z\",\"scenario\":\"r0_manual_restore\",\"rpo_observed_ms\":3629,\"rpo_observed_sec\":3.629,\"rto_observed_ms\":13056,\"rto_observed_sec\":13.056,\"mttd_sec\":0.3,\"commits_before_fault\":16,\"commits_restored\":10,\"confirmed_commits_lost\":6,\"integrity_pass\":true,\"recovery_pass\":true,\"rpo_objective_backup_interval_sec\":300},\"R1\":{\"run_id\":\"r1-20261118T210734Z\",\"scenario\":\"r1_g1_extra_backup_g2_automated_restore\",\"rpo_observed_ms\":2209,\"rpo_observed_sec\":2.209,\"rto_observed_ms\":1792,\"rto_observed_sec\":1.792,\"mttd_sec\":0.109,\"commits_before_fault\":16,\"commits_restored\":13,\"confirmed_commits_lost\":3,\"integrity_pass\":true,\"recovery_pass\":true,\"rpo_objective_backup_interval_sec\":30},\"deltas\":{\"rpo_reduction_pct\":39.1,\"rto_reduction_pct\":86.3,\"commits_lost_reduction_pct\":50,\"single_pair_only\":true},\"methodology\":{\"rpo_observed\":\"t_fallo - t_backup of restored backup (ms) — NOT the objective backup interval\",\"rto_observed\":\"t_servicio_ok - t_fallo (ms); R0 includes manual operator wait\",\"mttd\":\"t_deteccion - t_fallo from alerts (lab_event_observed)\",\"integrity\":\"post-restore functional checks; post-backup loss is RPO not corruption\",\"note_decimal_comma\":\"Samuel docs use European decimal comma: 3,629 s = 3.629 s = 3629 ms (NOT 3629 seconds)\"},\"sourceCommit\":\"d5e72f6e4a5043008091fe80559f0f1952bcad43\"},\"residualRisks\":[\"n=1 — sin garantía estadística\",\"Commits perdidos residuales (6→3)\",\"Originales no sanitizados no disponibles públicamente\"],\"recommendations\":[\"Documentar siempre RPO observado vs intervalo objetivo\",\"Separar tiempo de restore vs espera humana en RTO\",\"Repetir pares R0/R1 para estadística (futuro; no ejecutado aquí)\"]}\nEVIDENCIA_COMPACTA=\n### evidencias/exp4-samuel/FINAL-EXTRACT.sanitized.json\n{\n  \"sourceRepo\": \"sgiraldor/hotel-fastify\",\n  \"sourceBranch\": \"feat/defensa-profundidad-oci\",\n  \"sourceCommit\": \"d5e72f6e4a5043008091fe80559f0f1952bcad43\",\n  \"packagePath\": \"entrega-grupal/experimento-4-resiliencia-datos/\",\n  \"evidenceClass\": \"public_sanitized_only\",\n  \"n\": 1,\n  \"methodology\": {\n    \"rpo_observed\": \"t_fallo - t_backup of restored backup (ms) — NOT the objective backup interval\",\n    \"rto_observed\": \"t_servicio_ok - t_fallo (ms); R0 includes manual operator wait\",\n    \"mttd\": \"t_deteccion - t_fallo from alerts (lab_event_observed)\",\n    \"integrity\": \"post-restore functional checks; post-backup loss is RPO not corruption\",\n    \"note_decimal_comma\": \"Samuel docs use European decimal comma: 3,629 s = 3.629 s = 3629 ms (NOT 3629 seconds)\"\n  },\n  \"R0\": {\n    \"run_id\": \"r0-20261118T210632Z\",\n    \"scenario\": \"r0_manual_restore\",\n    \"rpo_observed_ms\": 3629,\n    \"rpo_observed_sec\": 3.629,\n    \"rto_observed_ms\": 13056,\n    \"rto_observed_sec\": 13.056,\n    \"mttd_sec\": 0.3,\n    \"commits_before_fault\": 16,\n    \"commits_restored\": 10,\n    \"confirmed_commits_lost\": 6,\n    \"integrity_pass\": true,\n    \"recovery_pass\": true,\n    \"rpo_objective_backup_interval_sec\": 300\n  },\n  \"R1\": {\n    \"run_id\": \"r1-20261118T210734Z\",\n    \"scenario\": \"r1_g1_extra_backup_g2_automated_restore\",\n    \"rpo_observed_ms\": 2209,\n    \"rpo_observed_sec\": 2.209,\n    \"rto_observed_ms\": 1792,\n    \"rto_observed_sec\": 1.792,\n    \"mttd_sec\": 0.109,\n    \"commits_before_fault\": 16,\n    \"commits_restored\": 13,\n    \"confirmed_commits_lost\": 3,\n    \"integrity_pass\": true,\n    \"recovery_pass\": true,\n    \"rpo_objective_backup_interval_sec\": 30\n  },\n  \"improvements\": {\n    \"G1\": \"Additional mid-point backup (same mysqldump+SHA256 mechanics)\",\n    \"G2\": \"Automated restore + integrity + probe (eliminates manual\n\n### evidencias/exp4-samuel/r0/metrics.json\n{\r\n  \"run_id\": \"r0-20261118T210632Z\",\r\n  \"scenario\": \"r0\",\r\n  \"project\": \"seguridad-caos-exp4\",\r\n  \"backup_id_restored\": \"backup-r0-20261118T210636.492Z\",\r\n  \"backup_id_metrics_source\": \"backup-r0-20261118T210636.492Z\",\r\n  \"t_backup_utc\": \"2026-11-18T21:06:36.533000Z\",\r\n  \"t_fallo_utc\": \"2026-11-18T21:06:40.162000Z\",\r\n  \"t_deteccion_utc\": \"2026-11-18T21:06:40.462000Z\",\r\n  \"detection_status\": \"observed\",\r\n  \"t_restore_inicio_utc\": \"2026-11-18T21:06:51.605000Z\",\r\n  \"t_restore_fin_utc\": \"2026-11-18T21:06:51.809000Z\",\r\n  \"t_servicio_ok_utc\": \"2026-11-18T21:06:53.218000Z\",\r\n  \"rto_observed_ms\": 13056.0,\r\n  \"rpo_observed_from_backup_age_ms\": 3629.0,\r\n  \"rpo_objective_backup_interval_sec\": 300,\r\n  \"probe_interval_sec\": 1.0,\r\n  \"rto_uncertainty_note\": \"t_servicio_ok quantized by probe interval\",\r\n  \"last_commit_before_fault\": {\r\n    \"commit_id\": \"c-9ce5ccbc8c5a45b4\",\r\n    \"committed_at_utc\": \"2026-11-18 21:06:39.299000\",\r\n    \"pk\": 19,\r\n    \"payload\": \"synthetic-r0-seq16\"\r\n  },\r\n  \"last_restored_commit_id\": \"c-ee3ea22718254a3e\",\r\n  \"commits_before_fault\": 16,\r\n  \"commits_restored\": 10,\r\n  \"confirmed_commits_lost\": 6,\r\n  \"integrity\": {\r\n    \"service_ok\": true,\r\n    \"db_available\": true,\r\n    \"functional_query_ok\": true,\r\n    \"project\": \"seguridad-caos-exp4\",\r\n    \"commit_count\": 10,\r\n    \"expected_commit_count_from_backup\": 10,\r\n    \"corruption_suspected\": false,\r\n    \"last_commit_id\": \"c-ee3ea22718254a3e\",\r\n    \"last_committed_at_utc\": \"2026-11-18 21:06:35.719000\",\r\n    \"last_commit_pk\": 13,\r\n    \"backup_id\": \"backup-r0-20261118T210636.492Z\"\r\n  },\r\n  \"n\": 1,\r\n  \"notes\": [\r\n    \"Do not invent timestamps when events are missing (null).\",\r\n    \"RPO loss (post-backup commits) is not restore corruption.\",\r\n    \"R0 manual wait time is included when operator_restore gates t_restore_in\n\n### evidencias/exp4-samuel/r1/metrics.json\n{\r\n  \"run_id\": \"r1-20261118T210734Z\",\r\n  \"scenario\": \"r1\",\r\n  \"project\": \"seguridad-caos-exp4\",\r\n  \"backup_id_restored\": \"backup-r1-20261118T210745.919Z\",\r\n  \"backup_id_metrics_source\": \"backup-r1-20261118T210745.919Z\",\r\n  \"t_backup_utc\": \"2026-11-18T21:07:45.959000Z\",\r\n  \"t_fallo_utc\": \"2026-11-18T21:07:48.168000Z\",\r\n  \"t_deteccion_utc\": \"2026-11-18T21:07:48.277000Z\",\r\n  \"detection_status\": \"observed\",\r\n  \"t_restore_inicio_utc\": \"2026-11-18T21:07:48.999000Z\",\r\n  \"t_restore_fin_utc\": \"2026-11-18T21:07:49.160000Z\",\r\n  \"t_servicio_ok_utc\": \"2026-11-18T21:07:49.960000Z\",\r\n  \"rto_observed_ms\": 1792.0,\r\n  \"rpo_observed_from_backup_age_ms\": 2209.0,\r\n  \"rpo_objective_backup_interval_sec\": 30,\r\n  \"probe_interval_sec\": 1.0,\r\n  \"rto_uncertainty_note\": \"t_servicio_ok quantized by probe interval\",\r\n  \"last_commit_before_fault\": {\r\n    \"commit_id\": \"c-7ca5b2b06f144bb0\",\r\n    \"committed_at_utc\": \"2026-11-18 21:07:47.315000\",\r\n    \"pk\": 29,\r\n    \"payload\": \"synthetic-r1-seq16\"\r\n  },\r\n  \"last_restored_commit_id\": \"c-fed69c8b12b9479f\",\r\n  \"commits_before_fault\": 16,\r\n  \"commits_restored\": 13,\r\n  \"confirmed_commits_lost\": 3,\r\n  \"integrity\": {\r\n    \"service_ok\": true,\r\n    \"db_available\": true,\r\n    \"functional_query_ok\": true,\r\n    \"project\": \"segurida\nJSON=",
+    "response": "{\"summary\":\"Exp.4 resiliencia de datos (OCI VM lab, n=1): fallo controlado tras escritura sintética; R0 restore manual; R1 con G1 backup mid + G2 restore automatizado. RPO/RTO/MTTD mejoran; integridad del restore OK\",\"chronology\":[\"R0 r0-20261118T210632Z — backup → fallo → detección → restore manual → servicio OK\",\"R1 r1-20261118T210734Z — backup mid (G1) → fallo → detección → restore auto (G2) → servicio OK\"],\"severity\":\"medium (pérdida de commits post-backup; integridad del restore OK)\",\"causeHypothesis\":\"Pérdida lógica controlada tras último backup; RPO=antigüedad del backup restaurado; RTO=fallo→servicio_ok (R0 incluye espera humana).\",\"controls\":[\"mysqldump+SHA256\",\"G1 backup adicional\",\"G2 restore automatizado+integridad\",\"watchdog/STOP\"],\"metrics\":{\"R0\":{\"run_id\":\"r0-20261118T210632Z\",\"scenario\":\"r0_manual_restore\",\"rpo_observed_ms\":3629,\"rpo_observed_sec\":3.629,\"rto_observed_ms\":13056,\"rto_observed_sec\":13.056,\"mttd_sec\":0.3,\"commits_before_fault\":16,\"commits_restored\":10,\"confirmed_commits_lost\":6,\"integrity_pass\":true,\"recovery_pass\":true,\"rpo_objective_backup_interval_sec\":300},\"R1\":{\"run_id\":\"r1-20261118T210734Z\",\"scenario\":\"r1_g1_extra_backup_g2_automated_restore\",\"rpo_observed_ms\":2209,\"rpo_observed_sec\":2.209,\"rto_observed_ms\":1792,\"rto_observed_sec\":1.792,\"mttd_sec\":0.109,\"commits_before_fault\":16,\"commits_restored\":13,\"confirmed_commits_lost\":3,\"integrity_pass\":true,\"recovery_pass\":true,\"rpo_objective_backup_interval_sec\":30},\"deltas\":{\"rpo_reduction_pct\":39.1,\"rto_reduction_pct\":86.3,\"commits_lost_reduction_pct\":50,\"single_pair_only\":true},\"methodology\":{\"rpo_observed\":\"t_fallo - t_backup of restored backup (ms) — NOT the objective backup interval\",\"rto_observed\":\"t_servicio_ok - t_fallo (ms); R0 includes manual operator wait\",\"mttd\":\"t_deteccion - t_fallo from alerts (lab_event_observed)\",\"integrity\":\"post-restore functional checks; post-backup loss is RPO not corruption\",\"note_decimal_comma\":\"Samuel docs use European decimal comma: 3,629 s = 3.629 s = 3629 ms (NOT 3629 seconds)\"},\"sourceCommit\":\"d5e72f6e4a5043008091fe80559f0f1952bcad43\"},\"residualRisks\":[\"n=1 — sin garantía estadística\",\"Commits perdidos residuales (6→3)\",\"Originales no sanitizados no disponibles públicamente\"],\"recommendations\":[\"Documentar siempre RPO observado vs intervalo objetivo\",\"Separar tiempo de restore vs espera humana en RTO\",\"Repetir pares R0/R1 para estadística (futuro; no ejecutado aquí)\"]}",
+    "responseUnmodified": true,
+    "formatStatus": "valid_json_shape_warning",
+    "formatErrors": [
+      {
+        "code": "shape_warning",
+        "message": "missing_key:claims"
+      }
+    ],
+    "parsedJson": {
+      "summary": "Exp.4 resiliencia de datos (OCI VM lab, n=1): fallo controlado tras escritura sintética; R0 restore manual; R1 con G1 backup mid + G2 restore automatizado. RPO/RTO/MTTD mejoran; integridad del restore OK",
+      "chronology": [
+        "R0 r0-20261118T210632Z — backup → fallo → detección → restore manual → servicio OK",
+        "R1 r1-20261118T210734Z — backup mid (G1) → fallo → detección → restore auto (G2) → servicio OK"
+      ],
+      "severity": "medium (pérdida de commits post-backup; integridad del restore OK)",
+      "causeHypothesis": "Pérdida lógica controlada tras último backup; RPO=antigüedad del backup restaurado; RTO=fallo→servicio_ok (R0 incluye espera humana).",
+      "controls": [
+        "mysqldump+SHA256",
+        "G1 backup adicional",
+        "G2 restore automatizado+integridad",
+        "watchdog/STOP"
+      ],
+      "metrics": {
+        "R0": {
+          "run_id": "r0-20261118T210632Z",
+          "scenario": "r0_manual_restore",
+          "rpo_observed_ms": 3629,
+          "rpo_observed_sec": 3.629,
+          "rto_observed_ms": 13056,
+          "rto_observed_sec": 13.056,
+          "mttd_sec": 0.3,
+          "commits_before_fault": 16,
+          "commits_restored": 10,
+          "confirmed_commits_lost": 6,
+          "integrity_pass": true,
+          "recovery_pass": true,
+          "rpo_objective_backup_interval_sec": 300
+        },
+        "R1": {
+          "run_id": "r1-20261118T210734Z",
+          "scenario": "r1_g1_extra_backup_g2_automated_restore",
+          "rpo_observed_ms": 2209,
+          "rpo_observed_sec": 2.209,
+          "rto_observed_ms": 1792,
+          "rto_observed_sec": 1.792,
+          "mttd_sec": 0.109,
+          "commits_before_fault": 16,
+          "commits_restored": 13,
+          "confirmed_commits_lost": 3,
+          "integrity_pass": true,
+          "recovery_pass": true,
+          "rpo_objective_backup_interval_sec": 30
+        },
+        "deltas": {
+          "rpo_reduction_pct": 39.1,
+          "rto_reduction_pct": 86.3,
+          "commits_lost_reduction_pct": 50,
+          "single_pair_only": true
+        },
+        "methodology": {
+          "rpo_observed": "t_fallo - t_backup of restored backup (ms) — NOT the objective backup interval",
+          "rto_observed": "t_servicio_ok - t_fallo (ms); R0 includes manual operator wait",
+          "mttd": "t_deteccion - t_fallo from alerts (lab_event_observed)",
+          "integrity": "post-restore functional checks; post-backup loss is RPO not corruption",
+          "note_decimal_comma": "Samuel docs use European decimal comma: 3,629 s = 3.629 s = 3629 ms (NOT 3629 seconds)"
+        },
+        "sourceCommit": "d5e72f6e4a5043008091fe80559f0f1952bcad43"
+      },
+      "residualRisks": [
+        "n=1 — sin garantía estadística",
+        "Commits perdidos residuales (6→3)",
+        "Originales no sanitizados no disponibles públicamente"
+      ],
+      "recommendations": [
+        "Documentar siempre RPO observado vs intervalo objetivo",
+        "Separar tiempo de restore vs espera humana en RTO",
+        "Repetir pares R0/R1 para estadística (futuro; no ejecutado aquí)"
+      ]
+    },
+    "auditRecovery": null,
+    "totalDurationNs": 12005462700,
+    "evalCount": 750,
+    "createdAtUtc": "2026-11-18T21:29:07.396Z"
   },
-  "llmClaimsAudit": [],
+  "factualClaimsAudit": [
+    {
+      "claim": "Exp.4 resiliencia de datos (OCI VM lab, n=1): fallo controlado tras escritura sintética; R0 restore manual; R1 con G1 backup mid + G2 restore automatizado. RPO/RTO/MTTD mejoran; integridad del restore OK",
+      "classification": "verificada",
+      "reason": "coherente con métricas/evidencias allowlisted (revisión humana requerida)",
+      "source": "llm",
+      "kind": "factual"
+    },
+    {
+      "claim": "Pérdida lógica controlada tras último backup; RPO=antigüedad del backup restaurado; RTO=fallo→servicio_ok (R0 incluye espera humana).",
+      "classification": "no_verificable",
+      "reason": "afirmación narrativa sin ancla literal suficiente",
+      "source": "llm",
+      "kind": "factual"
+    },
+    {
+      "claim": "RPO observado R0=3629 ms (3.629 s); R1=2209 ms (2.209 s)",
+      "classification": "verificada",
+      "evidence": "r0/r1 metrics.json rpo_observed_from_backup_age_ms",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "RTO observado R0=13056 ms (13.056 s); R1=1792 ms (1.792 s)",
+      "classification": "verificada",
+      "evidence": "r0/r1 metrics.json rto_observed_ms",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "MTTD R0=0.300 s; R1=0.109 s",
+      "classification": "verificada",
+      "evidence": "t_deteccion - t_fallo en metrics",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Commits recuperados R0=10/16; R1=13/16",
+      "classification": "verificada",
+      "evidence": "commits_restored / commits_before_fault",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Integridad PASS y recuperación PASS en R0 y R1",
+      "classification": "verificada",
+      "evidence": "integrity.* + t_servicio_ok_utc",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Reducción RPO 39.1% y RTO 86.3% (n=1)",
+      "classification": "verificada",
+      "evidence": "recalc desde metrics; RESULTADOS-OCI",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Se recuperaron 16/16 commits / pérdida de datos = 0",
+      "classification": "incorrecta",
+      "evidence": "confirmed_commits_lost R0=6 R1=3",
+      "kind": "factual",
+      "note": "Control negativo",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Integridad PASS implica RPO=0",
+      "classification": "incorrecta",
+      "evidence": "docs/06: pérdida post-backup = RPO, no corrupción",
+      "kind": "factual",
+      "note": "Control negativo",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Resultados estadísticamente garantizados / n>1",
+      "classification": "incorrecta",
+      "evidence": "n=1 documentado",
+      "kind": "factual",
+      "note": "Control negativo",
+      "source": "deterministic"
+    }
+  ],
+  "llmClaimsAudit": [
+    {
+      "claim": "Exp.4 resiliencia de datos (OCI VM lab, n=1): fallo controlado tras escritura sintética; R0 restore manual; R1 con G1 backup mid + G2 restore automatizado. RPO/RTO/MTTD mejoran; integridad del restore OK",
+      "classification": "verificada",
+      "reason": "coherente con métricas/evidencias allowlisted (revisión humana requerida)",
+      "source": "llm",
+      "kind": "factual"
+    },
+    {
+      "claim": "Pérdida lógica controlada tras último backup; RPO=antigüedad del backup restaurado; RTO=fallo→servicio_ok (R0 incluye espera humana).",
+      "classification": "no_verificable",
+      "reason": "afirmación narrativa sin ancla literal suficiente",
+      "source": "llm",
+      "kind": "factual"
+    },
+    {
+      "claim": "RPO observado R0=3629 ms (3.629 s); R1=2209 ms (2.209 s)",
+      "classification": "verificada",
+      "evidence": "r0/r1 metrics.json rpo_observed_from_backup_age_ms",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "RTO observado R0=13056 ms (13.056 s); R1=1792 ms (1.792 s)",
+      "classification": "verificada",
+      "evidence": "r0/r1 metrics.json rto_observed_ms",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "MTTD R0=0.300 s; R1=0.109 s",
+      "classification": "verificada",
+      "evidence": "t_deteccion - t_fallo en metrics",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Commits recuperados R0=10/16; R1=13/16",
+      "classification": "verificada",
+      "evidence": "commits_restored / commits_before_fault",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Integridad PASS y recuperación PASS en R0 y R1",
+      "classification": "verificada",
+      "evidence": "integrity.* + t_servicio_ok_utc",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Reducción RPO 39.1% y RTO 86.3% (n=1)",
+      "classification": "verificada",
+      "evidence": "recalc desde metrics; RESULTADOS-OCI",
+      "kind": "factual",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Se recuperaron 16/16 commits / pérdida de datos = 0",
+      "classification": "incorrecta",
+      "evidence": "confirmed_commits_lost R0=6 R1=3",
+      "kind": "factual",
+      "note": "Control negativo",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Integridad PASS implica RPO=0",
+      "classification": "incorrecta",
+      "evidence": "docs/06: pérdida post-backup = RPO, no corrupción",
+      "kind": "factual",
+      "note": "Control negativo",
+      "source": "deterministic"
+    },
+    {
+      "claim": "Resultados estadísticamente garantizados / n>1",
+      "classification": "incorrecta",
+      "evidence": "n=1 documentado",
+      "kind": "factual",
+      "note": "Control negativo",
+      "source": "deterministic"
+    }
+  ],
   "claimCounts": {
-    "verificada": 0,
-    "incorrecta": 0,
+    "verificada": 7,
+    "incorrecta": 3,
     "no_verificable": 1
   },
+  "formatErrorCount": 1,
+  "formatStatus": "valid_json_shape_warning",
+  "classificationLegend": {
+    "verificada": "Afirmación factual coherente con evidencia allowlisted",
+    "incorrecta": "Afirmación factual contradicha por evidencia o cifra inventada",
+    "no_verificable": "Afirmación factual sin ancla suficiente",
+    "format_error": "Problema de contrato/sintaxis JSON — NO es alucinación factual automática"
+  },
   "humanAuditRequired": true,
-  "note": "Las conclusiones oficiales viven en AUDITORIA_CONCLUSIONES_IA.md tras revisión humana. El LLM no es fuente de verdad."
+  "note": "Las conclusiones oficiales viven en AUDITORIA_CONCLUSIONES_IA.md. El LLM no es fuente de verdad. Errores de formato se registran aparte."
 }

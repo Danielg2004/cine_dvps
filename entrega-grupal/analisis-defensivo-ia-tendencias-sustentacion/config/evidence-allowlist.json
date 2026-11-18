@@ -4,7 +4,7 @@
   "notes": [
     "El analizador SOLO puede leer rutas listadas aquí.",
     "Exp1: solo artefactos publishable/sanitizados en cine_dvps; originales privados quedan fuera de Git.",
-    "Exp4 ausente hasta entrega de Samuel."
+    "Exp4: evidencias públicas sanitizadas Samuel @ d5e72f6e."
   ],
   "experiments": {
     "exp3": {
@@ -38,9 +38,17 @@
       ]
     },
     "exp4": {
-      "status": "pending_samuel_in_progress",
-      "files": [],
-      "incorporationTemplate": "templates/pending-experiment-slot.json"
+      "status": "available_public_sanitized",
+      "sourceRepo": "sgiraldor/hotel-fastify",
+      "sourceCommit": "d5e72f6e4a5043008091fe80559f0f1952bcad43",
+      "files": [
+        "evidencias/exp4-samuel/FINAL-EXTRACT.sanitized.json",
+        "evidencias/exp4-samuel/r0/metrics.json",
+        "evidencias/exp4-samuel/r1/metrics.json",
+        "evidencias/exp4-samuel/SOURCE.md",
+        "evidencias/exp4-samuel/RESULTADOS-OCI-20261118.md",
+        "evidencias/exp4-samuel/docs/06-metricas-rpo-rto.md"
+      ]
     }
   },
   "forbiddenPathPatterns": [
