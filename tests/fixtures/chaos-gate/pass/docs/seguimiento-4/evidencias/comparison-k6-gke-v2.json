@@ -1,0 +1,41 @@
+{
+  "metric_primary": "successful_requests_per_second",
+  "metric_secondary": [
+    "latency_p95_ms",
+    "rejected_429_503",
+    "success_rate",
+    "offered_http_reqs"
+  ],
+  "r0": 29.9667,
+  "r1": 27.8667,
+  "absolute_diff": -2.099999999999998,
+  "percent_change": -7.0077786342840485,
+  "r0_p95_ms": 860.65,
+  "r1_p95_ms": 988.8,
+  "r0_rejected_429_503": 1460,
+  "r1_rejected_429_503": 1504,
+  "r0_success_rate": 0.3809,
+  "r1_success_rate": 0.3571,
+  "r0_offered_http_reqs": 2360,
+  "r1_offered_http_reqs": 2341,
+  "r0_offered_rps": 78.6667,
+  "r1_offered_rps": 78.0333,
+  "r0_dropped_iterations": 41,
+  "r1_dropped_iterations": 61,
+  "offered_load_comparable": true,
+  "series": "gke-k6-constant-arrival-rate-v2",
+  "generator": "k6",
+  "signals": {
+    "rpsImproved": false,
+    "p95Improved": false,
+    "controlledRejects": true,
+    "offeredComparable": true
+  },
+  "hypothesis": "SOPORTADA_PARCIALMENTE: R1 aplicó admission/bulkhead con 503",
+  "caution": "503/429 no son éxitos. dropped_iterations son del scheduler k6, no de la API. Admission no aumenta el límite físico del recurso saturado.",
+  "sources": {
+    "r0": "chaos/results/r0-k6-gke-v2.json",
+    "r1": "chaos/results/r1-k6-gke-v2.json"
+  },
+  "generated_at": "2026-11-17T01:59:02.350Z"
+}

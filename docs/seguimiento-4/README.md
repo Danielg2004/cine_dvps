@@ -24,6 +24,7 @@ Caos propio: `/api/v3/__test/saturation/*` (token `x-chaos-token`).
 
 Legado canary: `/api/v3/__test/fault` (conservado).
 
+**Chaos Gate S4 (GitHub Actions):** workflow `Cine S4 - Chaos Gate` — evalúa evidencias históricas (`npm run chaos:gate`). No ejecuta caos remoto. Contrato: `CHAOS_GATE_CONTRATO.md`. Distinto del Quality Gate canary Cloud Run.
 ## Docker y Kubernetes GCP
 
 - Imagen: `Dockerfile` raíz (usuario no-root uid 1000)

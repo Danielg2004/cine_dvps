@@ -1,0 +1,28 @@
+{
+    "restoredAtUtc":  "2026-11-17T22:40:56.6104011Z",
+    "replicas":  2,
+    "readyReplicas":  2,
+    "configMap":  {
+                      "BULKHEAD_MAX_CONCURRENT":  "8",
+                      "ADMISSION_MAX_INFLIGHT":  "8",
+                      "RESILIENCE_ENABLED":  "false",
+                      "EXPERIMENT_ROUND":  "baseline"
+                  },
+    "saturationActive":  false,
+    "http":  {
+                 "/healthz":  200,
+                 "/readyz":  200,
+                 "/api/v2/peliculas/1":  200
+             },
+    "readyz":  {
+                   "database":  "up",
+                   "status":  "ready"
+               },
+    "otelConfigured":  true,
+    "otelLogSnippet":  "{\"msg\":\"OpenTelemetry iniciado\",\"service\":\"cine-api\",\"otlp\":\"configured\",\"traces\":true,\"metrics\":true,\"protocol\":\"http/protobuf\",\"endpointHost\":\"157.137.233.183:31443\",\"headersConfigured\":true,\"certificateConfigured\":true,\"certificateReadable\":true,\"propagator\":\"w3c-soft-traceparent\"}",
+    "sportsFlujo":  {
+                        "ok":  true,
+                        "status":  200,
+                        "url":  "http://3.21.120.51:30080/api/v2/flujo/1/1/1"
+                    }
+}

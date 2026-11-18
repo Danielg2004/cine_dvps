@@ -1,0 +1,50 @@
+{
+  "schema": "cine-s4-multicloud-75s@1",
+  "source": "docs/seguimiento-4/evidencias/MULTICLOUD_75S_SERIES.md",
+  "note": "Valores observados publicados por Sports k6 → flujo → Cine. No demuestra intervención de bulkhead/admission (0×503).",
+  "concurrency_max_measured": false,
+  "patterns_attributed": false,
+  "rounds": {
+    "baseline": {
+      "runId": "cine-baseline-20261117-164725",
+      "completed": 264,
+      "expected": 264,
+      "availability_pct": 100,
+      "p95_ms": 481.74,
+      "observed_rps": 3.5
+    },
+    "r0": {
+      "runId": "cine-r0-20261117-170417",
+      "completed": 186,
+      "expected": 186,
+      "availability_pct": 100,
+      "p95_ms": 715.09,
+      "observed_rps": 2.46,
+      "http_429": 0,
+      "http_503": 0,
+      "appliedCount": 186
+    },
+    "r1": {
+      "runId": "cine-r1-20261117-171742",
+      "completed": 186,
+      "expected": 186,
+      "availability_pct": 100,
+      "p95_ms": 696.51,
+      "observed_rps": 2.47,
+      "http_429": 0,
+      "http_503": 0,
+      "appliedCount": 186
+    }
+  },
+  "deltas": {
+    "p95_r1_minus_r0_ms": -18.58,
+    "p95_r1_vs_r0_pct": -2.6,
+    "note": "Δ p95 no se atribuye a bulkhead/admission; saturación holdMs explica el retardo vs baseline."
+  },
+  "recovery": {
+    "documented_in": "MULTICLOUD_75S_SERIES.md",
+    "saturation_active": false,
+    "replicas": "2/2",
+    "experiment_round": "baseline"
+  }
+}
