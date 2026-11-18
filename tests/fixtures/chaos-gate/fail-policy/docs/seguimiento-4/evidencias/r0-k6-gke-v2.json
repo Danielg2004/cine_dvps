@@ -1,0 +1,53 @@
+{
+    "ok":  true,
+    "experiment_id":  "cine-resource-exhaustion-concurrency-v1",
+    "round":  "r0",
+    "generator":  "k6",
+    "profile":  {
+                    "rate":  80,
+                    "timeUnit":  "1s",
+                    "duration":  "30s",
+                    "duration_sec":  30,
+                    "preAllocatedVUs":  40,
+                    "maxVUs":  120,
+                    "endpoint":  "GET /api/v2/peliculas/1",
+                    "baseUrl":  "http://35.239.107.54"
+                },
+    "offered":  {
+                    "target_iterations":  2400,
+                    "http_reqs":  2360,
+                    "dropped_iterations":  41,
+                    "note":  "dropped_iterations son del scheduler k6, NO respuestas HTTP de la API"
+                },
+    "during":  {
+                   "samples":  2360,
+                   "success":  899,
+                   "failed":  1461,
+                   "rejected_503":  1460,
+                   "rejected_429":  0,
+                   "rejected_429_503":  1460,
+                   "failed_other_4xx_5xx":  0,
+                   "success_rate":  0.3809,
+                   "successful_rps":  29.9667,
+                   "offered_rps":  78.6667,
+                   "latencies_ms":  {
+                                        "success_p95":  860.65
+                                    },
+                   "measurement":  "k6_constant_arrival_rate",
+                   "window_sec":  30,
+                   "with_fault":  true
+               },
+    "successful_rps":  29.9667,
+    "k6_raw_metrics":  {
+                           "http_req_duration_p95":  717.66081,
+                           "iterations":  2359
+                       },
+    "finished_at":  "2026-11-17T01:57:24.629Z",
+    "series":  "gke-k6-constant-arrival-rate-v2",
+    "environment":  "gke-autopilot-cine-caos",
+    "public_url":  "http://35.239.107.54",
+    "replicas_during_experiment":  1,
+    "note":  "1 replica durante medicion (misma metodologia que GKE v1); cluster vuelve a 2. Evidencia v1 intacta.",
+    "guard_order":  "bulkhead-\u003eadmission-\u003esaturation",
+    "bulkhead_enter_timeout_ms":  200
+}

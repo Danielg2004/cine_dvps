@@ -1,0 +1,10 @@
+{
+  "codes": {
+    "200": 92,
+    "503": 108
+  },
+  "reasons": {
+    "bulkhead_timeout": 108
+  },
+  "samples": 200
+}

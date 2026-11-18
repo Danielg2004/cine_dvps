@@ -11,6 +11,7 @@
     "validate:k8s": "powershell -File scripts/validate-k8s.ps1",
     "chaos:run": "node scripts/chaos/run-saturation-experiment.mjs",
     "chaos:compare": "node scripts/chaos/compare-rounds.mjs",
+    "chaos:gate": "node scripts/chaos/evaluate-chaos-gate.mjs",
     "chaos:lab": "tsx scripts/chaos/local-inprocess-lab.ts",
     "chaos:lab:http": "powershell -File scripts/chaos/run-http-series-v2.ps1",
     "chaos:lab:k6": "powershell -File scripts/chaos/run-k6-series-v3.ps1",

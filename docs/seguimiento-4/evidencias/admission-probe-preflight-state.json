@@ -1,4 +1,4 @@
-﻿{
+{
     "configMap":  {
                       "RESILIENCE_ENABLED":  "false",
                       "BULKHEAD_ENTER_TIMEOUT_MS":  "200",

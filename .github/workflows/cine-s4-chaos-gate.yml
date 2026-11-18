@@ -1,0 +1,98 @@
+name: Cine S4 - Chaos Gate
+
+# Evalúa evidencias históricas del Seguimiento #4.
+# NO ejecuta caos remoto, NO usa secretos GCP, NO despliega, NO toca GKE/Cloud SQL.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/seguimiento-4/evidencias/**'
+      - 'scripts/chaos/evaluate-chaos-gate.mjs'
+      - '.github/workflows/cine-s4-chaos-gate.yml'
+      - 'tests/chaos-gate-evaluator.test.ts'
+      - 'tests/fixtures/chaos-gate/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cine-s4-chaos-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-gate:
+    name: Validar proyecto y Chaos Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3308"
+      DB_USER: root
+      DB_PASSWORD: CineTestCI2026
+      DB_NAME: cine_dvps_test
+      DB_AUTO_INIT: "false"
+      NODE_ENV: test
+      OTEL_LOGS_EXPORTER: none
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Iniciar MySQL de pruebas
+        run: |
+          docker compose -f docker-compose.test.yml up -d mysql-test
+          for i in $(seq 1 40); do
+            if docker exec cine-mysql-test mysqladmin ping -h 127.0.0.1 -u root -p"$DB_PASSWORD" --silent; then
+              echo "MySQL disponible"
+              exit 0
+            fi
+            sleep 3
+          done
+          docker logs cine-mysql-test
+          exit 1
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Pruebas automatizadas
+        run: npm test
+
+      - name: Validar manifiestos Kubernetes (local)
+        run: |
+          if command -v pwsh >/dev/null 2>&1; then
+            npm run validate:k8s
+          else
+            bash scripts/validate-k8s.sh
+          fi
+
+      - name: Evaluar Chaos Gate (evidencias del repo)
+        id: chaos_gate
+        run: |
+          mkdir -p chaos/gate-out
+          node scripts/chaos/evaluate-chaos-gate.mjs \
+            --out-json chaos/gate-out/chaos-gate-report.json \
+            --summary-md chaos/gate-out/chaos-gate-summary.md
+
+      - name: Publicar artefacto del gate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cine-s4-chaos-gate-${{ github.run_id }}
+          path: |
+            chaos/gate-out/chaos-gate-report.json
+            chaos/gate-out/chaos-gate-summary.md
+          if-no-files-found: warn
+
+      - name: Limpiar MySQL de pruebas
+        if: always()
+        run: docker compose -f docker-compose.test.yml down -v

@@ -1,0 +1,145 @@
+{
+    "experiment":  "admission-control-complementary-probe",
+    "startedAtUtc":  "2026-11-17T22:38:25.6367568Z",
+    "endedAtUtc":  "2026-11-17T22:39:22.2535077Z",
+    "probeFailed":  false,
+    "parameters":  {
+                       "RESILIENCE_ENABLED":  "true",
+                       "ADMISSION_MAX_INFLIGHT":  2,
+                       "BULKHEAD_ENTER_TIMEOUT_MS":  200,
+                       "EXPERIMENT_ROUND":  "r1",
+                       "BULKHEAD_MAX_CONCURRENT":  8,
+                       "probe":  {
+                                     "concurrencyPerWave":  20,
+                                     "waves":  4,
+                                     "target":  "/api/v2/peliculas/1"
+                                 },
+                       "replicas":  1,
+                       "saturation":  {
+                                          "holdMs":  1000,
+                                          "maxQueueWaitMs":  800,
+                                          "maxInflight":  2,
+                                          "durationSec":  25
+                                      }
+                   },
+    "samples":  80,
+    "codes":  {
+                  "other":  5,
+                  "raw":  {
+                              "503":  9,
+                              "0":  5,
+                              "200":  66
+                          },
+                  "429":  0,
+                  "503":  9,
+                  "200":  66
+              },
+    "reasons":  {
+                    "inflight_limit":  9,
+                    "client_error":  5
+                },
+    "inflight_limit":  9,
+    "bulkhead_timeout":  0,
+    "saturation_queue_timeout":  0,
+    "admissionDemonstrated":  true,
+    "sample503Headers":  [
+                             {
+                                 "status":  503,
+                                 "reason":  "inflight_limit"
+                             },
+                             {
+                                 "status":  503,
+                                 "reason":  "inflight_limit"
+                             },
+                             {
+                                 "status":  503,
+                                 "reason":  "inflight_limit"
+                             },
+                             {
+                                 "status":  503,
+                                 "reason":  "inflight_limit"
+                             },
+                             {
+                                 "status":  503,
+                                 "reason":  "inflight_limit"
+                             },
+                             {
+                                 "status":  503,
+                                 "reason":  "inflight_limit"
+                             },
+                             {
+                                 "status":  503,
+                                 "reason":  "inflight_limit"
+                             },
+                             {
+                                 "status":  503,
+                                 "reason":  "inflight_limit"
+                             },
+                             {
+                                 "status":  503,
+                                 "reason":  "inflight_limit"
+                             }
+                         ],
+    "saturation":  {
+                       "afterStop":  {
+                                         "active":  false,
+                                         "startedAt":  null,
+                                         "endsAt":  null,
+                                         "config":  {
+                                                        "holdMs":  1000,
+                                                        "maxInflight":  2,
+                                                        "durationSec":  25,
+                                                        "maxQueueWaitMs":  800
+                                                    },
+                                         "appliedCount":  5,
+                                         "chaosInflight":  0,
+                                         "queueDepth":  0,
+                                         "limits":  {
+                                                        "maxHoldMs":  2000,
+                                                        "maxDurationSec":  120,
+                                                        "maxInflight":  32
+                                                    }
+                                     },
+                       "during":  {
+                                      "active":  false,
+                                      "startedAt":  null,
+                                      "endsAt":  null,
+                                      "config":  {
+                                                     "holdMs":  1000,
+                                                     "maxInflight":  2,
+                                                     "durationSec":  25,
+                                                     "maxQueueWaitMs":  800
+                                                 },
+                                      "appliedCount":  5,
+                                      "chaosInflight":  0,
+                                      "queueDepth":  0,
+                                      "limits":  {
+                                                     "maxHoldMs":  2000,
+                                                     "maxDurationSec":  120,
+                                                     "maxInflight":  32
+                                                 }
+                                  },
+                       "start":  {
+                                     "mensaje":  "saturacion activada",
+                                     "status":  {
+                                                    "active":  true,
+                                                    "startedAt":  1794955107289,
+                                                    "endsAt":  1794955132289,
+                                                    "config":  {
+                                                                   "holdMs":  1000,
+                                                                   "maxInflight":  2,
+                                                                   "durationSec":  25,
+                                                                   "maxQueueWaitMs":  800
+                                                               },
+                                                    "appliedCount":  0,
+                                                    "chaosInflight":  0,
+                                                    "queueDepth":  0,
+                                                    "limits":  {
+                                                                   "maxHoldMs":  2000,
+                                                                   "maxDurationSec":  120,
+                                                                   "maxInflight":  32
+                                                               }
+                                                }
+                                 }
+                   }
+}
