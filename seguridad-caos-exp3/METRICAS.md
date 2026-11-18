@@ -24,6 +24,18 @@
 - **Silencio HTTP ≠ pérdida OTEL.** Solo el heartbeat canónico arma y alimenta el detector.
 - **NOT_ARMED ≠ OK de seguridad cloud.** Significa “aún no hay baseline de telemetría para alertar”; en R0/R1 reales hay que armar antes de inyectar.
 
+## Lab OTLP local (`npm run security:otlp-lab`) — alcance de métricas
+
+| Evento / métrica | En el lab local | ¿Validado como contención operativa? |
+|------------------|-----------------|--------------------------------------|
+| `faultInjectedAtUtc` | Shutdown del `MeterProvider` exportador OTLP | Sí (inicio de falla de export) |
+| `detectedAtUtc` | Primera evaluación ALERT del adaptador externo | Sí (detección) → **MTTD** |
+| `containedAtUtc` | Marca inmediata post-ALERT en el script (ack de fallo detectado) | **No** — no activa kill switch ni un procedimiento de contención independiente |
+| `telemetryRestoredAtUtc` | Reaparición de heartbeats vía OTLP tras recrear exportador | Sí (restauración de señal) → **restore_sec** |
+| campo `MTTC_sec` en evidencia | `containedAtUtc − faultInjectedAtUtc` ≈ MTTD | **No presentar como MTTC de contención validado** |
+
+En R0/R1 reales, `containedAtUtc` debe ser el instante del kill switch / stop de inyección (`controls/ABORT` o equivalente), distinto de `telemetryRestoredAtUtc`.
+
 ## Cobertura de detección (diseño)
 
 Mínimo declarado para Exp. 3 telemetría:

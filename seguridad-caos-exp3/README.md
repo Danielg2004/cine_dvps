@@ -8,7 +8,8 @@ No modifica Seguimiento 4 DevOps ni despliegues cloud en esta fase.
 | Fase | Estado |
 |------|--------|
 | 1 Detector + R0/R1 diseño + kill switch | Hecha |
-| 2 Heartbeat real OTEL + puente local al detector | Hecha (esta) |
+| 2 Heartbeat real OTEL + puente local al detector | Hecha |
+| 3 Cadena OTLP local → adaptador externo → detector | Hecha |
 | Despliegue GKE / R0-R1 reales / capa IA | Pendiente autorización |
 
 **No incluido aún:** componente de IA, corridas reales en GCP, commits, cambios de ConfigMap desplegado.
@@ -43,8 +44,11 @@ seguridad-caos-exp3/
 ## Cómo probar en local
 
 ```bash
-# Detector + heartbeat + puente (incluye export OFF → ALERT)
+# Detector + heartbeat + cadena OTLP
 npm run security:telemetry-test
+
+# Lab OTLP end-to-end + evidencias UTC
+npm run security:otlp-lab
 
 # Kill switch (sin GCP)
 npm run security:telemetry-verify

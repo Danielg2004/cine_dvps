@@ -1,0 +1,42 @@
+{
+  "lab": "otlp-chain-local@1",
+  "branchHint": "feature/seguridad-caos-cine",
+  "otlp": {
+    "protocol": "http/json",
+    "receiverUrl": "http://127.0.0.1:54617/v1/metrics",
+    "requestsObserved": 6,
+    "note": "Verificado por contador de POST /v1/metrics al receptor local"
+  },
+  "timelineUtc": {
+    "receiverStartedAtUtc": "2026-11-18T04:53:31.678Z",
+    "healthyFlushAtUtc": "2026-11-18T04:53:32.475Z",
+    "faultInjectedAtUtc": "2026-11-18T04:53:32.525Z",
+    "detectedAtUtc": "2026-11-18T04:53:35.537Z",
+    "containedAtUtc": "2026-11-18T04:53:35.621Z",
+    "telemetryRestoredAtUtc": "2026-11-18T04:53:36.138Z"
+  },
+  "metrics": {
+    "MTTD_sec": 3.012,
+    "lab_ack_after_detect_sec": 3.096,
+    "restore_sec": 0.517,
+    "MTTC_sec_validated_containment": null
+  },
+  "metricsCaveat": {
+    "MTTD": "Validado en lab: detectedAtUtc - faultInjectedAtUtc",
+    "MTTC": "NO validado como contención operativa en este lab. containedAtUtc es marca de ack post-detección; ver METRICAS.md",
+    "restore_sec": "Validado en lab: telemetryRestoredAtUtc - containedAtUtc (restore de señal OTLP)"
+  },
+  "negative": {
+    "exitCode": 0,
+    "report": "seguridad-caos-exp3/evidencias-locales/otlp-chain-negative-report.json"
+  },
+  "positive": {
+    "exitCode": 1,
+    "report": "seguridad-caos-exp3/evidencias-locales/otlp-chain-positive-report.json"
+  },
+  "restore": {
+    "exitCode": 0,
+    "report": "seguridad-caos-exp3/evidencias-locales/otlp-chain-restore-report.json"
+  },
+  "passed": true
+}

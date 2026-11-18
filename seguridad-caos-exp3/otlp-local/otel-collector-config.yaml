@@ -1,0 +1,27 @@
+# OpenTelemetry Collector — lab local (NO cloud).
+# Uso opcional si tienes otelcol-contrib instalado:
+#   otelcol-contrib --config seguridad-caos-exp3/otlp-local/otel-collector-config.yaml
+#
+# Recibe OTLP HTTP (JSON y protobuf) en 127.0.0.1:4318.
+# El lab automatizado del repo usa el receptor Node (otlp-http-receiver.mjs) con OTLP JSON
+# para no depender de un binario externo en CI.
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 127.0.0.1:4318
+
+exporters:
+  file/metrics:
+    path: ./seguridad-caos-exp3/otlp-local/out/collector-metrics.json
+    rotation:
+      max_megabytes: 10
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [file/metrics, debug]

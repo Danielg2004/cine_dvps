@@ -1,0 +1,83 @@
+{
+  "adapter": "otlp-external-adapter@1",
+  "independentProcess": true,
+  "evaluatedAtUtc": "2026-11-18T04:53:35.537Z",
+  "sampleStats": {
+    "totalStored": 6,
+    "recentCount": 6,
+    "maxAgeSec": 60,
+    "otlpRequestCount": 0,
+    "lastOtlpReceivedAtUtc": null,
+    "nowUtc": "2026-11-18T04:53:35.537Z"
+  },
+  "recentSampleCount": 6,
+  "report": {
+    "detector": "cine-telemetry-silence-detector@1",
+    "mode": "by-instance",
+    "evaluatedAtUtc": "2026-11-18T04:53:35.537Z",
+    "aggregate": {
+      "detector": "cine-telemetry-silence-detector@1",
+      "policy": "cine-telemetry-silence-policy@lab",
+      "serviceName": "cine-api",
+      "signal": "cine.telemetry.heartbeat",
+      "evaluatedAtUtc": "2026-11-18T04:53:35.537Z",
+      "armed": true,
+      "armedAtUtc": "2026-11-18T04:53:31.681Z",
+      "lastHeartbeatOkAtUtc": "2026-11-18T04:53:32.209Z",
+      "successfulHeartbeats": 6,
+      "silenceSec": 3.328,
+      "silenceThresholdSec": 2,
+      "status": "ALERT",
+      "alert": true,
+      "detectedAtUtc": "2026-11-18T04:53:34.209Z",
+      "relevantSampleCount": 6,
+      "rationale": "Silencio de heartbeat 3.3s > umbral 2s tras detector armado."
+    },
+    "instances": [
+      {
+        "instanceId": "pod-lab-a",
+        "detector": "cine-telemetry-silence-detector@1",
+        "policy": "cine-telemetry-silence-policy@lab",
+        "serviceName": "cine-api",
+        "signal": "cine.telemetry.heartbeat",
+        "evaluatedAtUtc": "2026-11-18T04:53:35.537Z",
+        "armed": true,
+        "armedAtUtc": "2026-11-18T04:53:31.953Z",
+        "lastHeartbeatOkAtUtc": "2026-11-18T04:53:32.209Z",
+        "successfulHeartbeats": 3,
+        "silenceSec": 3.328,
+        "silenceThresholdSec": 2,
+        "status": "ALERT",
+        "alert": true,
+        "detectedAtUtc": "2026-11-18T04:53:34.209Z",
+        "relevantSampleCount": 3,
+        "rationale": "Silencio de heartbeat 3.3s > umbral 2s tras detector armado."
+      },
+      {
+        "instanceId": "pod-lab-b",
+        "detector": "cine-telemetry-silence-detector@1",
+        "policy": "cine-telemetry-silence-policy@lab",
+        "serviceName": "cine-api",
+        "signal": "cine.telemetry.heartbeat",
+        "evaluatedAtUtc": "2026-11-18T04:53:35.537Z",
+        "armed": true,
+        "armedAtUtc": "2026-11-18T04:53:31.953Z",
+        "lastHeartbeatOkAtUtc": "2026-11-18T04:53:32.209Z",
+        "successfulHeartbeats": 3,
+        "silenceSec": 3.328,
+        "silenceThresholdSec": 2,
+        "status": "ALERT",
+        "alert": true,
+        "detectedAtUtc": "2026-11-18T04:53:34.209Z",
+        "relevantSampleCount": 3,
+        "rationale": "Silencio de heartbeat 3.3s > umbral 2s tras detector armado."
+      }
+    ],
+    "alertingInstanceIds": [
+      "pod-lab-a",
+      "pod-lab-b"
+    ],
+    "lossKind": "total",
+    "alert": true
+  }
+}

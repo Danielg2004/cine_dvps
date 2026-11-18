@@ -1,2 +1,5 @@
 # Kill switch activo — no versionar
 controls/ABORT
+
+# Salida runtime del receptor/collector local
+otlp-local/out/
