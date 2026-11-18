@@ -71,12 +71,8 @@ jobs:
         run: npm test
 
       - name: Validar manifiestos Kubernetes (local)
-        run: |
-          if command -v pwsh >/dev/null 2>&1; then
-            npm run validate:k8s
-          else
-            bash scripts/validate-k8s.sh
-          fi
+        # En ubuntu-latest usar el script bash: npm run validate:k8s invoca powershell.exe.
+        run: bash scripts/validate-k8s.sh
 
       - name: Evaluar Chaos Gate (evidencias del repo)
         id: chaos_gate
