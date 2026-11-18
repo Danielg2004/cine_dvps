@@ -1,0 +1,3 @@
+# Copiar a ABORT (sin extensión .example) para abortar cualquier runner futuro.
+# Este archivo de ejemplo NO activa el kill switch.
+# Creación de ABORT = contención solicitada (containedAtUtc al detectar el flag).

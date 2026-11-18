@@ -1,0 +1,69 @@
+{
+  "version": "1.0.0",
+  "experiment_id": "cine-security-telemetry-loss-v1",
+  "title": "Pérdida controlada de telemetría OTEL — Experimento 3 (diseño)",
+  "status": "DESIGN_ONLY_NOT_EXECUTED",
+  "service": "cine-api",
+  "blast_radius": "Solo export OTEL de cine-api; no SQL, no LB, no Sports/Hotel",
+  "signal": "cine.telemetry.heartbeat",
+  "injection_method": {
+    "id": "otel-exporter-disable",
+    "description": "Misma falla en R0 y R1: deshabilitar export OTEL vía ConfigMap (OTEL_TRACES_EXPORTER=none y OTEL_METRICS_EXPORTER=none) + rollout. Alternativa equivalente: OTEL_SDK_DISABLED=true.",
+    "reversible": true,
+    "requires_authorization": true,
+    "not_executed_in_this_commit_phase": true
+  },
+  "rounds": {
+    "R0": {
+      "name": "baseline_aggregate_detection",
+      "adverse_condition": "Inyección otel-exporter-disable (misma en R0/R1), detector agregado (todas las instancias mezcladas)",
+      "hypothesis": "Con detector armado, silencio de heartbeat → ALERT agregado; API healthz/películas OK",
+      "detection_mode": "aggregate",
+      "controls": [
+        "No k6 de saturación",
+        "No cambio de Cloud SQL",
+        "Kill switch verificado en seco antes",
+        "Heartbeat CINE_TELEMETRY_HEARTBEAT_ENABLED=true"
+      ]
+    },
+    "R1": {
+      "name": "same_injection_plus_per_instance_detection",
+      "adverse_condition": "Idéntica inyección otel-exporter-disable",
+      "verifiable_improvement": "Detección por instancia (service.instance.id / POD_NAME): clasifica lossKind partial|total; permite ver una réplica muda con la otra sana",
+      "hypothesis": "Misma falla; MTTD/MTTC medibles; FP pre-inyección=0; partial vs total distinguible",
+      "detection_mode": "by-instance",
+      "controls": [
+        "Misma política silenceThresholdSec",
+        "Misma secuencia: armar → inyectar → detectar → contener → restaurar",
+        "evaluateTelemetrySilenceByInstance"
+      ]
+    }
+  },
+  "measurement_events": {
+    "faultInjectedAtUtc": "Instante UTC en que la falla de export queda efectiva (pods con exporters=none / SDK disabled)",
+    "detectedAtUtc": "Instante UTC en que el detector pasa a ALERT (lastOk + silenceThresholdSec)",
+    "containedAtUtc": "Instante UTC de contención: kill switch / stop de inyección (NO implica telemetría restaurada)",
+    "telemetryRestoredAtUtc": "Instante UTC en que vuelven heartbeats OK tras restore (métrica de restauración, distinta de MTTC)"
+  },
+  "metrics": {
+    "MTTD_sec": "detectedAtUtc - faultInjectedAtUtc",
+    "MTTC_sec": "containedAtUtc - faultInjectedAtUtc (contención, no restore)",
+    "restore_sec": "telemetryRestoredAtUtc - containedAtUtc",
+    "false_positives_pre_inject": "Alertas ALERT en ventana armada antes de faultInjectedAtUtc (objetivo 0)"
+  },
+  "steady_state_hypothesis": [
+    "healthz HTTP 200",
+    "readyz ready / database up",
+    "Detector armado con ≥ armAfterSuccessfulHeartbeats",
+    "status detector OK antes de inyección"
+  ],
+  "rollback": {
+    "strategy": "always",
+    "steps_documented_in": "seguridad-caos-exp3/REVERSION.md"
+  },
+  "kill_switch": {
+    "file_flag": "seguridad-caos-exp3/controls/ABORT",
+    "env_flag": "CINE_TELEMETRY_CHAOS_ABORT=1",
+    "verification": "seguridad-caos-exp3/scripts/verify-kill-switch.mjs (local, sin GCP)"
+  }
+}

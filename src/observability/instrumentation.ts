@@ -17,16 +17,13 @@ import type { SpanExporter } from '@opentelemetry/sdk-trace-base';
 import type { PushMetricExporter } from '@opentelemetry/sdk-metrics';
 import { DiscardSpanExporter, StdoutSpanExporter } from './span-export.js';
 import { createCinePropagator } from './w3c-propagator.js';
+import { startTelemetryHeartbeat } from './heartbeat.js';
+import { isOtelMetricsExportEnabled, isOtelSdkDisabled } from './otel-export-state.js';
 
 const GLOBAL_KEY = '__cineApiOpenTelemetryStarted';
 
 function envValue(name: string): string {
     return process.env[name]?.trim() ?? '';
-}
-
-function sdkDisabled(): boolean {
-    const value = envValue('OTEL_SDK_DISABLED').toLowerCase();
-    return value === 'true' || value === '1';
 }
 
 function signalProtocol(signal: 'traces' | 'metrics'): string {
@@ -37,16 +34,15 @@ function signalProtocol(signal: 'traces' | 'metrics'): string {
 }
 
 function signalEnabled(signal: 'traces' | 'metrics'): boolean {
-    const exporter = signal === 'traces'
-        ? envValue('OTEL_TRACES_EXPORTER')
-        : envValue('OTEL_METRICS_EXPORTER');
+    if (signal === 'metrics') {
+        return isOtelMetricsExportEnabled();
+    }
+    const exporter = envValue('OTEL_TRACES_EXPORTER');
     if (exporter.toLowerCase() === 'none') {
         return false;
     }
 
-    const specific = signal === 'traces'
-        ? envValue('OTEL_EXPORTER_OTLP_TRACES_ENDPOINT')
-        : envValue('OTEL_EXPORTER_OTLP_METRICS_ENDPOINT');
+    const specific = envValue('OTEL_EXPORTER_OTLP_TRACES_ENDPOINT');
     return Boolean(specific || envValue('OTEL_EXPORTER_OTLP_ENDPOINT'));
 }
 
@@ -119,13 +115,15 @@ function startTelemetry(): void {
         process.env.OTEL_LOGS_EXPORTER = 'none';
     }
 
-    if (sdkDisabled()) {
+    if (isOtelSdkDisabled()) {
         console.log(JSON.stringify({
             msg: 'OpenTelemetry iniciado',
             service: serviceName,
             otlp: 'disabled',
             sdk: 'disabled',
         }));
+        // Heartbeat puede arrancar igual; el puente local no espeja si export métricas=off.
+        startTelemetryHeartbeat();
         return;
     }
 
@@ -196,6 +194,8 @@ function startTelemetry(): void {
         // W3C + soft-parse de traceparent duplicados (Sports double-inject)
         propagator: 'w3c-soft-traceparent',
     }));
+
+    startTelemetryHeartbeat();
 }
 
 const globalRecord = globalThis as typeof globalThis & Record<string, boolean | undefined>;

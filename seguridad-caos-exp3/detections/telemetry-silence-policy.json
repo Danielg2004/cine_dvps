@@ -1,0 +1,13 @@
+{
+  "id": "cine-telemetry-silence-policy@1",
+  "serviceName": "cine-api",
+  "signal": "cine.telemetry.heartbeat",
+  "silenceThresholdSec": 60,
+  "armAfterSuccessfulHeartbeats": 2,
+  "requireServiceMatch": true,
+  "notes": [
+    "El heartbeat es independiente del tráfico HTTP de usuarios.",
+    "Sin armar el detector (pocos/ningún heartbeat OK) no se genera alerta: evita FP por idle.",
+    "Umbral 60s es diseño local verificable; ajustar solo con evidencia de intervalo real de heartbeat en runtime."
+  ]
+}

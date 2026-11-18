@@ -1,0 +1,29 @@
+{
+  "description": "Flujo normal: heartbeats periódicos — no debe alertar",
+  "samples": [
+    {
+      "observedAtUtc": "2026-11-18T02:00:00.000Z",
+      "serviceName": "cine-api",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true
+    },
+    {
+      "observedAtUtc": "2026-11-18T02:00:30.000Z",
+      "serviceName": "cine-api",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true
+    },
+    {
+      "observedAtUtc": "2026-11-18T02:01:00.000Z",
+      "serviceName": "cine-api",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true
+    },
+    {
+      "observedAtUtc": "2026-11-18T02:01:30.000Z",
+      "serviceName": "cine-api",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true
+    }
+  ]
+}
