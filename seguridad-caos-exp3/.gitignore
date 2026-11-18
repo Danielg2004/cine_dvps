@@ -1,5 +1,8 @@
 # Kill switch activo — no versionar
 controls/ABORT
 
+# Flag local de contención (runtime)
+evidencias-locales/containment-flag/
+
 # Salida runtime del receptor/collector local
 otlp-local/out/

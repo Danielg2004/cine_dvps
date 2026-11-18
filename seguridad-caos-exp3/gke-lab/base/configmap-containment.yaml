@@ -1,0 +1,13 @@
+# Contención observable (ABORT): CONTAINMENT_ACTIVE=true fuerza emisión pese a inject.
+# Solo recursos del namespace cine-seguridad-exp3.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-exp3-containment
+  namespace: cine-seguridad-exp3
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/role: "containment"
+data:
+  CONTAINMENT_ACTIVE: "false"
+  CONTAINMENT_NOTE: "ABORT handler sets true to stop adverse silence; restore sets false"

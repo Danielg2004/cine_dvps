@@ -1,0 +1,134 @@
+{
+  "round": "R1",
+  "mode": "by-instance",
+  "injection": "partial-b-silent-a-ok",
+  "namespace": "cine-seguridad-exp3",
+  "policyId": "cine-telemetry-silence-policy-exp3-lab@1",
+  "silenceThresholdSec": 60,
+  "timestamps": {
+    "injectRequestedAtUtc": "2026-11-18T17:23:42.038Z",
+    "faultInjectedAtUtc": "2026-11-18T17:24:42.098Z",
+    "lastBHeartbeatBeforeFaultUtc": null,
+    "detectionEvaluatedAtUtc": "2026-11-18T17:26:16.266Z",
+    "detectedAtUtc": null,
+    "abortRequestedAtUtc": "2026-11-18T17:26:16.267Z",
+    "containAppliedAtUtc": "2026-11-18T17:26:16.267Z",
+    "containedAtUtc": "2026-11-18T17:27:21.617Z",
+    "restoreAppliedAtUtc": "2026-11-18T17:27:21.618Z",
+    "telemetryRestoredAtUtc": "2026-11-18T17:28:25.613Z"
+  },
+  "detection": {
+    "detector": "cine-telemetry-silence-detector@1",
+    "mode": "by-instance",
+    "evaluatedAtUtc": "2026-11-18T17:26:16.266Z",
+    "aggregate": {
+      "detector": "cine-telemetry-silence-detector@1",
+      "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "evaluatedAtUtc": "2026-11-18T17:26:16.266Z",
+      "armed": true,
+      "armedAtUtc": "2026-11-18T17:09:03.911Z",
+      "lastHeartbeatOkAtUtc": "2026-11-18T17:26:04.439Z",
+      "successfulHeartbeats": 70,
+      "silenceSec": 11.827,
+      "silenceThresholdSec": 60,
+      "status": "OK",
+      "alert": false,
+      "detectedAtUtc": null,
+      "relevantSampleCount": 70,
+      "rationale": "Heartbeat dentro de umbral (silencio 11.8s ≤ 60s)."
+    },
+    "instances": [
+      {
+        "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+        "detector": "cine-telemetry-silence-detector@1",
+        "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+        "serviceName": "cine-exp3-telemetry",
+        "signal": "cine.telemetry.heartbeat",
+        "evaluatedAtUtc": "2026-11-18T17:26:16.266Z",
+        "armed": true,
+        "armedAtUtc": "2026-11-18T17:09:03.911Z",
+        "lastHeartbeatOkAtUtc": "2026-11-18T17:26:04.439Z",
+        "successfulHeartbeats": 70,
+        "silenceSec": 11.827,
+        "silenceThresholdSec": 60,
+        "status": "OK",
+        "alert": false,
+        "detectedAtUtc": null,
+        "relevantSampleCount": 70,
+        "rationale": "Heartbeat dentro de umbral (silencio 11.8s ≤ 60s)."
+      }
+    ],
+    "alertingInstanceIds": [],
+    "lossKind": "none",
+    "alert": false
+  },
+  "metrics": {
+    "MTTD_sec": null,
+    "detectionCoverage": 0,
+    "MTTC_sec": 159.519,
+    "restore_sec": 63.996
+  },
+  "notes": [
+    "R1 unexpected: no ALERT on partial loss"
+  ],
+  "devopsPre": {
+    "label": "R1-pre",
+    "utc": "2026-11-18T17:23:36.193Z",
+    "ready": "2/2",
+    "lb": "35.239.107.54"
+  },
+  "falsePositivesPreInject": 0,
+  "preInject": {
+    "alert": false,
+    "lossKind": "none"
+  },
+  "alert": false,
+  "lossKind": "none",
+  "alertingInstanceIds": [],
+  "mttd": null,
+  "containmentVerified": {
+    "emitterA": {
+      "exists": true,
+      "value": "true"
+    },
+    "emitterB": {
+      "exists": true,
+      "value": "true"
+    },
+    "recent": {
+      "windowSec": 45,
+      "aCount": 3,
+      "bCount": 3,
+      "aLast": "2026-11-18T17:27:20.218Z",
+      "bLast": "2026-11-18T17:27:15.778Z",
+      "instanceIds": [
+        "cine-exp3-emitter-b-74f4d6fc98-v5ftf",
+        "cine-exp3-emitter-a-78c65b7cbd-j9qqq"
+      ]
+    }
+  },
+  "postRestore": {
+    "alert": false,
+    "lossKind": "none",
+    "recent": {
+      "windowSec": 60,
+      "aCount": 4,
+      "bCount": 4,
+      "aLast": "2026-11-18T17:28:19.486Z",
+      "bLast": "2026-11-18T17:28:16.797Z",
+      "instanceIds": [
+        "cine-exp3-emitter-b-7c56fd67ff-bl7cd",
+        "cine-exp3-emitter-a-78c65b7cbd-j9qqq"
+      ]
+    }
+  },
+  "devopsPost": {
+    "label": "R1-post",
+    "utc": "2026-11-18T17:28:26.708Z",
+    "ready": "2/2",
+    "lb": "35.239.107.54"
+  },
+  "endedAtUtc": "2026-11-18T17:28:26.709Z"
+}

@@ -1,0 +1,36 @@
+# Solo ClusterIP — prohibido LoadBalancer / Ingress público.
+apiVersion: v1
+kind: Service
+metadata:
+  name: cine-exp3-otlp-receiver
+  namespace: cine-seguridad-exp3
+  labels:
+    app: cine-exp3-otlp-receiver
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+spec:
+  type: ClusterIP
+  selector:
+    app: cine-exp3-otlp-receiver
+  ports:
+    - name: otlp-http
+      port: 4319
+      targetPort: otlp-http
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cine-exp3-emitter
+  namespace: cine-seguridad-exp3
+  labels:
+    app: cine-exp3-emitter
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+spec:
+  type: ClusterIP
+  selector:
+    app: cine-exp3-emitter
+  ports:
+    - name: health
+      port: 8080
+      targetPort: health
+      protocol: TCP

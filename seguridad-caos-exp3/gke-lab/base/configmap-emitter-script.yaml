@@ -1,0 +1,182 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-exp3-emitter-script
+  namespace: cine-seguridad-exp3
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+data:
+  emitter.mjs: |
+    import http from 'node:http';
+    import { readFileSync, existsSync } from 'node:fs';
+    import { join } from 'node:path';
+    import { hostname as osHostname } from 'node:os';
+
+    const PORT = Number(process.env.HEALTH_PORT || 8080);
+    const INTERVAL_MS = Number(process.env.CINE_TELEMETRY_HEARTBEAT_INTERVAL_MS || 15000);
+    const ENDPOINT = (process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '').replace(/\/$/, '');
+    const SERVICE = process.env.OTEL_SERVICE_NAME || 'cine-exp3-telemetry';
+    const ENV = process.env.DEPLOYMENT_ENVIRONMENT || 'seguridad-exp3-lab';
+    const INSTANCE = process.env.POD_NAME || process.env.HOSTNAME || osHostname() || 'unknown';
+    const CONTAINMENT_FILE = process.env.CONTAINMENT_FILE || '/containment/CONTAINMENT_ACTIVE';
+    // Volumen opcional (emitter-b): patch ConfigMap sin rollout → identidad estable
+    const EMIT_FLAGS_DIR = process.env.EMIT_FLAGS_DIR || '';
+
+    function containmentActive() {
+      try {
+        if (existsSync(CONTAINMENT_FILE)) {
+          const v = readFileSync(CONTAINMENT_FILE, 'utf8').trim().toLowerCase();
+          if (v === 'true' || v === '1') return true;
+        }
+      } catch { /* ignore */ }
+      const e = (process.env.CONTAINMENT_ACTIVE || 'false').toLowerCase();
+      return e === 'true' || e === '1';
+    }
+
+    function readFlag(dir, key, fallback) {
+      if (!dir) return fallback;
+      try {
+        const p = join(dir, key);
+        if (existsSync(p)) return readFileSync(p, 'utf8').trim();
+      } catch { /* ignore */ }
+      return fallback;
+    }
+
+    function emitGate() {
+      // Contención ABORT: fuerza emisión y detiene la condición adversa.
+      if (containmentActive()) {
+        return { enabled: true, reason: 'containment', source: 'containment' };
+      }
+      const emitRaw = readFlag(
+        EMIT_FLAGS_DIR || null,
+        'TELEMETRY_EMIT_ENABLED',
+        process.env.TELEMETRY_EMIT_ENABLED || 'true',
+      );
+      const metricsRaw = readFlag(
+        EMIT_FLAGS_DIR || null,
+        'OTEL_METRICS_EXPORTER',
+        process.env.OTEL_METRICS_EXPORTER || 'otlp',
+      );
+      const emit = String(emitRaw).toLowerCase();
+      const metrics = String(metricsRaw).toLowerCase();
+      const enabled = (emit === 'true' || emit === '1') && metrics !== 'none';
+      const source = EMIT_FLAGS_DIR ? 'volume' : 'env';
+      return {
+        enabled,
+        reason: enabled ? `emit_ok:${source}` : `emit_disabled:${source}`,
+        source,
+        emit,
+        metrics,
+      };
+    }
+
+    function emitEnabled() {
+      return emitGate().enabled;
+    }
+
+    let seq = 0;
+    let lastStatus = { ok: true, emitted: 0, skipped: 0, lastError: null, lastGate: null };
+
+    function buildOtlpBody(counterValue) {
+      const nowNano = String(Date.now()) + '000000';
+      return {
+        resourceMetrics: [{
+          resource: {
+            attributes: [
+              { key: 'service.name', value: { stringValue: SERVICE } },
+              { key: 'service.instance.id', value: { stringValue: INSTANCE } },
+              { key: 'deployment.environment', value: { stringValue: ENV } },
+            ],
+          },
+          scopeMetrics: [{
+            metrics: [{
+              name: 'cine.telemetry.heartbeat',
+              unit: '{heartbeat}',
+              sum: {
+                aggregationTemporality: 2,
+                isMonotonic: true,
+                dataPoints: [{
+                  asInt: String(counterValue),
+                  timeUnixNano: nowNano,
+                  attributes: [
+                    { key: 'heartbeat.ok', value: { boolValue: true } },
+                    { key: 'service.instance.id', value: { stringValue: INSTANCE } },
+                  ],
+                }],
+              },
+            }],
+          }],
+        }],
+      };
+    }
+
+    async function emitOnce() {
+      const gate = emitGate();
+      lastStatus.lastGate = gate;
+      if (!gate.enabled) {
+        lastStatus.skipped += 1;
+        lastStatus.ok = true;
+        lastStatus.lastError = 'emit_disabled';
+        return;
+      }
+      if (!ENDPOINT) {
+        lastStatus.ok = false;
+        lastStatus.lastError = 'missing_endpoint';
+        return;
+      }
+      seq += 1;
+      const url = ENDPOINT.endsWith('/v1/metrics') ? ENDPOINT : `${ENDPOINT}/v1/metrics`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(buildOtlpBody(seq)),
+        });
+        if (!res.ok) {
+          lastStatus.ok = false;
+          lastStatus.lastError = `http_${res.status}`;
+          return;
+        }
+        lastStatus.ok = true;
+        lastStatus.emitted += 1;
+        lastStatus.lastError = null;
+      } catch (err) {
+        lastStatus.ok = false;
+        lastStatus.lastError = err instanceof Error ? err.message : String(err);
+      }
+    }
+
+    const server = http.createServer((req, res) => {
+      if (req.url === '/healthz' || req.url === '/readyz') {
+        const gate = emitGate();
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({
+          status: 'ok',
+          probe: req.url.slice(1),
+          database: 'none-synthetic',
+          instanceId: INSTANCE,
+          emitEnabled: gate.enabled,
+          emitGate: gate,
+          containmentActive: containmentActive(),
+          emitFlagsDir: EMIT_FLAGS_DIR || null,
+          lastStatus,
+        }));
+        return;
+      }
+      res.writeHead(404);
+      res.end();
+    });
+
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(JSON.stringify({
+        msg: 'cine-exp3 synthetic heartbeat emitter up',
+        port: PORT,
+        endpoint: ENDPOINT,
+        instanceId: INSTANCE,
+        intervalMs: INTERVAL_MS,
+        emitFlagsDir: EMIT_FLAGS_DIR || null,
+      }));
+    });
+
+    await emitOnce();
+    setInterval(() => { void emitOnce(); }, INTERVAL_MS);

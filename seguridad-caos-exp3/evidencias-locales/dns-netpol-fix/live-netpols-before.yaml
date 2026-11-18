@@ -1,0 +1,146 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"NetworkPolicy","metadata":{"annotations":{},"labels":{"cine.security.chaos/lab":"cine-seguridad-exp3"},"name":"cine-exp3-allow-dns","namespace":"cine-seguridad-exp3"},"spec":{"egress":[{"ports":[{"port":53,"protocol":"UDP"},{"port":53,"protocol":"TCP"}],"to":[{"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"kube-system"}}}]}],"podSelector":{},"policyTypes":["Egress"]}}
+    creationTimestamp: "2026-11-18T16:51:43Z"
+    generation: 1
+    labels:
+      cine.security.chaos/lab: cine-seguridad-exp3
+    name: cine-exp3-allow-dns
+    namespace: cine-seguridad-exp3
+    resourceVersion: "1795020703892463008"
+    uid: 8d417ad5-891c-4c78-8416-dd9622b8f1d6
+  spec:
+    egress:
+    - ports:
+      - port: 53
+        protocol: UDP
+      - port: 53
+        protocol: TCP
+      to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+    podSelector: {}
+    policyTypes:
+    - Egress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"NetworkPolicy","metadata":{"annotations":{},"labels":{"cine.security.chaos/lab":"cine-seguridad-exp3"},"name":"cine-exp3-allow-emitter-to-receiver","namespace":"cine-seguridad-exp3"},"spec":{"egress":[{"ports":[{"port":4319,"protocol":"TCP"}],"to":[{"podSelector":{"matchLabels":{"cine.security.chaos/role":"otlp-receiver"}}}]}],"ingress":[{"from":[{"ipBlock":{"cidr":"10.85.128.0/17"}}],"ports":[{"port":8080,"protocol":"TCP"}]},{"from":[{"ipBlock":{"cidr":"10.128.0.0/20"}}],"ports":[{"port":8080,"protocol":"TCP"}]}],"podSelector":{"matchLabels":{"cine.security.chaos/role":"telemetry-emitter"}},"policyTypes":["Egress","Ingress"]}}
+    creationTimestamp: "2026-11-18T16:51:44Z"
+    generation: 1
+    labels:
+      cine.security.chaos/lab: cine-seguridad-exp3
+    name: cine-exp3-allow-emitter-to-receiver
+    namespace: cine-seguridad-exp3
+    resourceVersion: "1795020704290127001"
+    uid: 05655f94-e93e-45aa-87d7-8b9217ebfdaf
+  spec:
+    egress:
+    - ports:
+      - port: 4319
+        protocol: TCP
+      to:
+      - podSelector:
+          matchLabels:
+            cine.security.chaos/role: otlp-receiver
+    ingress:
+    - from:
+      - ipBlock:
+          cidr: 10.85.128.0/17
+      ports:
+      - port: 8080
+        protocol: TCP
+    - from:
+      - ipBlock:
+          cidr: 10.128.0.0/20
+      ports:
+      - port: 8080
+        protocol: TCP
+    podSelector:
+      matchLabels:
+        cine.security.chaos/role: telemetry-emitter
+    policyTypes:
+    - Egress
+    - Ingress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"NetworkPolicy","metadata":{"annotations":{},"labels":{"cine.security.chaos/lab":"cine-seguridad-exp3"},"name":"cine-exp3-allow-receiver-ingress","namespace":"cine-seguridad-exp3"},"spec":{"egress":[{"ports":[{"port":53,"protocol":"UDP"},{"port":53,"protocol":"TCP"}],"to":[{"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"kube-system"}}}]}],"ingress":[{"from":[{"podSelector":{"matchLabels":{"cine.security.chaos/role":"telemetry-emitter"}}}],"ports":[{"port":4319,"protocol":"TCP"}]},{"from":[{"ipBlock":{"cidr":"10.85.128.0/17"}}],"ports":[{"port":4319,"protocol":"TCP"}]},{"from":[{"ipBlock":{"cidr":"10.128.0.0/20"}}],"ports":[{"port":4319,"protocol":"TCP"}]}],"podSelector":{"matchLabels":{"cine.security.chaos/role":"otlp-receiver"}},"policyTypes":["Ingress","Egress"]}}
+    creationTimestamp: "2026-11-18T16:51:44Z"
+    generation: 1
+    labels:
+      cine.security.chaos/lab: cine-seguridad-exp3
+    name: cine-exp3-allow-receiver-ingress
+    namespace: cine-seguridad-exp3
+    resourceVersion: "1795020704680623003"
+    uid: 9590e268-2be3-405e-b40c-b1fa4e12a7e5
+  spec:
+    egress:
+    - ports:
+      - port: 53
+        protocol: UDP
+      - port: 53
+        protocol: TCP
+      to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+    ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            cine.security.chaos/role: telemetry-emitter
+      ports:
+      - port: 4319
+        protocol: TCP
+    - from:
+      - ipBlock:
+          cidr: 10.85.128.0/17
+      ports:
+      - port: 4319
+        protocol: TCP
+    - from:
+      - ipBlock:
+          cidr: 10.128.0.0/20
+      ports:
+      - port: 4319
+        protocol: TCP
+    podSelector:
+      matchLabels:
+        cine.security.chaos/role: otlp-receiver
+    policyTypes:
+    - Ingress
+    - Egress
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"NetworkPolicy","metadata":{"annotations":{},"labels":{"app.kubernetes.io/part-of":"cine-seguridad-exp3","cine.security.chaos/lab":"cine-seguridad-exp3"},"name":"cine-exp3-default-deny","namespace":"cine-seguridad-exp3"},"spec":{"podSelector":{},"policyTypes":["Ingress","Egress"]}}
+    creationTimestamp: "2026-11-18T16:51:45Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/part-of: cine-seguridad-exp3
+      cine.security.chaos/lab: cine-seguridad-exp3
+    name: cine-exp3-default-deny
+    namespace: cine-seguridad-exp3
+    resourceVersion: "1795020705091727015"
+    uid: 737b1357-0bdd-4f59-b988-40e2b4ce75c8
+  spec:
+    podSelector: {}
+    policyTypes:
+    - Ingress
+    - Egress
+kind: List
+metadata:
+  resourceVersion: ""

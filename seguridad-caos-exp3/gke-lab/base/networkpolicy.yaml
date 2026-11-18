@@ -1,0 +1,155 @@
+# Denegación por defecto + allowlist mínima. No egress a OCI/Cloud SQL/cine-caos.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cine-exp3-default-deny
+  namespace: cine-seguridad-exp3
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# DNS (GKE Autopilot: node-local-dns en 169.254.20.10 + kube-dns ClusterIP/pods)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cine-exp3-allow-dns
+  namespace: cine-seguridad-exp3
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    # Destino real en /etc/resolv.conf de los pods Autopilot
+    - to:
+        - ipBlock:
+            cidr: 169.254.20.10/32
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Fallback kube-dns Service (ClusterIP del cluster; no abre namespaces de app)
+    - to:
+        - ipBlock:
+            cidr: 34.118.224.10/32
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Pods kube-dns en kube-system (por si el path no usa solo link-local)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Emisores → receptor OTLP del lab (ClusterIP)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cine-exp3-allow-emitter-to-receiver
+  namespace: cine-seguridad-exp3
+spec:
+  podSelector:
+    matchLabels:
+      cine.security.chaos/role: "telemetry-emitter"
+  policyTypes:
+    - Egress
+    - Ingress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              cine.security.chaos/role: "otlp-receiver"
+      ports:
+        - protocol: TCP
+          port: 4319
+  ingress:
+    # Probes / health desde CIDR de pods del clúster (Autopilot)
+    - from:
+        - ipBlock:
+            cidr: 10.85.128.0/17
+      ports:
+        - protocol: TCP
+          port: 8080
+    - from:
+        - ipBlock:
+            cidr: 10.128.0.0/20
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# Receptor: acepta OTLP solo desde emisores del mismo namespace + probes
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cine-exp3-allow-receiver-ingress
+  namespace: cine-seguridad-exp3
+spec:
+  podSelector:
+    matchLabels:
+      cine.security.chaos/role: "otlp-receiver"
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              cine.security.chaos/role: "telemetry-emitter"
+      ports:
+        - protocol: TCP
+          port: 4319
+    - from:
+        - ipBlock:
+            cidr: 10.85.128.0/17
+      ports:
+        - protocol: TCP
+          port: 4319
+    - from:
+        - ipBlock:
+            cidr: 10.128.0.0/20
+      ports:
+        - protocol: TCP
+          port: 4319
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 169.254.20.10/32
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - ipBlock:
+            cidr: 34.118.224.10/32
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

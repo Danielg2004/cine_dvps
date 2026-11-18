@@ -1,38 +1,42 @@
-# Runbook R0/R1 telemetría (GKE lab) — ejecución pendiente de aprobación
+# Runbook R0 / R1 — telemetría en `cine-seguridad-exp3`
 
-## Reglas de compromiso
+## Hipótesis de control (definitiva)
 
-1. Misma inyección en R0 y R1 (`otel-exporter-disable`).
-2. No saturar con k6; no tocar Cloud SQL; no Sports AWS / Hotel OCI.
-3. Kill switch verificado en seco (`npm run security:telemetry-verify`) antes de la ventana.
-4. Marcas UTC obligatorias: `faultInjectedAtUtc`, `detectedAtUtc`, `containedAtUtc`, `telemetryRestoredAtUtc`.
+**Inyección idéntica en R0 y R1:** `emitter-b` silencioso, `emitter-a` continúa.
 
-## Mejora R0 → R1 (telemetría)
+**Mecanismo (obligatorio):** patch de `cine-exp3-emitter-b-flags` montado en `/emit-flags` — el proceso relee en cada tick.  
+**Prohibido:** `kubectl rollout restart` en inject/restore (cambia `instanceId` y anula R1; ver `METODOLOGIA-R1-RESTART-ERROR.md`).
 
-| Ronda | Detección |
-|-------|-----------|
-| R0 | Agregada (todas las instancias) |
-| R1 | Por instancia (`evaluateTelemetrySilenceByInstance`) → `lossKind` partial\|total |
+| Ronda | Única variable | Resultado esperado |
+|-------|----------------|--------------------|
+| **R0** | Detector **agregado** | **Sin ALERT** (A mantiene `lastOk`) |
+| **R1** | Detector **por instancia** | **ALERT** + `lossKind=partial` (mismo `instanceId` B armado) |
 
-## Contención observable (MTTC)
+**Prueba complementaria (no compara R0/R1):** `overlays/inject-total` (A+B silent) → ambos modos alertan; R1 `lossKind=total`.
 
-Acción verificable: crear `controls/ABORT` **o** `CINE_TELEMETRY_CHAOS_ABORT=1` en el runner.  
-Ese instante = `containedAtUtc`. **No** usar el tiempo de restore como MTTC.
+**No declarar mejora R1** hasta ALERT GKE verificable tras redeploy con flags por volumen.
 
-## Secuencia
+## Estado estable
 
-1. Steady state: healthz/readyz OK; detector armado; FP pre-inyección = 0.
-2. Aplicar overlay inject (**solo con aprobación**) + rollout lab.
-3. Registrar `faultInjectedAtUtc` cuando exporters=none efectivos.
-4. Observar ALERT → `detectedAtUtc` (MTTD).
-5. Activar kill switch → `containedAtUtc` (MTTC).
-6. Aplicar overlay baseline + confirmar heartbeats → `telemetryRestoredAtUtc`.
-7. Eliminar `controls/ABORT` tras cierre documentado.
+- A/B emitiendo; `/detector-samples` con ambas `instanceId`.
+- Detector armado; FP pre-inyección = 0.
+- DevOps `cine-caos/cine-api` **2/2** (solo lectura).
+- Duración máx. 45 min.
 
-## Scripts locales de ensayo (sin cloud)
+## Contención (ABORT)
+
+1. Crear `controls/ABORT` o `CINE_TELEMETRY_CHAOS_ABORT=1` → `abortRequestedAtUtc`.
+2. Aplicar `overlays/contain` (CONTAINMENT_ACTIVE=true) **solo** en `cine-seguridad-exp3` → `containedAtUtc`.
+3. Emisores fuerzan emisión → cesa la condición adversa.
+4. `overlays/restore` + CONTAINMENT_ACTIVE=false → baseline.
+5. `telemetryRestoredAtUtc` cuando detector vuelve OK (**≠ MTTC**).
+
+## Métricas
+
+MTTD / MTTC / restore_sec / cobertura / FP — ver `experiments/cine-telemetry-loss.design.json`.
+
+## Runner local (sin GKE)
 
 ```bash
-npm run security:telemetry-verify
-node seguridad-caos-exp3/scripts/local-inject-detect-contain.mjs
-npm run security:otlp-lab
+node seguridad-caos-exp3/scripts/exp3-lab-runner.mjs
 ```

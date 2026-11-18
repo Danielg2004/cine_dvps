@@ -1,0 +1,16 @@
+{
+  "utc": "2026-11-18T17:12:26.113Z",
+  "requests": 30,
+  "instanceIds": [
+    "cine-exp3-emitter-b-6c66d69686-x5mwx",
+    "cine-exp3-emitter-a-78c65b7cbd-j9qqq"
+  ],
+  "counts": {
+    "emitter-b": 15,
+    "emitter-a": 15
+  },
+  "sampleWindow": {
+    "first": "2026-11-18T17:08:49.765Z",
+    "last": "2026-11-18T17:12:18.961Z"
+  }
+}

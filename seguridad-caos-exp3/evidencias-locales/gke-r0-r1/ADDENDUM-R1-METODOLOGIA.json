@@ -1,0 +1,19 @@
+{
+  "generatedAtUtc": "2026-11-18T17:30:30.000Z",
+  "severity": "high",
+  "finding": "R1 no generó ALERT pese a inyección parcial efectiva a nivel de muestras recientes (B ausente / A presente).",
+  "rootCause": {
+    "summary": "La inyección usó patch de ConfigMap + rollout restart de emitter-b. El nuevo pod nace con TELEMETRY_EMIT_ENABLED=false y nunca emite; su instanceId no aparece en samples. El detector by-instance solo vio emitter-a (armado y OK), lossKind=none.",
+    "evidence": {
+      "R1-detection.instances": ["solo cine-exp3-emitter-a-..."],
+      "R1-observe notes / fault": "faultInjectedAtUtc marcado cuando recent B count=0; lastBHeartbeatBeforeFaultUtc=null en R1 (B vivo sin muestras previas para ese pod)",
+      "filter": "samples filtrados a pods vivos (correcto para evitar FP de pods viejos, pero incompatible con silence-after-restart sin armado previo)"
+    }
+  },
+  "implication": {
+    "R0": "Válido para la hipótesis de ceguera agregada: A mantuvo lastOk; alert=false; MTTD=null (no detectado).",
+    "R1": "NO valida la mejora by-instance sobre la misma falla armada. Cobertura 0 no demuestra fallo del detector, sino que B nunca armó antes del silencio.",
+    "requiredFixBeforeClaimingR1": "Inyectar silencio en el MISMO instanceId ya armado: p.ej. montar cine-exp3-emitter-b-flags como volumen y leer TELEMETRY_EMIT_ENABLED desde archivo en cada tick (igual que CONTAINMENT_ACTIVE), sin rollout restart."
+  },
+  "labStatusAtAddendum": "cine-seguridad-exp3 already deleted; no further GKE mutation without new authorization"
+}

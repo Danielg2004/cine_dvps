@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cine-exp3-otlp-receiver
+  namespace: cine-seguridad-exp3
+  labels:
+    app: cine-exp3-otlp-receiver
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/experiment: "exp3-telemetry-loss"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cine-exp3-otlp-receiver
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: cine-exp3-otlp-receiver
+        app.kubernetes.io/part-of: cine-seguridad-exp3
+        cine.security.chaos/role: "otlp-receiver"
+    spec:
+      serviceAccountName: cine-exp3-otlp-receiver
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: otlp-receiver
+          image: node:22-bookworm-slim
+          imagePullPolicy: IfNotPresent
+          command: ["node", "/lab/receiver.mjs"]
+          ports:
+            - name: otlp-http
+              containerPort: 4319
+            - name: health
+              containerPort: 4319
+          env:
+            - name: OTLP_PORT
+              value: "4319"
+          volumeMounts:
+            - name: receiver-script
+              mountPath: /lab
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: receiver-script
+          configMap:
+            name: cine-exp3-receiver-script
+            defaultMode: 0444
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi

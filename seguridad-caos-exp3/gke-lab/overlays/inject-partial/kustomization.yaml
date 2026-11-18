@@ -1,0 +1,8 @@
+# R1 inyección parcial: solo emitter-b deja de emitir. emitter-a sigue OK.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+patches:
+  - path: patch-emitter-b-flags-partial.yaml
+  - path: patch-lab-config-partial-round.yaml

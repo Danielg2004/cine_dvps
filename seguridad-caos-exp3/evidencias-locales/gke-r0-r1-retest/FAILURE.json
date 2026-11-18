@@ -1,0 +1,5 @@
+{
+  "utc": "2026-11-18T17:52:01.424Z",
+  "error": "Command failed: kubectl -n cine-seguridad-exp3 exec cine-exp3-emitter-b-7db5b8946b-s9ndm -- node -e \"eval(Buffer.from('Y29uc3QgZnM9cmVxdWlyZSgnZnMnKTtjb25zdCBwPScvY29udGFpbm1lbnQvQ09OVEFJTk1FTlRfQUNUSVZFJztjb25zb2xlLmxvZyhKU09OLnN0cmluZ2lmeSh7ZXhpc3RzOmZzLmV4aXN0c1N5bmMocCksdmFsdWU6ZnMuZXhpc3RzU3luYyhwKT9mcy5yZWFkRmlsZVN5bmMocCwndXRmOCcpLnRyaW0oKTpudWxsfSkp','base64').toString('utf8'))\"\nUnable to connect to the server: read tcp 10.33.39.131:55023->35.184.186.244:443: wsarecv: An established connection was aborted by the software in your host machine.\n",
+  "code": null
+}

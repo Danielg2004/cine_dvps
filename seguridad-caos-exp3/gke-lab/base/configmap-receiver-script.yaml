@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-exp3-receiver-script
+  namespace: cine-seguridad-exp3
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+data:
+  receiver.mjs: |
+    import http from 'node:http';
+
+    const PORT = Number(process.env.OTLP_PORT || 4319);
+    const samples = [];
+    const MAX = 500;
+    let requests = 0;
+
+    function extractHeartbeats(body) {
+      const out = [];
+      for (const rm of body.resourceMetrics || []) {
+        const resAttrs = Object.fromEntries(
+          (rm.resource?.attributes || []).map((a) => [a.key, a.value?.stringValue || a.value?.boolValue]),
+        );
+        for (const sm of rm.scopeMetrics || []) {
+          for (const m of sm.metrics || []) {
+            if (m.name !== 'cine.telemetry.heartbeat') continue;
+            for (const dp of m.sum?.dataPoints || []) {
+              out.push({
+                observedAtUtc: new Date().toISOString(),
+                serviceName: resAttrs['service.name'] || 'unknown',
+                signal: 'cine.telemetry.heartbeat',
+                heartbeatOk: true,
+                instanceId: resAttrs['service.instance.id'] || 'unknown',
+                environment: resAttrs['deployment.environment'] || 'unknown',
+                counterValue: Number(dp.asInt || dp.asDouble || 0),
+              });
+            }
+          }
+        }
+      }
+      return out;
+    }
+
+    const server = http.createServer(async (req, res) => {
+      if (req.method === 'GET' && (req.url === '/healthz' || req.url === '/readyz')) {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ status: 'ok', requests, samples: samples.length }));
+        return;
+      }
+      if (req.method === 'GET' && (req.url === '/samples' || req.url === '/detector-samples')) {
+        const instanceIds = [...new Set(samples.map((s) => s.instanceId))];
+        res.writeHead(200, { 'content-type': 'application/json' });
+        // Formato consumible por telemetry-silence-detector.mjs (--samples)
+        res.end(JSON.stringify({
+          schema: 'cine-exp3-detector-samples@1',
+          requests,
+          instanceIds,
+          samples,
+        }));
+        return;
+      }
+      if (req.method === 'POST' && (req.url === '/v1/metrics' || req.url?.startsWith('/v1/metrics'))) {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        requests += 1;
+        try {
+          const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+          const extracted = extractHeartbeats(body);
+          for (const s of extracted) {
+            samples.push(s);
+            if (samples.length > MAX) samples.shift();
+          }
+          res.writeHead(200, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ partialSuccess: {}, accepted: extracted.length }));
+        } catch (err) {
+          res.writeHead(400, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ error: String(err) }));
+        }
+        return;
+      }
+      res.writeHead(404);
+      res.end();
+    });
+
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(JSON.stringify({ msg: 'cine-exp3 otlp receiver up', port: PORT }));
+    });

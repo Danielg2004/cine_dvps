@@ -1,0 +1,68 @@
+{
+  "description": "Emitter-a OK + emitter-b silencio tras armar — inyección principal R0/R1",
+  "samples": [
+    {
+      "observedAtUtc": "2026-11-18T17:00:00.000Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "emitter-a"
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:00:00.000Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "emitter-b"
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:00:15.000Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "emitter-a"
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:00:15.000Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "emitter-b"
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:00:30.000Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "emitter-a"
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:00:45.000Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "emitter-a"
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:01:00.000Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "emitter-a"
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:01:15.000Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "emitter-a"
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:01:30.000Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "emitter-a"
+    }
+  ]
+}

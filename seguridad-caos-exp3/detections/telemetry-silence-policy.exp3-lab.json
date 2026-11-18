@@ -1,0 +1,14 @@
+{
+  "id": "cine-telemetry-silence-policy-exp3-lab@1",
+  "serviceName": "cine-exp3-telemetry",
+  "signal": "cine.telemetry.heartbeat",
+  "silenceThresholdSec": 60,
+  "armAfterSuccessfulHeartbeats": 2,
+  "requireServiceMatch": true,
+  "notes": [
+    "Política del laboratorio aislado cine-seguridad-exp3 (no cine-api DevOps).",
+    "R0/R1 principal: inyección parcial (emitter-b silencioso, emitter-a OK).",
+    "R0 usa evaluación agregada; R1 usa evaluateTelemetrySilenceByInstance.",
+    "Pérdida total A+B es prueba complementaria, no la comparación principal."
+  ]
+}

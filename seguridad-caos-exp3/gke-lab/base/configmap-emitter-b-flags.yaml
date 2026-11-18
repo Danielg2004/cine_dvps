@@ -1,0 +1,14 @@
+# Flags por instancia (emitter-b), montadas en /emit-flags.
+# Patch del ConfigMap (sin rollout) → el proceso relee en cada heartbeat.
+# Baseline = emitir OK. Overlay inject-partial = silencio; restore = OK.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-exp3-emitter-b-flags
+  namespace: cine-seguridad-exp3
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/phase: "baseline"
+data:
+  TELEMETRY_EMIT_ENABLED: "true"
+  OTEL_METRICS_EXPORTER: "otlp"

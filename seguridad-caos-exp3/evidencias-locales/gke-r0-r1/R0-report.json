@@ -1,0 +1,104 @@
+{
+  "round": "R0",
+  "mode": "aggregate",
+  "injection": "partial-b-silent-a-ok",
+  "namespace": "cine-seguridad-exp3",
+  "policyId": "cine-telemetry-silence-policy-exp3-lab@1",
+  "silenceThresholdSec": 60,
+  "timestamps": {
+    "injectRequestedAtUtc": "2026-11-18T17:17:52.835Z",
+    "faultInjectedAtUtc": "2026-11-18T17:18:12.293Z",
+    "lastBHeartbeatBeforeFaultUtc": "2026-11-18T17:16:44.867Z",
+    "detectionEvaluatedAtUtc": "2026-11-18T17:19:47.305Z",
+    "detectedAtUtc": null,
+    "abortRequestedAtUtc": "2026-11-18T17:19:47.306Z",
+    "containAppliedAtUtc": "2026-11-18T17:19:47.306Z",
+    "containedAtUtc": "2026-11-18T17:21:06.669Z",
+    "restoreAppliedAtUtc": "2026-11-18T17:21:06.670Z",
+    "telemetryRestoredAtUtc": "2026-11-18T17:21:40.965Z"
+  },
+  "detection": {
+    "detector": "cine-telemetry-silence-detector@1",
+    "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+    "serviceName": "cine-exp3-telemetry",
+    "signal": "cine.telemetry.heartbeat",
+    "evaluatedAtUtc": "2026-11-18T17:19:47.305Z",
+    "armed": true,
+    "armedAtUtc": "2026-11-18T17:08:53.920Z",
+    "lastHeartbeatOkAtUtc": "2026-11-18T17:19:34.189Z",
+    "successfulHeartbeats": 77,
+    "silenceSec": 13.116,
+    "silenceThresholdSec": 60,
+    "status": "OK",
+    "alert": false,
+    "detectedAtUtc": null,
+    "relevantSampleCount": 77,
+    "rationale": "Heartbeat dentro de umbral (silencio 13.1s ≤ 60s)."
+  },
+  "metrics": {
+    "MTTD_sec": null,
+    "detectionCoverage": 0,
+    "MTTC_sec": 174.376,
+    "restore_sec": 34.296
+  },
+  "notes": [
+    "R0 expected: aggregate no ALERT (partial blindness)"
+  ],
+  "devopsPre": {
+    "label": "R0-pre",
+    "utc": "2026-11-18T17:17:49.293Z",
+    "ready": "2/2",
+    "lb": "35.239.107.54"
+  },
+  "falsePositivesPreInject": 0,
+  "preInject": {
+    "alert": false,
+    "status": "OK"
+  },
+  "alert": false,
+  "mttd": null,
+  "containmentVerified": {
+    "emitterA": {
+      "exists": true,
+      "value": "true"
+    },
+    "emitterB": {
+      "exists": true,
+      "value": "true"
+    },
+    "recent": {
+      "windowSec": 45,
+      "aCount": 3,
+      "bCount": 1,
+      "aLast": "2026-11-18T17:21:04.217Z",
+      "bLast": "2026-11-18T17:20:58.792Z",
+      "instanceIds": [
+        "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+        "cine-exp3-emitter-b-7b6d6658cb-mzrpw"
+      ]
+    }
+  },
+  "postRestore": {
+    "alert": false,
+    "status": "OK",
+    "recent": {
+      "windowSec": 60,
+      "aCount": 4,
+      "bCount": 5,
+      "aLast": "2026-11-18T17:21:34.227Z",
+      "bLast": "2026-11-18T17:21:29.259Z",
+      "instanceIds": [
+        "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+        "cine-exp3-emitter-b-7b6d6658cb-mzrpw",
+        "cine-exp3-emitter-b-64bd98c469-z4qzr"
+      ]
+    }
+  },
+  "devopsPost": {
+    "label": "R0-post",
+    "utc": "2026-11-18T17:21:43.308Z",
+    "ready": "2/2",
+    "lb": "35.239.107.54"
+  },
+  "endedAtUtc": "2026-11-18T17:21:43.308Z"
+}

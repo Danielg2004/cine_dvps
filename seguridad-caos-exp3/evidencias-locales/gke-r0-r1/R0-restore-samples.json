@@ -1,0 +1,822 @@
+{
+  "schema": "cine-exp3-detector-samples@1",
+  "requests": 90,
+  "instanceIds": [
+    "cine-exp3-emitter-b-6c66d69686-x5mwx",
+    "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+    "cine-exp3-emitter-b-7b6d6658cb-mzrpw",
+    "cine-exp3-emitter-b-64bd98c469-z4qzr"
+  ],
+  "samples": [
+    {
+      "observedAtUtc": "2026-11-18T17:08:49.765Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 67
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:08:53.920Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 68
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:08:59.748Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 68
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:09:03.911Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 69
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:09:14.754Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 69
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:09:18.914Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 70
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:09:29.764Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 70
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:09:33.926Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 71
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:09:44.764Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 71
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:09:48.921Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 72
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:09:59.772Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 72
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:10:03.924Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 73
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:10:14.769Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 73
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:10:18.934Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 74
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:10:29.775Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 74
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:10:33.931Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 75
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:10:44.785Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 75
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:10:48.939Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 76
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:10:59.779Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 76
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:11:03.938Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 77
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:11:14.781Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 77
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:11:18.953Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 78
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:11:29.790Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 78
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:11:33.946Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 79
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:11:44.791Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 79
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:11:48.953Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 80
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:11:59.801Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 80
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:12:03.961Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 81
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:12:14.802Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 81
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:12:18.961Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 82
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:12:29.812Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 82
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:12:33.972Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 83
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:12:44.810Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 83
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:12:48.987Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 84
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:12:59.811Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 84
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:13:03.979Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 85
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:13:14.826Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 85
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:13:18.980Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 86
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:13:29.820Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 86
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:13:33.987Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 87
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:13:44.830Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 87
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:13:48.990Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 88
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:13:59.828Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 88
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:14:03.994Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 89
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:14:14.852Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 89
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:14:18.995Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 90
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:14:29.836Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 90
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:14:34.003Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 91
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:14:44.841Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 91
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:14:49.004Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 92
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:14:59.850Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 92
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:15:04.011Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 93
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:15:14.850Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 93
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:15:19.010Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 94
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:15:29.859Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 94
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:15:34.017Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 95
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:15:44.853Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 95
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:15:49.237Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 96
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:15:59.855Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 96
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:16:04.025Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 97
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:16:14.868Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 97
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:16:19.488Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 98
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:16:29.985Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 98
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:16:34.030Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 99
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:16:44.867Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-6c66d69686-x5mwx",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 99
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:16:49.235Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 100
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:17:04.147Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 101
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:17:19.238Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 102
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:17:34.158Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 103
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:17:49.236Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 104
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:18:04.168Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 105
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:18:19.237Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 106
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:18:34.177Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 107
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:18:49.235Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 108
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:19:04.182Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 109
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:19:19.485Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 110
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:19:34.189Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 111
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:19:49.485Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 112
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:20:04.199Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 113
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:20:19.487Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 114
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:20:34.207Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 115
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:20:49.389Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 116
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:20:58.792Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-7b6d6658cb-mzrpw",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 1
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:21:04.217Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 117
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:21:13.739Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-7b6d6658cb-mzrpw",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 2
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:21:14.043Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-64bd98c469-z4qzr",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 1
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:21:19.966Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 118
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:21:28.741Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-7b6d6658cb-mzrpw",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 3
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:21:29.259Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-b-64bd98c469-z4qzr",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 2
+    },
+    {
+      "observedAtUtc": "2026-11-18T17:21:34.227Z",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "heartbeatOk": true,
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "environment": "seguridad-exp3-lab",
+      "counterValue": 119
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+# Dos Deployments 1 réplica cada uno → permite pérdida parcial (R1) sin tocar cine-caos.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cine-exp3-emitter-a
+  namespace: cine-seguridad-exp3
+  labels:
+    app: cine-exp3-emitter
+    instance: emitter-a
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cine-exp3-emitter
+      instance: emitter-a
+  template:
+    metadata:
+      labels:
+        app: cine-exp3-emitter
+        instance: emitter-a
+        app.kubernetes.io/part-of: cine-seguridad-exp3
+        cine.security.chaos/role: "telemetry-emitter"
+    spec:
+      serviceAccountName: cine-exp3-emitter
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: emitter
+          image: node:22-bookworm-slim
+          imagePullPolicy: IfNotPresent
+          command: ["node", "/lab/emitter.mjs"]
+          ports:
+            - name: health
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: cine-exp3-lab-config
+          env:
+            - name: HEALTH_PORT
+              value: "8080"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: INSTANCE_LABEL
+              value: "emitter-a"
+            - name: CONTAINMENT_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: cine-exp3-containment
+                  key: CONTAINMENT_ACTIVE
+          volumeMounts:
+            - name: emitter-script
+              mountPath: /lab
+              readOnly: true
+            - name: containment
+              mountPath: /containment
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: emitter-script
+          configMap:
+            name: cine-exp3-emitter-script
+            defaultMode: 0444
+        - name: containment
+          configMap:
+            name: cine-exp3-containment
+            defaultMode: 0444
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cine-exp3-emitter-b
+  namespace: cine-seguridad-exp3
+  labels:
+    app: cine-exp3-emitter
+    instance: emitter-b
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cine-exp3-emitter
+      instance: emitter-b
+  template:
+    metadata:
+      labels:
+        app: cine-exp3-emitter
+        instance: emitter-b
+        app.kubernetes.io/part-of: cine-seguridad-exp3
+        cine.security.chaos/role: "telemetry-emitter"
+    spec:
+      serviceAccountName: cine-exp3-emitter
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: emitter
+          image: node:22-bookworm-slim
+          imagePullPolicy: IfNotPresent
+          command: ["node", "/lab/emitter.mjs"]
+          ports:
+            - name: health
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: cine-exp3-lab-config
+          env:
+            - name: HEALTH_PORT
+              value: "8080"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: INSTANCE_LABEL
+              value: "emitter-b"
+            # Inyección parcial SIN restart: lee flags desde volumen en cada tick
+            - name: EMIT_FLAGS_DIR
+              value: "/emit-flags"
+            - name: CONTAINMENT_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: cine-exp3-containment
+                  key: CONTAINMENT_ACTIVE
+          volumeMounts:
+            - name: emitter-script
+              mountPath: /lab
+              readOnly: true
+            - name: containment
+              mountPath: /containment
+              readOnly: true
+            - name: emit-flags
+              mountPath: /emit-flags
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: emitter-script
+          configMap:
+            name: cine-exp3-emitter-script
+            defaultMode: 0444
+        - name: containment
+          configMap:
+            name: cine-exp3-containment
+            defaultMode: 0444
+        - name: emit-flags
+          configMap:
+            name: cine-exp3-emitter-b-flags
+            defaultMode: 0444
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi

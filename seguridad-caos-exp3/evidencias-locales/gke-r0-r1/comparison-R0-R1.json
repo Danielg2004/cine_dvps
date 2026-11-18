@@ -1,0 +1,55 @@
+{
+  "generatedAtUtc": "2026-11-18T17:28:26.709Z",
+  "hypothesis": {
+    "R0": "aggregate blind to partial (B silent / A OK) → no ALERT",
+    "R1": "by-instance detects partial → ALERT lossKind=partial"
+  },
+  "R0": {
+    "alert": false,
+    "MTTD_sec": null,
+    "MTTC_sec": 174.376,
+    "restore_sec": 34.296,
+    "detectionCoverage": 0,
+    "falsePositivesPreInject": 0,
+    "timestamps": {
+      "injectRequestedAtUtc": "2026-11-18T17:17:52.835Z",
+      "faultInjectedAtUtc": "2026-11-18T17:18:12.293Z",
+      "lastBHeartbeatBeforeFaultUtc": "2026-11-18T17:16:44.867Z",
+      "detectionEvaluatedAtUtc": "2026-11-18T17:19:47.305Z",
+      "detectedAtUtc": null,
+      "abortRequestedAtUtc": "2026-11-18T17:19:47.306Z",
+      "containAppliedAtUtc": "2026-11-18T17:19:47.306Z",
+      "containedAtUtc": "2026-11-18T17:21:06.669Z",
+      "restoreAppliedAtUtc": "2026-11-18T17:21:06.670Z",
+      "telemetryRestoredAtUtc": "2026-11-18T17:21:40.965Z"
+    }
+  },
+  "R1": {
+    "alert": false,
+    "lossKind": "none",
+    "alertingInstanceIds": [],
+    "MTTD_sec": null,
+    "MTTC_sec": 159.519,
+    "restore_sec": 63.996,
+    "detectionCoverage": 0,
+    "falsePositivesPreInject": 0,
+    "timestamps": {
+      "injectRequestedAtUtc": "2026-11-18T17:23:42.038Z",
+      "faultInjectedAtUtc": "2026-11-18T17:24:42.098Z",
+      "lastBHeartbeatBeforeFaultUtc": null,
+      "detectionEvaluatedAtUtc": "2026-11-18T17:26:16.266Z",
+      "detectedAtUtc": null,
+      "abortRequestedAtUtc": "2026-11-18T17:26:16.267Z",
+      "containAppliedAtUtc": "2026-11-18T17:26:16.267Z",
+      "containedAtUtc": "2026-11-18T17:27:21.617Z",
+      "restoreAppliedAtUtc": "2026-11-18T17:27:21.618Z",
+      "telemetryRestoredAtUtc": "2026-11-18T17:28:25.613Z"
+    }
+  },
+  "notes": [
+    "MTTD null means no ALERT (do not coerce to 0).",
+    "MTTC uses containedAtUtc (verified), distinct from abortRequestedAtUtc and containAppliedAtUtc.",
+    "restore_sec is separate from MTTC.",
+    "Detector samples filtered to live emitter pod names to avoid FP from prior-round restarted pods."
+  ]
+}

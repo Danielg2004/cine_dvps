@@ -1,0 +1,71 @@
+{
+  "generatedAtUtc": "2026-11-18T17:53:18.216Z",
+  "hypothesis": {
+    "R0": "aggregate blind to partial → no ALERT",
+    "R1": "by-instance detects partial → ALERT lossKind=partial same instanceId"
+  },
+  "confirmed": {
+    "R0_no_alert": true,
+    "R1_alert_partial": true,
+    "identity_stable_R0": true,
+    "identity_stable_R1": true,
+    "improvement_R1_vs_R0": true
+  },
+  "R0": {
+    "alert": false,
+    "MTTD_sec": null,
+    "MTTC_sec": 182.696,
+    "restore_sec": 77.414,
+    "detectionCoverage": 0,
+    "FP": 0,
+    "identity": {
+      "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+      "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm",
+      "note": "instanceId must remain identical through inject/contain/restore (no rollout)"
+    },
+    "timestamps": {
+      "injectRequestedAtUtc": "2026-11-18T17:41:30.216Z",
+      "emitGateSilentAtUtc": "2026-11-18T17:42:03.293Z",
+      "faultInjectedAtUtc": "2026-11-18T17:42:32.683Z",
+      "lastBHeartbeatBeforeFaultUtc": "2026-11-18T17:41:38.347Z",
+      "detectionEvaluatedAtUtc": "2026-11-18T17:44:07.604Z",
+      "detectedAtUtc": null,
+      "abortRequestedAtUtc": "2026-11-18T17:44:07.605Z",
+      "containAppliedAtUtc": "2026-11-18T17:44:07.605Z",
+      "containedAtUtc": "2026-11-18T17:45:35.379Z",
+      "restoreAppliedAtUtc": "2026-11-18T17:45:35.380Z",
+      "telemetryRestoredAtUtc": "2026-11-18T17:46:52.793Z"
+    }
+  },
+  "R1": {
+    "alert": true,
+    "lossKind": "partial",
+    "alertingInstanceIds": [
+      "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+    ],
+    "MTTD_sec": 7.51,
+    "MTTC_sec": 148.071,
+    "restore_sec": 118.023,
+    "detectionCoverage": 1,
+    "FP": 0,
+    "identity": {
+      "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+      "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+    },
+    "identityAfterRestore": {
+      "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+      "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+    },
+    "timestamps": {
+      "faultInjectedAtUtc": "2026-11-18T17:48:31.007Z",
+      "detectedAtUtc": "2026-11-18T17:48:38.517Z",
+      "detectionEvaluatedAtUtc": "2026-11-18T17:50:04.632Z",
+      "abortRequestedAtUtc": "2026-11-18T17:50:04.632Z",
+      "containAppliedAtUtc": "2026-11-18T17:50:04.632Z",
+      "containedAtUtc": "2026-11-18T17:50:59.078Z",
+      "restoreAppliedAtUtc": "2026-11-18T17:52:42.896Z",
+      "telemetryRestoredAtUtc": "2026-11-18T17:52:57.101Z"
+    }
+  },
+  "priorInvalidR1": "evidencias-locales/gke-r0-r1 (restart methodology) preserved intact"
+}

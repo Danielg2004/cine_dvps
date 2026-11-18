@@ -11,8 +11,8 @@ No modifica Seguimiento 4 DevOps ni despliegues cloud en esta fase.
 | 2 Heartbeat real OTEL + puente local al detector | Hecha |
 | 3 Cadena OTLP local → adaptador externo → detector | Hecha |
 | 4 Asistente IA aislado + prompt injection R0/R1 | Hecha (harness + **corridas reales Ollama** `llama3.2:3b`) |
-| Manifiestos lab GKE (sin apply) | Preparados en `gke-lab/` |
-| Despliegue GKE / corridas reales telemetría en cluster | Pendiente autorización |
+| Manifiestos lab GKE aislado `cine-seguridad-exp3` (sin apply) | Preparados en `gke-lab/` (no usa `cine-caos`) |
+| Despliegue GKE / corridas R0-R1 telemetría en lab aislado | Pendiente autorización |
 
 **Informe individual:** `INFORME_EXPERIMENTO_3.md`. Evidencias IA: `evidencias-locales/ai-assistant/`.  
 **No incluido aún:** apply/rollout GCP, commits (hasta instrucción), Experimento 4 grupal.
@@ -67,6 +67,11 @@ npm run security:ai-test
 
 # Contención local con MTTC medible (kill switch ABORT; sin GCP)
 node seguridad-caos-exp3/scripts/local-inject-detect-contain.mjs
+
+# Runner R0/R1 telemetría (misma inyección parcial; simulación local)
+npm run security:exp3-runner
+npm run security:exp3-partial-test
+npm run security:exp3-validate-manifests
 
 # Corridas R0/R1 reales (Ollama):
 #   set CINE_AI_PROVIDER=ollama

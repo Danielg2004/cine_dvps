@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-exp3-lab-config
+  namespace: cine-seguridad-exp3
+data:
+  TELEMETRY_EMIT_ENABLED: "true"
+  OTEL_METRICS_EXPORTER: "otlp"
+  EXPERIMENT_ROUND: "baseline"

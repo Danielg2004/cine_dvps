@@ -1,0 +1,91 @@
+{
+  "ok": true,
+  "executedAtUtc": "2026-11-18T17:55:52.536Z",
+  "cloudTouched": false,
+  "namespace": "cine-seguridad-exp3",
+  "maxDurationMin": 45,
+  "policyId": "cine-telemetry-silence-policy-exp3-lab@1",
+  "silenceThresholdSecLabSim": 2,
+  "R0": {
+    "round": "R0",
+    "mode": "aggregate",
+    "injection": "partial-b-silent-a-ok",
+    "namespace": "cine-seguridad-exp3",
+    "preInject": {
+      "alert": false,
+      "status": "OK"
+    },
+    "detection": {
+      "alert": false,
+      "status": "OK",
+      "detectedAtUtc": null,
+      "silenceSec": 1
+    },
+    "events": {
+      "faultInjectedAtUtc": "2026-11-18T17:00:04.000Z",
+      "detectedAtUtc": null,
+      "abortRequestedAtUtc": "2026-11-18T17:00:09.500Z",
+      "containedAtUtc": "2026-11-18T17:00:10.000Z",
+      "telemetryRestoredAtUtc": "2026-11-18T17:00:18.000Z"
+    },
+    "metrics": {
+      "MTTD_sec": null,
+      "MTTC_sec": 6,
+      "restore_sec": 8,
+      "false_positives_pre_inject": 0
+    },
+    "postRestoreOk": true
+  },
+  "R1": {
+    "round": "R1",
+    "mode": "by-instance",
+    "injection": "partial-b-silent-a-ok",
+    "namespace": "cine-seguridad-exp3",
+    "preInject": {
+      "alert": false,
+      "lossKind": "none"
+    },
+    "detection": {
+      "alert": true,
+      "lossKind": "partial",
+      "alertingInstanceIds": [
+        "emitter-b"
+      ],
+      "evaluatedAtUtc": "2026-11-18T17:20:09.000Z"
+    },
+    "events": {
+      "faultInjectedAtUtc": "2026-11-18T17:20:04.000Z",
+      "detectedAtUtc": "2026-11-18T17:20:04.000Z",
+      "abortRequestedAtUtc": "2026-11-18T17:20:09.500Z",
+      "containedAtUtc": "2026-11-18T17:20:10.000Z",
+      "telemetryRestoredAtUtc": "2026-11-18T17:20:18.000Z"
+    },
+    "metrics": {
+      "MTTD_sec": 0,
+      "MTTC_sec": 6,
+      "restore_sec": 8,
+      "false_positives_pre_inject": 0
+    },
+    "postRestoreOk": true
+  },
+  "complementaryTotal": {
+    "name": "complementary-total-a-and-b",
+    "injection": "total-a-and-b-silent",
+    "note": "Complementaria; fuera de la comparación principal R0/R1",
+    "faultInjectedAtUtc": "2026-11-18T18:00:04.000Z",
+    "aggregateAlert": true,
+    "byInstance": {
+      "alert": true,
+      "lossKind": "total"
+    }
+  },
+  "comparison": {
+    "sameInjection": "partial-b-silent-a-ok",
+    "hypothesis": "Con B silencioso y A OK: R0 agregado no alerta; R1 por instancia alerta lossKind=partial",
+    "r0Alert": false,
+    "r1Alert": true,
+    "r1LossKind": "partial",
+    "improvementConfirmed": true
+  },
+  "note": "Simulación local; no es medición GKE."
+}

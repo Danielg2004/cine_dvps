@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-exp3-containment
+  namespace: cine-seguridad-exp3
+data:
+  CONTAINMENT_ACTIVE: "true"
+  CONTAINMENT_NOTE: "activated-by-ABORT"

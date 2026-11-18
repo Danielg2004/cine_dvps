@@ -1,0 +1,15 @@
+{
+  "utc": "2026-11-18T17:26:16.265Z",
+  "live": [
+    "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+    "cine-exp3-emitter-b-74f4d6fc98-v5ftf"
+  ],
+  "windowSec": 90,
+  "aCount": 6,
+  "bCount": 0,
+  "aLast": "2026-11-18T17:26:04.439Z",
+  "bLast": null,
+  "instanceIds": [
+    "cine-exp3-emitter-a-78c65b7cbd-j9qqq"
+  ]
+}

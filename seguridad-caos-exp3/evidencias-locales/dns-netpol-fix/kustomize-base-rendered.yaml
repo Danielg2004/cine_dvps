@@ -1,0 +1,874 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    cine.security.chaos/forbidden-targets: devops-namespace,devops-sql,devops-public-lb
+    cine.security.chaos/max-duration-min: "45"
+    cine.security.chaos/owner: exp3-individual
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/do-not-use-for-multicloud: "true"
+    cine.security.chaos/experiment: exp3-telemetry-loss
+    cine.security.chaos/isolation: required
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-seguridad-exp3
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-quota
+  namespace: cine-seguridad-exp3
+spec:
+  hard:
+    limits.cpu: "1"
+    limits.memory: 2Gi
+    pods: "6"
+    requests.cpu: 500m
+    requests.memory: 1Gi
+    services.loadbalancers: "0"
+    services.nodeports: "0"
+---
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  annotations:
+    cine.security.chaos/note: Sin binding Workload Identity a GSA de DevOps; sin Cloud
+      SQL
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/experiment: exp3-telemetry-loss
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-emitter
+  namespace: cine-seguridad-exp3
+---
+apiVersion: v1
+automountServiceAccountToken: false
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/experiment: exp3-telemetry-loss
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-otlp-receiver
+  namespace: cine-seguridad-exp3
+---
+apiVersion: v1
+data:
+  CONTAINMENT_ACTIVE: "false"
+  CONTAINMENT_NOTE: ABORT handler sets true to stop adverse silence; restore sets
+    false
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+    cine.security.chaos/role: containment
+  name: cine-exp3-containment
+  namespace: cine-seguridad-exp3
+---
+apiVersion: v1
+data:
+  OTEL_METRICS_EXPORTER: otlp
+  TELEMETRY_EMIT_ENABLED: "true"
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+    cine.security.chaos/phase: baseline
+  name: cine-exp3-emitter-b-flags
+  namespace: cine-seguridad-exp3
+---
+apiVersion: v1
+data:
+  emitter.mjs: |
+    import http from 'node:http';
+    import { readFileSync, existsSync } from 'node:fs';
+    import { hostname as osHostname } from 'node:os';
+
+    const PORT = Number(process.env.HEALTH_PORT || 8080);
+    const INTERVAL_MS = Number(process.env.CINE_TELEMETRY_HEARTBEAT_INTERVAL_MS || 15000);
+    const ENDPOINT = (process.env.OTEL_EXPORTER_OTLP_ENDPOINT || '').replace(/\/$/, '');
+    const SERVICE = process.env.OTEL_SERVICE_NAME || 'cine-exp3-telemetry';
+    const ENV = process.env.DEPLOYMENT_ENVIRONMENT || 'seguridad-exp3-lab';
+    const INSTANCE = process.env.POD_NAME || process.env.HOSTNAME || osHostname() || 'unknown';
+    const CONTAINMENT_FILE = process.env.CONTAINMENT_FILE || '/containment/CONTAINMENT_ACTIVE';
+
+    function containmentActive() {
+      try {
+        if (existsSync(CONTAINMENT_FILE)) {
+          const v = readFileSync(CONTAINMENT_FILE, 'utf8').trim().toLowerCase();
+          if (v === 'true' || v === '1') return true;
+        }
+      } catch { /* ignore */ }
+      const e = (process.env.CONTAINMENT_ACTIVE || 'false').toLowerCase();
+      return e === 'true' || e === '1';
+    }
+
+    let emitEnabled = () => {
+      // Contención ABORT: fuerza emisión y detiene la condición adversa.
+      if (containmentActive()) return true;
+      const v = (process.env.TELEMETRY_EMIT_ENABLED || 'true').toLowerCase();
+      const metrics = (process.env.OTEL_METRICS_EXPORTER || 'otlp').toLowerCase();
+      return (v === 'true' || v === '1') && metrics !== 'none';
+    };
+
+    let seq = 0;
+    let lastStatus = { ok: true, emitted: 0, skipped: 0, lastError: null };
+
+    function buildOtlpBody(counterValue) {
+      const nowNano = String(Date.now()) + '000000';
+      return {
+        resourceMetrics: [{
+          resource: {
+            attributes: [
+              { key: 'service.name', value: { stringValue: SERVICE } },
+              { key: 'service.instance.id', value: { stringValue: INSTANCE } },
+              { key: 'deployment.environment', value: { stringValue: ENV } },
+            ],
+          },
+          scopeMetrics: [{
+            metrics: [{
+              name: 'cine.telemetry.heartbeat',
+              unit: '{heartbeat}',
+              sum: {
+                aggregationTemporality: 2,
+                isMonotonic: true,
+                dataPoints: [{
+                  asInt: String(counterValue),
+                  timeUnixNano: nowNano,
+                  attributes: [
+                    { key: 'heartbeat.ok', value: { boolValue: true } },
+                    { key: 'service.instance.id', value: { stringValue: INSTANCE } },
+                  ],
+                }],
+              },
+            }],
+          }],
+        }],
+      };
+    }
+
+    async function emitOnce() {
+      if (!emitEnabled()) {
+        lastStatus.skipped += 1;
+        lastStatus.ok = true;
+        lastStatus.lastError = 'emit_disabled';
+        return;
+      }
+      if (!ENDPOINT) {
+        lastStatus.ok = false;
+        lastStatus.lastError = 'missing_endpoint';
+        return;
+      }
+      seq += 1;
+      const url = ENDPOINT.endsWith('/v1/metrics') ? ENDPOINT : `${ENDPOINT}/v1/metrics`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(buildOtlpBody(seq)),
+        });
+        if (!res.ok) {
+          lastStatus.ok = false;
+          lastStatus.lastError = `http_${res.status}`;
+          return;
+        }
+        lastStatus.ok = true;
+        lastStatus.emitted += 1;
+        lastStatus.lastError = null;
+      } catch (err) {
+        lastStatus.ok = false;
+        lastStatus.lastError = err instanceof Error ? err.message : String(err);
+      }
+    }
+
+    const server = http.createServer((req, res) => {
+      if (req.url === '/healthz' || req.url === '/readyz') {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({
+          status: 'ok',
+          probe: req.url.slice(1),
+          database: 'none-synthetic',
+          instanceId: INSTANCE,
+          emitEnabled: emitEnabled(),
+          containmentActive: containmentActive(),
+          lastStatus,
+        }));
+        return;
+      }
+      res.writeHead(404);
+      res.end();
+    });
+
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(JSON.stringify({
+        msg: 'cine-exp3 synthetic heartbeat emitter up',
+        port: PORT,
+        endpoint: ENDPOINT,
+        instanceId: INSTANCE,
+        intervalMs: INTERVAL_MS,
+      }));
+    });
+
+    await emitOnce();
+    setInterval(() => { void emitOnce(); }, INTERVAL_MS);
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-emitter-script
+  namespace: cine-seguridad-exp3
+---
+apiVersion: v1
+data:
+  APP_TRACK: seguridad-exp3
+  CINE_TELEMETRY_HEARTBEAT_ENABLED: "true"
+  CINE_TELEMETRY_HEARTBEAT_INTERVAL_MS: "15000"
+  DB_MODE: none-synthetic
+  DEPLOYMENT_ENVIRONMENT: seguridad-exp3-lab
+  EXPERIMENT_MAX_DURATION_MIN: "45"
+  EXPERIMENT_ROUND: baseline
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://cine-exp3-otlp-receiver:4319
+  OTEL_EXPORTER_OTLP_PROTOCOL: http/json
+  OTEL_LOGS_EXPORTER: none
+  OTEL_METRICS_EXPORTER: otlp
+  OTEL_SERVICE_NAME: cine-exp3-telemetry
+  OTEL_TRACES_EXPORTER: none
+  TELEMETRY_EMIT_ENABLED: "true"
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/experiment: exp3-telemetry-loss
+    cine.security.chaos/lab: cine-seguridad-exp3
+    cine.security.chaos/phase: baseline
+  name: cine-exp3-lab-config
+  namespace: cine-seguridad-exp3
+---
+apiVersion: v1
+data:
+  receiver.mjs: |
+    import http from 'node:http';
+
+    const PORT = Number(process.env.OTLP_PORT || 4319);
+    const samples = [];
+    const MAX = 500;
+    let requests = 0;
+
+    function extractHeartbeats(body) {
+      const out = [];
+      for (const rm of body.resourceMetrics || []) {
+        const resAttrs = Object.fromEntries(
+          (rm.resource?.attributes || []).map((a) => [a.key, a.value?.stringValue || a.value?.boolValue]),
+        );
+        for (const sm of rm.scopeMetrics || []) {
+          for (const m of sm.metrics || []) {
+            if (m.name !== 'cine.telemetry.heartbeat') continue;
+            for (const dp of m.sum?.dataPoints || []) {
+              out.push({
+                observedAtUtc: new Date().toISOString(),
+                serviceName: resAttrs['service.name'] || 'unknown',
+                signal: 'cine.telemetry.heartbeat',
+                heartbeatOk: true,
+                instanceId: resAttrs['service.instance.id'] || 'unknown',
+                environment: resAttrs['deployment.environment'] || 'unknown',
+                counterValue: Number(dp.asInt || dp.asDouble || 0),
+              });
+            }
+          }
+        }
+      }
+      return out;
+    }
+
+    const server = http.createServer(async (req, res) => {
+      if (req.method === 'GET' && (req.url === '/healthz' || req.url === '/readyz')) {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ status: 'ok', requests, samples: samples.length }));
+        return;
+      }
+      if (req.method === 'GET' && (req.url === '/samples' || req.url === '/detector-samples')) {
+        const instanceIds = [...new Set(samples.map((s) => s.instanceId))];
+        res.writeHead(200, { 'content-type': 'application/json' });
+        // Formato consumible por telemetry-silence-detector.mjs (--samples)
+        res.end(JSON.stringify({
+          schema: 'cine-exp3-detector-samples@1',
+          requests,
+          instanceIds,
+          samples,
+        }));
+        return;
+      }
+      if (req.method === 'POST' && (req.url === '/v1/metrics' || req.url?.startsWith('/v1/metrics'))) {
+        const chunks = [];
+        for await (const c of req) chunks.push(c);
+        requests += 1;
+        try {
+          const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+          const extracted = extractHeartbeats(body);
+          for (const s of extracted) {
+            samples.push(s);
+            if (samples.length > MAX) samples.shift();
+          }
+          res.writeHead(200, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ partialSuccess: {}, accepted: extracted.length }));
+        } catch (err) {
+          res.writeHead(400, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ error: String(err) }));
+        }
+        return;
+      }
+      res.writeHead(404);
+      res.end();
+    });
+
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(JSON.stringify({ msg: 'cine-exp3 otlp receiver up', port: PORT }));
+    });
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-receiver-script
+  namespace: cine-seguridad-exp3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: cine-exp3-emitter
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-emitter
+  namespace: cine-seguridad-exp3
+spec:
+  ports:
+  - name: health
+    port: 8080
+    protocol: TCP
+    targetPort: health
+  selector:
+    app: cine-exp3-emitter
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: cine-exp3-otlp-receiver
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-otlp-receiver
+  namespace: cine-seguridad-exp3
+spec:
+  ports:
+  - name: otlp-http
+    port: 4319
+    protocol: TCP
+    targetPort: otlp-http
+  selector:
+    app: cine-exp3-otlp-receiver
+  type: ClusterIP
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  labels:
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-limits
+  namespace: cine-seguridad-exp3
+spec:
+  limits:
+  - default:
+      cpu: 200m
+      memory: 256Mi
+    defaultRequest:
+      cpu: 50m
+      memory: 128Mi
+    max:
+      cpu: 500m
+      memory: 512Mi
+    type: Container
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cine-exp3-emitter
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+    instance: emitter-a
+  name: cine-exp3-emitter-a
+  namespace: cine-seguridad-exp3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cine-exp3-emitter
+      instance: emitter-a
+  template:
+    metadata:
+      labels:
+        app: cine-exp3-emitter
+        app.kubernetes.io/part-of: cine-seguridad-exp3
+        cine.security.chaos/lab: cine-seguridad-exp3
+        cine.security.chaos/role: telemetry-emitter
+        instance: emitter-a
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - command:
+        - node
+        - /lab/emitter.mjs
+        env:
+        - name: HEALTH_PORT
+          value: "8080"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: INSTANCE_LABEL
+          value: emitter-a
+        - name: CONTAINMENT_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              key: CONTAINMENT_ACTIVE
+              name: cine-exp3-containment
+        envFrom:
+        - configMapRef:
+            name: cine-exp3-lab-config
+        image: node:22-bookworm-slim
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 15
+        name: emitter
+        ports:
+        - containerPort: 8080
+          name: health
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        volumeMounts:
+        - mountPath: /lab
+          name: emitter-script
+          readOnly: true
+        - mountPath: /containment
+          name: containment
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      serviceAccountName: cine-exp3-emitter
+      volumes:
+      - configMap:
+          defaultMode: 292
+          name: cine-exp3-emitter-script
+        name: emitter-script
+      - configMap:
+          defaultMode: 292
+          name: cine-exp3-containment
+        name: containment
+      - emptyDir:
+          sizeLimit: 16Mi
+        name: tmp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cine-exp3-emitter
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+    instance: emitter-b
+  name: cine-exp3-emitter-b
+  namespace: cine-seguridad-exp3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cine-exp3-emitter
+      instance: emitter-b
+  template:
+    metadata:
+      labels:
+        app: cine-exp3-emitter
+        app.kubernetes.io/part-of: cine-seguridad-exp3
+        cine.security.chaos/lab: cine-seguridad-exp3
+        cine.security.chaos/role: telemetry-emitter
+        instance: emitter-b
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - command:
+        - node
+        - /lab/emitter.mjs
+        env:
+        - name: HEALTH_PORT
+          value: "8080"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: INSTANCE_LABEL
+          value: emitter-b
+        - name: TELEMETRY_EMIT_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              key: TELEMETRY_EMIT_ENABLED
+              name: cine-exp3-emitter-b-flags
+              optional: true
+        - name: OTEL_METRICS_EXPORTER
+          valueFrom:
+            configMapKeyRef:
+              key: OTEL_METRICS_EXPORTER
+              name: cine-exp3-emitter-b-flags
+              optional: true
+        - name: CONTAINMENT_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              key: CONTAINMENT_ACTIVE
+              name: cine-exp3-containment
+        envFrom:
+        - configMapRef:
+            name: cine-exp3-lab-config
+        image: node:22-bookworm-slim
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 15
+        name: emitter
+        ports:
+        - containerPort: 8080
+          name: health
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        volumeMounts:
+        - mountPath: /lab
+          name: emitter-script
+          readOnly: true
+        - mountPath: /containment
+          name: containment
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      serviceAccountName: cine-exp3-emitter
+      volumes:
+      - configMap:
+          defaultMode: 292
+          name: cine-exp3-emitter-script
+        name: emitter-script
+      - configMap:
+          defaultMode: 292
+          name: cine-exp3-containment
+        name: containment
+      - emptyDir:
+          sizeLimit: 16Mi
+        name: tmp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cine-exp3-otlp-receiver
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/experiment: exp3-telemetry-loss
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-otlp-receiver
+  namespace: cine-seguridad-exp3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cine-exp3-otlp-receiver
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: cine-exp3-otlp-receiver
+        app.kubernetes.io/part-of: cine-seguridad-exp3
+        cine.security.chaos/lab: cine-seguridad-exp3
+        cine.security.chaos/role: otlp-receiver
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - command:
+        - node
+        - /lab/receiver.mjs
+        env:
+        - name: OTLP_PORT
+          value: "4319"
+        image: node:22-bookworm-slim
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 15
+        name: otlp-receiver
+        ports:
+        - containerPort: 4319
+          name: otlp-http
+        - containerPort: 4319
+          name: health
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        volumeMounts:
+        - mountPath: /lab
+          name: receiver-script
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      serviceAccountName: cine-exp3-otlp-receiver
+      volumes:
+      - configMap:
+          defaultMode: 292
+          name: cine-exp3-receiver-script
+        name: receiver-script
+      - emptyDir:
+          sizeLimit: 16Mi
+        name: tmp
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-allow-dns
+  namespace: cine-seguridad-exp3
+spec:
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 169.254.20.10/32
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 34.118.224.10/32
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  podSelector: {}
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-allow-emitter-to-receiver
+  namespace: cine-seguridad-exp3
+spec:
+  egress:
+  - ports:
+    - port: 4319
+      protocol: TCP
+    to:
+    - podSelector:
+        matchLabels:
+          cine.security.chaos/role: otlp-receiver
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 10.85.128.0/17
+    ports:
+    - port: 8080
+      protocol: TCP
+  - from:
+    - ipBlock:
+        cidr: 10.128.0.0/20
+    ports:
+    - port: 8080
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      cine.security.chaos/role: telemetry-emitter
+  policyTypes:
+  - Egress
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-allow-receiver-ingress
+  namespace: cine-seguridad-exp3
+spec:
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 169.254.20.10/32
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 34.118.224.10/32
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          cine.security.chaos/role: telemetry-emitter
+    ports:
+    - port: 4319
+      protocol: TCP
+  - from:
+    - ipBlock:
+        cidr: 10.85.128.0/17
+    ports:
+    - port: 4319
+      protocol: TCP
+  - from:
+    - ipBlock:
+        cidr: 10.128.0.0/20
+    ports:
+    - port: 4319
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      cine.security.chaos/role: otlp-receiver
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-default-deny
+  namespace: cine-seguridad-exp3
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+

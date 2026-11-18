@@ -1,0 +1,17 @@
+{
+  "startedAtUtc": "2026-11-18T17:28:26.710Z",
+  "endedAtUtc": "2026-11-18T17:29:24.809Z",
+  "namespaceDeleted": true,
+  "devopsPre": {
+    "label": "teardown-pre",
+    "utc": "2026-11-18T17:28:27.784Z",
+    "ready": "2/2",
+    "lb": "35.239.107.54"
+  },
+  "devopsPost": {
+    "label": "teardown-post",
+    "utc": "2026-11-18T17:29:24.809Z",
+    "ready": "2/2",
+    "lb": "35.239.107.54"
+  }
+}

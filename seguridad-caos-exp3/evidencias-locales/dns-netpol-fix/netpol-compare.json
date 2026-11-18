@@ -1,0 +1,547 @@
+{
+  "changed": [],
+  "unchanged": [
+    "cine-exp3-allow-dns",
+    "cine-exp3-allow-emitter-to-receiver",
+    "cine-exp3-allow-receiver-ingress",
+    "cine-exp3-default-deny"
+  ],
+  "desiredMap": {
+    "cine-exp3-allow-dns": {
+      "egress": [
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "169.254.20.10/32"
+              }
+            }
+          ]
+        },
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "34.118.224.10/32"
+              }
+            }
+          ]
+        },
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "namespaceSelector": {
+                "matchLabels": {
+                  "kubernetes.io/metadata.name": "kube-system"
+                }
+              },
+              "podSelector": {
+                "matchLabels": {
+                  "k8s-app": "kube-dns"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "podSelector": {},
+      "policyTypes": [
+        "Egress"
+      ]
+    },
+    "cine-exp3-allow-emitter-to-receiver": {
+      "egress": [
+        {
+          "ports": [
+            {
+              "port": 4319,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "podSelector": {
+                "matchLabels": {
+                  "cine.security.chaos/role": "otlp-receiver"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "ingress": [
+        {
+          "from": [
+            {
+              "ipBlock": {
+                "cidr": "10.85.128.0/17"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 8080,
+              "protocol": "TCP"
+            }
+          ]
+        },
+        {
+          "from": [
+            {
+              "ipBlock": {
+                "cidr": "10.128.0.0/20"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 8080,
+              "protocol": "TCP"
+            }
+          ]
+        }
+      ],
+      "podSelector": {
+        "matchLabels": {
+          "cine.security.chaos/role": "telemetry-emitter"
+        }
+      },
+      "policyTypes": [
+        "Egress",
+        "Ingress"
+      ]
+    },
+    "cine-exp3-allow-receiver-ingress": {
+      "egress": [
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "169.254.20.10/32"
+              }
+            }
+          ]
+        },
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "34.118.224.10/32"
+              }
+            }
+          ]
+        },
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "namespaceSelector": {
+                "matchLabels": {
+                  "kubernetes.io/metadata.name": "kube-system"
+                }
+              },
+              "podSelector": {
+                "matchLabels": {
+                  "k8s-app": "kube-dns"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "ingress": [
+        {
+          "from": [
+            {
+              "podSelector": {
+                "matchLabels": {
+                  "cine.security.chaos/role": "telemetry-emitter"
+                }
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 4319,
+              "protocol": "TCP"
+            }
+          ]
+        },
+        {
+          "from": [
+            {
+              "ipBlock": {
+                "cidr": "10.85.128.0/17"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 4319,
+              "protocol": "TCP"
+            }
+          ]
+        },
+        {
+          "from": [
+            {
+              "ipBlock": {
+                "cidr": "10.128.0.0/20"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 4319,
+              "protocol": "TCP"
+            }
+          ]
+        }
+      ],
+      "podSelector": {
+        "matchLabels": {
+          "cine.security.chaos/role": "otlp-receiver"
+        }
+      },
+      "policyTypes": [
+        "Ingress",
+        "Egress"
+      ]
+    },
+    "cine-exp3-default-deny": {
+      "podSelector": {},
+      "policyTypes": [
+        "Ingress",
+        "Egress"
+      ]
+    }
+  },
+  "liveMap": {
+    "cine-exp3-allow-dns": {
+      "egress": [
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "169.254.20.10/32"
+              }
+            }
+          ]
+        },
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "34.118.224.10/32"
+              }
+            }
+          ]
+        },
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "namespaceSelector": {
+                "matchLabels": {
+                  "kubernetes.io/metadata.name": "kube-system"
+                }
+              },
+              "podSelector": {
+                "matchLabels": {
+                  "k8s-app": "kube-dns"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "podSelector": {},
+      "policyTypes": [
+        "Egress"
+      ]
+    },
+    "cine-exp3-allow-emitter-to-receiver": {
+      "egress": [
+        {
+          "ports": [
+            {
+              "port": 4319,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "podSelector": {
+                "matchLabels": {
+                  "cine.security.chaos/role": "otlp-receiver"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "ingress": [
+        {
+          "from": [
+            {
+              "ipBlock": {
+                "cidr": "10.85.128.0/17"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 8080,
+              "protocol": "TCP"
+            }
+          ]
+        },
+        {
+          "from": [
+            {
+              "ipBlock": {
+                "cidr": "10.128.0.0/20"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 8080,
+              "protocol": "TCP"
+            }
+          ]
+        }
+      ],
+      "podSelector": {
+        "matchLabels": {
+          "cine.security.chaos/role": "telemetry-emitter"
+        }
+      },
+      "policyTypes": [
+        "Egress",
+        "Ingress"
+      ]
+    },
+    "cine-exp3-allow-receiver-ingress": {
+      "egress": [
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "169.254.20.10/32"
+              }
+            }
+          ]
+        },
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "ipBlock": {
+                "cidr": "34.118.224.10/32"
+              }
+            }
+          ]
+        },
+        {
+          "ports": [
+            {
+              "port": 53,
+              "protocol": "UDP"
+            },
+            {
+              "port": 53,
+              "protocol": "TCP"
+            }
+          ],
+          "to": [
+            {
+              "namespaceSelector": {
+                "matchLabels": {
+                  "kubernetes.io/metadata.name": "kube-system"
+                }
+              },
+              "podSelector": {
+                "matchLabels": {
+                  "k8s-app": "kube-dns"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "ingress": [
+        {
+          "from": [
+            {
+              "podSelector": {
+                "matchLabels": {
+                  "cine.security.chaos/role": "telemetry-emitter"
+                }
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 4319,
+              "protocol": "TCP"
+            }
+          ]
+        },
+        {
+          "from": [
+            {
+              "ipBlock": {
+                "cidr": "10.85.128.0/17"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 4319,
+              "protocol": "TCP"
+            }
+          ]
+        },
+        {
+          "from": [
+            {
+              "ipBlock": {
+                "cidr": "10.128.0.0/20"
+              }
+            }
+          ],
+          "ports": [
+            {
+              "port": 4319,
+              "protocol": "TCP"
+            }
+          ]
+        }
+      ],
+      "podSelector": {
+        "matchLabels": {
+          "cine.security.chaos/role": "otlp-receiver"
+        }
+      },
+      "policyTypes": [
+        "Ingress",
+        "Egress"
+      ]
+    },
+    "cine-exp3-default-deny": {
+      "podSelector": {},
+      "policyTypes": [
+        "Ingress",
+        "Egress"
+      ]
+    }
+  }
+}

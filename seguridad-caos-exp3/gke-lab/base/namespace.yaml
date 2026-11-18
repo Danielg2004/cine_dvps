@@ -1,0 +1,14 @@
+# DO NOT APPLY until explicit authorization.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cine-seguridad-exp3
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/experiment: "exp3-telemetry-loss"
+    cine.security.chaos/isolation: "required"
+    cine.security.chaos/do-not-use-for-multicloud: "true"
+  annotations:
+    cine.security.chaos/max-duration-min: "45"
+    cine.security.chaos/owner: "exp3-individual"
+    cine.security.chaos/forbidden-targets: "devops-namespace,devops-sql,devops-public-lb"

@@ -1,0 +1,18 @@
+{
+  "detector": "cine-telemetry-silence-detector@1",
+  "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+  "serviceName": "cine-exp3-telemetry",
+  "signal": "cine.telemetry.heartbeat",
+  "evaluatedAtUtc": "2026-11-18T17:21:40.965Z",
+  "armed": true,
+  "armedAtUtc": "2026-11-18T17:08:53.920Z",
+  "lastHeartbeatOkAtUtc": "2026-11-18T17:21:34.227Z",
+  "successfulHeartbeats": 90,
+  "silenceSec": 6.738,
+  "silenceThresholdSec": 60,
+  "status": "OK",
+  "alert": false,
+  "detectedAtUtc": null,
+  "relevantSampleCount": 90,
+  "rationale": "Heartbeat dentro de umbral (silencio 6.7s ≤ 60s)."
+}

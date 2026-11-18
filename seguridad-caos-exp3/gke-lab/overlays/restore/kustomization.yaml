@@ -1,0 +1,9 @@
+# Restore baseline del lab (post-contención). NO APLICAR sin autorización.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+patches:
+  - path: patch-lab-config-restore.yaml
+  - path: patch-emitter-b-flags-restore.yaml
+  - path: patch-containment-clear.yaml

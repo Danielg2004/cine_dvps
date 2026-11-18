@@ -1,0 +1,117 @@
+{
+  "round": "R0",
+  "mode": "aggregate",
+  "injection": "partial-b-silent-a-ok",
+  "namespace": "cine-seguridad-exp3",
+  "policyId": "cine-telemetry-silence-policy-exp3-lab@1",
+  "silenceThresholdSec": 60,
+  "timestamps": {
+    "injectRequestedAtUtc": "2026-11-18T17:41:30.216Z",
+    "emitGateSilentAtUtc": "2026-11-18T17:42:03.293Z",
+    "faultInjectedAtUtc": "2026-11-18T17:42:32.683Z",
+    "lastBHeartbeatBeforeFaultUtc": "2026-11-18T17:41:38.347Z",
+    "detectionEvaluatedAtUtc": "2026-11-18T17:44:07.604Z",
+    "detectedAtUtc": null,
+    "abortRequestedAtUtc": "2026-11-18T17:44:07.605Z",
+    "containAppliedAtUtc": "2026-11-18T17:44:07.605Z",
+    "containedAtUtc": "2026-11-18T17:45:35.379Z",
+    "restoreAppliedAtUtc": "2026-11-18T17:45:35.380Z",
+    "telemetryRestoredAtUtc": "2026-11-18T17:46:52.793Z"
+  },
+  "detection": {
+    "detector": "cine-telemetry-silence-detector@1",
+    "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+    "serviceName": "cine-exp3-telemetry",
+    "signal": "cine.telemetry.heartbeat",
+    "evaluatedAtUtc": "2026-11-18T17:44:07.604Z",
+    "armed": true,
+    "armedAtUtc": "2026-11-18T17:38:38.322Z",
+    "lastHeartbeatOkAtUtc": "2026-11-18T17:44:05.816Z",
+    "successfulHeartbeats": 36,
+    "silenceSec": 1.788,
+    "silenceThresholdSec": 60,
+    "status": "OK",
+    "alert": false,
+    "detectedAtUtc": null,
+    "relevantSampleCount": 36,
+    "rationale": "Heartbeat dentro de umbral (silencio 1.8s ≤ 60s)."
+  },
+  "metrics": {
+    "MTTD_sec": null,
+    "detectionCoverage": 0,
+    "MTTC_sec": 182.696,
+    "restore_sec": 77.414
+  },
+  "notes": [
+    "R0 expected: aggregate no ALERT (partial blindness)"
+  ],
+  "devopsPre": {
+    "label": "R0-pre",
+    "utc": "2026-11-18T17:41:13.737Z",
+    "ready": "2/2",
+    "lb": "35.239.107.54"
+  },
+  "falsePositivesPreInject": 0,
+  "preInject": {
+    "alert": false,
+    "status": "OK"
+  },
+  "stableIdentity": {
+    "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+    "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm",
+    "note": "instanceId must remain identical through inject/contain/restore (no rollout)"
+  },
+  "identityAfterInject": {
+    "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+    "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "alert": false,
+  "mttd": null,
+  "containmentVerified": {
+    "emitterA": {
+      "exists": true,
+      "value": "true"
+    },
+    "emitterB": {
+      "exists": true,
+      "value": "true"
+    },
+    "recent": {
+      "windowSec": 45,
+      "aCount": 3,
+      "bCount": 1,
+      "aLast": "2026-11-18T17:45:20.776Z",
+      "bLast": "2026-11-18T17:45:23.509Z",
+      "instanceIds": [
+        "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+        "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+      ]
+    }
+  },
+  "identityAfterRestore": {
+    "emitterA": "cine-exp3-emitter-a-78c65b7cbd-5g6ss",
+    "emitterB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "postRestore": {
+    "alert": false,
+    "status": "OK",
+    "recent": {
+      "windowSec": 60,
+      "aCount": 4,
+      "bCount": 4,
+      "aLast": "2026-11-18T17:46:50.783Z",
+      "bLast": "2026-11-18T17:46:38.517Z",
+      "instanceIds": [
+        "cine-exp3-emitter-b-7db5b8946b-s9ndm",
+        "cine-exp3-emitter-a-78c65b7cbd-5g6ss"
+      ]
+    }
+  },
+  "devopsPost": {
+    "label": "R0-post",
+    "utc": "2026-11-18T17:47:01.038Z",
+    "ready": "2/2",
+    "lb": "35.239.107.54"
+  },
+  "endedAtUtc": "2026-11-18T17:47:01.038Z"
+}

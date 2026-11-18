@@ -1,0 +1,8 @@
+{
+  "applyUtc": "APPLY_TS_UTC=2026-11-18T17:08:47Z",
+  "samplesUtc": "SAMPLES_TS_UTC=2026-11-18T17:11:32Z",
+  "isolationUtc": "2026-11-18T17:11:51Z",
+  "devopsFinalUtc": "2026-11-18T17:12:07Z",
+  "devopsReady": "2/2",
+  "lbIp": "35.239.107.54"
+}

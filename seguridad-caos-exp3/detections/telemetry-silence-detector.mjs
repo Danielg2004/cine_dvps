@@ -282,10 +282,14 @@ function readJson(path) {
 }
 
 function parseArgs(argv) {
-  /** @type {Record<string, string>} */
+  /** @type {Record<string, string | boolean>} */
   const out = {};
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
+    if (a === '--by-instance') {
+      out.byInstance = true;
+      continue;
+    }
     if (a === '--samples' || a === '--policy' || a === '--now') {
       out[a.slice(2)] = argv[i + 1];
       i += 1;
@@ -298,13 +302,16 @@ function main(argv = process.argv.slice(2)) {
   try {
     const args = parseArgs(argv);
     if (!args.samples) {
-      console.error('Uso: --samples <file.json> [--policy <file.json>] [--now <isoUtc>]');
+      console.error('Uso: --samples <file.json> [--policy <file.json>] [--now <isoUtc>] [--by-instance]');
       process.exit(2);
     }
-    const samplesDoc = readJson(resolve(args.samples));
+    const samplesDoc = readJson(resolve(String(args.samples)));
     const samples = Array.isArray(samplesDoc) ? samplesDoc : samplesDoc.samples;
-    const policy = args.policy ? readJson(resolve(args.policy)) : DEFAULT_POLICY;
-    const report = evaluateTelemetrySilence(samples, policy, { nowUtc: args.now });
+    const policy = args.policy ? readJson(resolve(String(args.policy))) : DEFAULT_POLICY;
+    const nowUtc = args.now ? String(args.now) : undefined;
+    const report = args.byInstance
+      ? evaluateTelemetrySilenceByInstance(samples, policy, { nowUtc })
+      : evaluateTelemetrySilence(samples, policy, { nowUtc });
     console.log(JSON.stringify(report, null, 2));
     process.exit(report.alert ? 1 : 0);
   } catch (err) {

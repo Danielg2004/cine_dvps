@@ -1,0 +1,47 @@
+{
+  "detector": "cine-telemetry-silence-detector@1",
+  "mode": "by-instance",
+  "evaluatedAtUtc": "2026-11-18T17:26:16.266Z",
+  "aggregate": {
+    "detector": "cine-telemetry-silence-detector@1",
+    "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+    "serviceName": "cine-exp3-telemetry",
+    "signal": "cine.telemetry.heartbeat",
+    "evaluatedAtUtc": "2026-11-18T17:26:16.266Z",
+    "armed": true,
+    "armedAtUtc": "2026-11-18T17:09:03.911Z",
+    "lastHeartbeatOkAtUtc": "2026-11-18T17:26:04.439Z",
+    "successfulHeartbeats": 70,
+    "silenceSec": 11.827,
+    "silenceThresholdSec": 60,
+    "status": "OK",
+    "alert": false,
+    "detectedAtUtc": null,
+    "relevantSampleCount": 70,
+    "rationale": "Heartbeat dentro de umbral (silencio 11.8s ≤ 60s)."
+  },
+  "instances": [
+    {
+      "instanceId": "cine-exp3-emitter-a-78c65b7cbd-j9qqq",
+      "detector": "cine-telemetry-silence-detector@1",
+      "policy": "cine-telemetry-silence-policy-exp3-lab@1",
+      "serviceName": "cine-exp3-telemetry",
+      "signal": "cine.telemetry.heartbeat",
+      "evaluatedAtUtc": "2026-11-18T17:26:16.266Z",
+      "armed": true,
+      "armedAtUtc": "2026-11-18T17:09:03.911Z",
+      "lastHeartbeatOkAtUtc": "2026-11-18T17:26:04.439Z",
+      "successfulHeartbeats": 70,
+      "silenceSec": 11.827,
+      "silenceThresholdSec": 60,
+      "status": "OK",
+      "alert": false,
+      "detectedAtUtc": null,
+      "relevantSampleCount": 70,
+      "rationale": "Heartbeat dentro de umbral (silencio 11.8s ≤ 60s)."
+    }
+  ],
+  "alertingInstanceIds": [],
+  "lossKind": "none",
+  "alert": false
+}

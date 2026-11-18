@@ -18,12 +18,17 @@
     "security:ai-test": "vitest run tests/seguridad-caos-ai-assistant.test.ts",
     "security:ai-lab": "node seguridad-caos-exp3/scripts/run-ai-r0-r1.mjs",
     "security:contain-lab": "node seguridad-caos-exp3/scripts/local-inject-detect-contain.mjs",
+    "security:exp3-runner": "node seguridad-caos-exp3/scripts/exp3-lab-runner.mjs",
+    "security:exp3-validate-manifests": "node seguridad-caos-exp3/gke-lab/validate-local.mjs",
+    "security:exp3-partial-test": "vitest run tests/seguridad-caos-exp3-r0-r1-partial.test.ts",
     "chaos:lab": "tsx scripts/chaos/local-inprocess-lab.ts",
     "chaos:lab:http": "powershell -File scripts/chaos/run-http-series-v2.ps1",
     "chaos:lab:k6": "powershell -File scripts/chaos/run-k6-series-v3.ps1",
     "chaos:gke:k6": "powershell -File scripts/chaos/run-k6-gke-series.ps1",
     "prepare:gcp": "powershell -File scripts/prepare-gcp-deploy.ps1",
-    "start": "tsx --import @opentelemetry/instrumentation/hook.mjs --import ./src/observability/instrumentation.ts src/server.ts"
+    "start": "tsx --import @opentelemetry/instrumentation/hook.mjs --import ./src/observability/instrumentation.ts src/server.ts",
+    "security:exp3-gke-runner": "node seguridad-caos-exp3/scripts/exp3-gke-r0-r1-runner.mjs",
+    "security:exp3-emit-gate-test": "vitest run tests/seguridad-caos-exp3-emit-gate-stable-id.test.ts"
   },
   "keywords": [],
   "author": "",

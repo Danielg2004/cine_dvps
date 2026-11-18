@@ -1,0 +1,33 @@
+{
+  "experiment": "cine-seguridad-exp3 GKE R0/R1 retest (volume inject, stable identity)",
+  "completedAtUtc": "2026-11-18T17:54:14.511Z",
+  "experiment3IndividualComplete": true,
+  "improvementConfirmedGke": true,
+  "evidenceDir": "seguridad-caos-exp3/evidencias-locales/gke-r0-r1-retest",
+  "priorInvalidEvidencePreserved": "seguridad-caos-exp3/evidencias-locales/gke-r0-r1",
+  "R0": {
+    "alert": false,
+    "MTTD_sec": null,
+    "MTTC_sec": 182.696,
+    "restore_sec": 77.414,
+    "detectionCoverage": 0,
+    "falsePositivesPreInject": 0,
+    "stableIdentityB": "cine-exp3-emitter-b-7db5b8946b-s9ndm"
+  },
+  "R1": {
+    "alert": true,
+    "lossKind": "partial",
+    "alertingInstanceIds": ["cine-exp3-emitter-b-7db5b8946b-s9ndm"],
+    "MTTD_sec": 7.51,
+    "MTTC_sec": 148.071,
+    "restore_sec": 118.023,
+    "detectionCoverage": 1,
+    "falsePositivesPreInject": 0,
+    "identityStable": true
+  },
+  "teardown": {
+    "namespaceDeleted": true,
+    "devopsReady": "2/2",
+    "lbIp": "35.239.107.54"
+  }
+}

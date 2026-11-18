@@ -1,69 +1,84 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "experiment_id": "cine-security-telemetry-loss-v1",
-  "title": "Pérdida controlada de telemetría OTEL — Experimento 3 (diseño)",
+  "title": "Pérdida controlada de telemetría OTEL — Experimento 3 (diseño corregido)",
   "status": "LOCAL_LAB_READY_GKE_NOT_EXECUTED",
-  "service": "cine-api",
-  "blast_radius": "Solo export OTEL de cine-api; no SQL, no LB, no Sports/Hotel",
+  "service": "cine-exp3-telemetry",
+  "lab_namespace": "cine-seguridad-exp3",
+  "blast_radius": "Solo namespace cine-seguridad-exp3; no cine-caos; no SQL; no LB; no Sports/Hotel; no collector OCI",
   "signal": "cine.telemetry.heartbeat",
   "injection_method": {
-    "id": "otel-exporter-disable",
-    "description": "Misma falla en R0 y R1: deshabilitar export OTEL vía ConfigMap (OTEL_TRACES_EXPORTER=none y OTEL_METRICS_EXPORTER=none) + rollout. Alternativa equivalente: OTEL_SDK_DISABLED=true.",
+    "id": "partial-emitter-b-silence-volume-flags",
+    "description": "MISMA inyección en R0 y R1: patch ConfigMap cine-exp3-emitter-b-flags montado en /emit-flags (TELEMETRY_EMIT_ENABLED=false / OTEL_METRICS_EXPORTER=none) mientras emitter-a continúa. SIN rollout restart — instanceId estable.",
+    "same_in_r0_and_r1": true,
     "reversible": true,
     "requires_authorization": true,
-    "not_executed_in_this_commit_phase": true
+    "forbid_rollout_restart_on_inject": true,
+    "gke_r1_retest_pending": true,
+    "prior_gke_r1_invalid_due_to_restart": "evidencias-locales/gke-r0-r1/ADDENDUM-R1-METODOLOGIA.json"
+  },
+  "complementary_test": {
+    "id": "total-a-and-b-silence",
+    "overlay": "gke-lab/overlays/inject-total",
+    "note": "Fuera de la comparación principal R0/R1; valida pérdida total y lossKind=total"
   },
   "rounds": {
     "R0": {
-      "name": "baseline_aggregate_detection",
-      "adverse_condition": "Inyección otel-exporter-disable (misma en R0/R1), detector agregado (todas las instancias mezcladas)",
-      "hypothesis": "Con detector armado, silencio de heartbeat → ALERT agregado; API healthz/películas OK",
+      "name": "aggregate_detector_blind_to_partial",
+      "adverse_condition": "Identica a R1: emitter-b silencioso, emitter-a OK",
       "detection_mode": "aggregate",
+      "hypothesis": "El detector agregado NO genera ALERT porque emitter-a mantiene lastOk dentro del umbral (ceguera a pérdida parcial)",
       "controls": [
-        "No k6 de saturación",
-        "No cambio de Cloud SQL",
-        "Kill switch verificado en seco antes",
-        "Heartbeat CINE_TELEMETRY_HEARTBEAT_ENABLED=true"
+        "Solo cine-seguridad-exp3",
+        "Kill switch ABORT → containment CONTAINMENT_ACTIVE",
+        "Sin Cloud SQL / sin OCI / sin cine-caos"
       ]
     },
     "R1": {
-      "name": "same_injection_plus_per_instance_detection",
-      "adverse_condition": "Idéntica inyección otel-exporter-disable",
-      "verifiable_improvement": "Detección por instancia (service.instance.id / POD_NAME): clasifica lossKind partial|total; permite ver una réplica muda con la otra sana",
-      "hypothesis": "Misma falla; MTTD/MTTC medibles; FP pre-inyección=0; partial vs total distinguible",
+      "name": "by_instance_detects_partial",
+      "adverse_condition": "Identica a R0: emitter-b silencioso, emitter-a OK",
       "detection_mode": "by-instance",
+      "verifiable_improvement": "evaluateTelemetrySilenceByInstance → ALERT + lossKind=partial + alertingInstanceIds incluye emitter-b",
+      "hypothesis": "Misma falla; R1 alerta y clasifica partial; MTTD/MTTC medibles; FP pre-inyección=0",
       "controls": [
         "Misma política silenceThresholdSec",
-        "Misma secuencia: armar → inyectar → detectar → contener → restaurar",
-        "evaluateTelemetrySilenceByInstance"
+        "Misma secuencia: armar → inyectar → detectar → contener → restaurar"
       ]
     }
   },
+  "containment": {
+    "trigger": "controls/ABORT o CINE_TELEMETRY_CHAOS_ABORT=1",
+    "action": "ConfigMap cine-exp3-containment CONTAINMENT_ACTIVE=true (overlay contain) — fuerza emisión y detiene la condición adversa",
+    "scope": "cine-seguridad-exp3 only",
+    "timestamps": ["abortRequestedAtUtc", "containedAtUtc"],
+    "restore_separate": "telemetryRestoredAtUtc tras detector OK + overlay restore (CONTAINMENT_ACTIVE=false, flags baseline)"
+  },
   "measurement_events": {
-    "faultInjectedAtUtc": "Instante UTC en que la falla de export queda efectiva (pods con exporters=none / SDK disabled)",
-    "detectedAtUtc": "Instante UTC en que el detector pasa a ALERT (lastOk + silenceThresholdSec)",
-    "containedAtUtc": "Instante UTC de contención: kill switch / stop de inyección (NO implica telemetría restaurada)",
-    "telemetryRestoredAtUtc": "Instante UTC en que vuelven heartbeats OK tras restore (métrica de restauración, distinta de MTTC)"
+    "faultInjectedAtUtc": "Instante en que emitter-b deja de emitir de forma efectiva",
+    "detectedAtUtc": "Primera ALERT del modo de la ronda",
+    "containedAtUtc": "Contención ABORT efectiva (CONTAINMENT_ACTIVE)",
+    "telemetryRestoredAtUtc": "Detector OK sostenido tras restore (≠ MTTC)"
   },
   "metrics": {
     "MTTD_sec": "detectedAtUtc - faultInjectedAtUtc",
-    "MTTC_sec": "containedAtUtc - faultInjectedAtUtc (contención, no restore)",
+    "MTTC_sec": "containedAtUtc - faultInjectedAtUtc",
     "restore_sec": "telemetryRestoredAtUtc - containedAtUtc",
-    "false_positives_pre_inject": "Alertas ALERT en ventana armada antes de faultInjectedAtUtc (objetivo 0)"
+    "false_positives_pre_inject": "ALERT antes de faultInjectedAtUtc (objetivo 0)"
   },
   "steady_state_hypothesis": [
-    "healthz HTTP 200",
-    "readyz ready / database up",
-    "Detector armado con ≥ armAfterSuccessfulHeartbeats",
-    "status detector OK antes de inyección"
+    "Emisores A/B ready; receptor /detector-samples recibe ambas instancias",
+    "Detector armado; status OK pre-inyección",
+    "DevOps cine-caos/cine-api permanece 2/2 (solo verificación lectura)"
   ],
   "rollback": {
     "strategy": "always",
-    "steps_documented_in": "seguridad-caos-exp3/REVERSION.md"
+    "steps_documented_in": "seguridad-caos-exp3/gke-lab/REVERSION.md"
   },
   "kill_switch": {
     "file_flag": "seguridad-caos-exp3/controls/ABORT",
     "env_flag": "CINE_TELEMETRY_CHAOS_ABORT=1",
-    "verification": "seguridad-caos-exp3/scripts/verify-kill-switch.mjs (local, sin GCP)"
-  }
+    "containment_script": "seguridad-caos-exp3/scripts/exp3-containment.mjs",
+    "verification": "seguridad-caos-exp3/scripts/verify-kill-switch.mjs"
+  },
+  "runner_local": "seguridad-caos-exp3/scripts/exp3-lab-runner.mjs"
 }

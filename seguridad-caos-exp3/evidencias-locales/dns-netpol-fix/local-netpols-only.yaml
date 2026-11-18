@@ -1,0 +1,159 @@
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-allow-dns
+  namespace: cine-seguridad-exp3
+spec:
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 169.254.20.10/32
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 34.118.224.10/32
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  podSelector: {}
+  policyTypes:
+  - Egress
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-allow-emitter-to-receiver
+  namespace: cine-seguridad-exp3
+spec:
+  egress:
+  - ports:
+    - port: 4319
+      protocol: TCP
+    to:
+    - podSelector:
+        matchLabels:
+          cine.security.chaos/role: otlp-receiver
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 10.85.128.0/17
+    ports:
+    - port: 8080
+      protocol: TCP
+  - from:
+    - ipBlock:
+        cidr: 10.128.0.0/20
+    ports:
+    - port: 8080
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      cine.security.chaos/role: telemetry-emitter
+  policyTypes:
+  - Egress
+  - Ingress
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-allow-receiver-ingress
+  namespace: cine-seguridad-exp3
+spec:
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 169.254.20.10/32
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 34.118.224.10/32
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          cine.security.chaos/role: telemetry-emitter
+    ports:
+    - port: 4319
+      protocol: TCP
+  - from:
+    - ipBlock:
+        cidr: 10.85.128.0/17
+    ports:
+    - port: 4319
+      protocol: TCP
+  - from:
+    - ipBlock:
+        cidr: 10.128.0.0/20
+    ports:
+    - port: 4319
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      cine.security.chaos/role: otlp-receiver
+  policyTypes:
+  - Ingress
+  - Egress
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/lab: cine-seguridad-exp3
+  name: cine-exp3-default-deny
+  namespace: cine-seguridad-exp3
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+

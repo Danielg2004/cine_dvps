@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-exp3-lab-config
+  namespace: cine-seguridad-exp3
+data:
+  EXPERIMENT_ROUND: "inject-partial-r1"
+  # emitter-a sigue emitiendo (TELEMETRY_EMIT_ENABLED=true en baseline keys)
+  TELEMETRY_EMIT_ENABLED: "true"
+  OTEL_METRICS_EXPORTER: "otlp"

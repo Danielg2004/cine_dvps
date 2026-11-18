@@ -4,8 +4,8 @@
 
 | Riesgo | Contramedida actual | Residual |
 |--------|---------------------|----------|
-| Silencio OTEL no detectado | Heartbeat + detector + umbral 60s | Dependencia de habilitar heartbeat en pods GKE |
-| Confundir restore con MTTC | `METRICAS.md` + lab local con kill switch | GKE aún no mide MTTC real |
+| Silencio OTEL no detectado | Heartbeat + detector + umbral 60s; lab GKE retest OK | Sync volumen flags / DNS Autopilot |
+| Confundir restore con MTTC | Timestamps abort/apply/contained/restored en evidencias GKE | Disciplina de informe grupal |
 | Affectar flujo multinube | Blast radius documentado; no apply | Requiere disciplina humana en ventana GKE |
 | Kill switch no operativo | `verify-kill-switch.mjs` local | Runner GKE debe consultar ABORT/env |
 

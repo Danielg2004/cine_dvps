@@ -1,0 +1,6 @@
+{
+  "utc": "2026-11-18T17:22:58.172Z",
+  "only": "R1",
+  "project": "cine-devops-canary",
+  "context": "gke_cine-devops-canary_us-central1_cine-caos-autopilot"
+}

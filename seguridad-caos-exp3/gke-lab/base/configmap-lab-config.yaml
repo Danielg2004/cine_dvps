@@ -1,0 +1,28 @@
+# Config exclusiva del lab — no reutiliza cine-api-config ni certificados de cine-caos.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cine-exp3-lab-config
+  namespace: cine-seguridad-exp3
+  labels:
+    app.kubernetes.io/part-of: cine-seguridad-exp3
+    cine.security.chaos/experiment: "exp3-telemetry-loss"
+    cine.security.chaos/phase: "baseline"
+data:
+  APP_TRACK: "seguridad-exp3"
+  OTEL_SERVICE_NAME: "cine-exp3-telemetry"
+  DEPLOYMENT_ENVIRONMENT: "seguridad-exp3-lab"
+  # Heartbeat sintético (no es el Deployment DevOps)
+  CINE_TELEMETRY_HEARTBEAT_ENABLED: "true"
+  CINE_TELEMETRY_HEARTBEAT_INTERVAL_MS: "15000"
+  TELEMETRY_EMIT_ENABLED: "true"
+  # Receptor OTLP exclusivo in-cluster (ClusterIP). NO collector OCI.
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://cine-exp3-otlp-receiver:4319"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "none"
+  OTEL_LOGS_EXPORTER: "none"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/json"
+  EXPERIMENT_ROUND: "baseline"
+  EXPERIMENT_MAX_DURATION_MIN: "45"
+  # Sin Cloud SQL / sin DB DevOps
+  DB_MODE: "none-synthetic"
