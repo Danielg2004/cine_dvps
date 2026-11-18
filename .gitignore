@@ -52,3 +52,6 @@ chaos/gate-out/
 
 .venv-chaos/
 
+
+chaostoolkit.log
+
