@@ -1,7 +1,7 @@
 {
     "restoredAtUtc":  "2026-11-17T22:40:56.6104011Z",
     "replicas":  2,
-    "readyReplicas":  2,
+    "readyReplicas":  0,
     "configMap":  {
                       "BULKHEAD_MAX_CONCURRENT":  "8",
                       "ADMISSION_MAX_INFLIGHT":  "8",
